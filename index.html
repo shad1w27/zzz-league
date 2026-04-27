@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>ZZZ League: Management</title>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
+    <style>
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            background: #121212; 
+            color: #e0e0e0; 
+            margin: 0; 
+            padding: 20px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            min-height: 100vh; 
+        }
+
+        .layout { 
+            display: grid; 
+            grid-template-columns: 320px 1fr; 
+            gap: 20px; 
+            width: 100%; 
+            max-width: 1800px; 
+        }
+
+        .layout.no-admin { 
+            grid-template-columns: 1fr; 
+        }
+
+        .card { 
+            background: #1e1e1e; 
+            padding: 25px; 
+            border-radius: 12px; 
+            border: 1px solid #333; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+            height: fit-content; 
+        }
+
+        h2 { 
+            color: #ffcc00; 
+            margin-top: 0; 
+            text-transform: uppercase; 
+            font-size: 1.1em; 
+            letter-spacing: 1px; 
+            border-bottom: 1px solid #333; 
+            padding-bottom: 10px; 
+            margin-bottom: 20px; 
+        }
+        
+        input, select { 
+            background: #2d2d2d; 
+            border: 1px solid #444; 
+            color: #fff; 
+            padding: 12px; 
+            border-radius: 6px; 
+            width: 100%; 
+            box-sizing: border-box; 
+            margin-bottom: 12px; 
+        }
+        
+        button { 
+            background: #ffcc00; 
+            color: #000; 
+            border: none; 
+            padding: 14px; 
+            border-radius: 6px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            width: 100%; 
+            margin-bottom: 10px; 
+            transition: 0.2s; 
+        }
+        button:hover { background: #fff; }
+
+        .btn-finish { 
+            background: #4caf50 !important; 
+            color: white !important; 
+            margin-top: 25px; 
+        }
+
+        table { width: 100%; border-collapse: collapse; font-size: 1.1em; }
+        th { text-align: left; padding: 18px; background: #252525; color: #888; text-transform: uppercase; font-size: 0.8em; border-bottom: 2px solid #333; }
+        td { padding: 18px; border-bottom: 1px solid #2a2a2a; }
+        tr:hover { background: rgba(255, 204, 0, 0.03); }
+
+        .league-newbie { color: #00d4ff; font-weight: bold; }
+        .league-pro { color: #ff4500; font-weight: bold; text-shadow: 0 0 10px rgba(255, 69, 0, 0.3); }
+        .lvl-badge { padding: 4px 10px; border-radius: 4px; background: #333; color: #ffcc00; font-size: 0.85em; font-weight: bold; }
+        
+        .forecast-info { 
+            background: #2d2d2d; 
+            padding: 15px; 
+            border-radius: 6px; 
+            margin-bottom: 15px; 
+            border-left: 4px solid #ffcc00; 
+            font-size: 0.9em; 
+            color: #eee;
+        }
+        
+        .history-box { margin-top: 40px; border-top: 1px solid #333; padding-top: 25px; }
+        .history-item { font-size: 0.95em; color: #aaa; margin-bottom: 10px; border-bottom: 1px solid #222; }
+        .gain { color: #4caf50; font-weight: bold; } 
+        .loss { color: #f44336; font-weight: bold; }
+
+        .admin-only { display: none; }
+        .btn-login { background: transparent; color: #444; border: 1px solid #222; width: auto; padding: 10px 20px; margin-top: 60px; font-size: 0.8em; }
+
+        .edit-btn { cursor: pointer; margin-left: 10px; opacity: 0.5; }
+        .edit-btn:hover { opacity: 1; color: #ffcc00; }
+
+        .btn-del { 
+            background: #333; 
+            color: #ff4444; 
+            padding: 6px 12px; 
+            font-size: 0.75em; 
+            border-radius: 4px; 
+            width: auto; 
+            border: 1px solid #444;
+        }
+        .btn-del:hover { background: #ff4444; color: #fff; }
+    </style>
+</head>
+<body>
+
+<div class="layout no-admin" id="mainLayout">
+    
+    <div class="card admin-sidebar admin-only">
+        <h2>Управление</h2>
+        <input type="text" id="playerName" placeholder="Имя игрока">
+        <button onclick="addPlayer()">Добавить игрока</button>
+        <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
+        
+        <select id="p1Select" onchange="resetForecastUI()"></select>
+        <select id="p2Select" onchange="resetForecastUI()"></select>
+        <button onclick="calculateForecast()">📊 Прогноз матча</button>
+        
+        <div id="forecastBox" class="forecast-info" style="display:none;"></div>
+        
+        <div id="confirmBlock" style="display:none;">
+            <select id="matchResult">
+                <option value="1">Победил Игрок 1</option>
+                <option value="0">Победил Игрок 2</option>
+            </select>
+            <button onclick="playMatch()">Записать результат</button>
+        </div>
+
+        <button class="btn-finish" onclick="finalizeTournament()">✅ ЗАВЕРШИТЬ ТУРНИР</button>
+        
+        <button onclick="logout()" style="background:#333; color:#888; font-size:0.8em; margin-top:15px;">Выйти</button>
+    </div>
+
+    <div class="card table-container">
+        <h2>Турнирная Таблица ZZZ</h2>
+        <table id="leaderboard">
+            <thead>
+                <tr>
+                    <th>Лига</th>
+                    <th>Игрок</th>
+                    <th>ELO</th>
+                    <th>Уровень</th>
+                    <th class="admin-only">Действия</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <div class="history-box">
+            <h2>Последние игры</h2>
+            <div id="logItems"></div>
+            <button class="admin-only" onclick="clearHistory()" style="width: auto; padding: 5px 15px; font-size: 0.7em; background: #222; color: #555; margin-top:10px;">Очистить логи</button>
+        </div>
+    </div>
+
+</div>
+
+<button class="btn-login" id="loginBtn" onclick="login()">Admin Login</button>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyAlcnUiLJ1cq7ekCQFi_NOPAQ6UiG92ZqM",
+        databaseURL: "https://zzz-league-default-rtdb.firebaseio.com",
+        projectId: "zzz-league"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const auth = firebase.auth();
+    
+    let isAdmin = false;
+    let players = [];
+
+    auth.onAuthStateChanged((user) => {
+        isAdmin = !!user;
+        const layout = document.getElementById('mainLayout');
+        layout.className = isAdmin ? 'layout' : 'layout no-admin';
+        updateUI();
+    });
+
+    db.ref('players').on('value', (snapshot) => {
+        const data = snapshot.val();
+        players = data ? Object.values(data) : [];
+        updateUI();
+    });
+
+    db.ref('history').limitToLast(10).on('value', (snapshot) => {
+        const log = document.getElementById('logItems');
+        const data = snapshot.val();
+        if (!data) { log.innerHTML = "Игр пока нет"; return; }
+        log.innerHTML = Object.values(data).reverse().map(m => `
+            <div class="history-item"><b>${m.p1}</b> vs <b>${m.p2}</b>: <span class="${m.change > 0 ? 'gain' : 'loss'}">${m.change > 0 ? '+' : ''}${m.change} ELO</span></div>
+        `).join('');
+    });
+
+    async function login() {
+        const email = prompt("Email:");
+        const pass = prompt("Пароль:");
+        if(email && pass) {
+            try { await auth.signInWithEmailAndPassword(email, pass); } 
+            catch(e) { alert("Ошибка: " + e.message); }
+        }
+    }
+    function logout() { auth.signOut(); }
+
+    function updateUI() {
+        document.querySelectorAll('.admin-only').forEach(el => {
+            el.style.display = isAdmin ? (el.tagName === 'TH' || el.tagName === 'TD' ? 'table-cell' : 'block') : 'none';
+        });
+        document.getElementById('loginBtn').style.display = isAdmin ? 'none' : 'block';
+        
+        const tbody = document.querySelector('#leaderboard tbody');
+        tbody.innerHTML = "";
+        
+        [...players].sort((a,b) => b.elo - a.elo).forEach((p) => {
+            const tp = p.tournamentPoints || 0;
+            const isPro = p.isPro === true;
+            
+            let actionCell = isAdmin ? `<td class="admin-only" style="display: table-cell;"><button class="btn-del" onclick="deletePlayer('${p.name}')">Удалить</button></td>` : '';
+            let editIcon = isAdmin ? `<span class="edit-btn" onclick="manualEditElo('${p.name}', ${p.elo})">⚙️</span>` : '';
+
+            tbody.innerHTML += `<tr>
+                <td class="${isPro ? 'league-pro' : 'league-newbie'}">${isPro ? 'PRO' : 'NEWBIE'}</td>
+                <td>${p.name} ${editIcon}</td>
+                <td><b>${p.elo}</b> <small style="color:#666;">${tp !== 0 ? '('+(tp > 0 ? '+'+tp : tp)+')' : ''}</small></td>
+                <td><span class="lvl-badge">LVL ${Math.min(10, Math.max(1, Math.floor((p.elo-1000)/40)+1))}</span></td>
+                ${actionCell}
+            </tr>`;
+        });
+
+        const s1 = document.getElementById('p1Select');
+        const s2 = document.getElementById('p2Select');
+        const sel1 = s1.value; const sel2 = s2.value;
+        s1.innerHTML = ""; s2.innerHTML = "";
+        players.forEach((p, i) => {
+            let opt = `<option value="${i}">${p.name}</option>`;
+            s1.innerHTML += opt; s2.innerHTML += opt;
+        });
+        if(sel1) s1.value = sel1; if(sel2) s2.value = sel2;
+    }
+
+    function getPointsChange(p1, p2, res1) {
+        if (!p1 || !p2) return 0;
+        const ea = 1 / (1 + Math.pow(10, (p2.elo - p1.elo) / 400));
+        const k = p1.isPro ? 20 : 50;
+        let change = Math.round(k * (res1 - ea));
+        if (change === 0) change = (res1 === 1) ? 1 : -1;
+        return change;
+    }
+
+    function playMatch() {
+        if(!isAdmin) return;
+        const p1 = players[document.getElementById('p1Select').value];
+        const p2 = players[document.getElementById('p2Select').value];
+        const res = parseFloat(document.getElementById('matchResult').value);
+        if(!p1 || !p2 || p1.name === p2.name) return;
+        const c1 = getPointsChange(p1, p2, res);
+        db.ref('players/' + p1.name).update({ tournamentPoints: (p1.tournamentPoints || 0) + c1 });
+        db.ref('players/' + p2.name).update({ tournamentPoints: (p2.tournamentPoints || 0) + getPointsChange(p2, p1, 1-res) });
+        db.ref('history').push({ p1: p1.name, p2: p2.name, change: c1 });
+        resetForecastUI();
+    }
+
+    function finalizeTournament() {
+        if(!isAdmin || !confirm("Завершить турнир? Очки прибавятся к основному ELO.")) return;
+        players.forEach(p => {
+            let fElo = p.elo + (p.tournamentPoints || 0);
+            db.ref('players/' + p.name).update({ elo: fElo, tournamentPoints: 0, isPro: fElo >= 1200 });
+        });
+    }
+
+    function calculateForecast() {
+        const p1 = players[document.getElementById('p1Select').value];
+        const p2 = players[document.getElementById('p2Select').value];
+        if(!p1 || !p2 || p1.name === p2.name) return alert("Выберите разных игроков!");
+        const box = document.getElementById('forecastBox');
+        box.style.display = 'block';
+        box.innerHTML = `Победа ${p1.name}: +${getPointsChange(p1,p2,1)} / ${getPointsChange(p1,p2,0)} ELO<br>Победа ${p2.name}: +${getPointsChange(p2,p1,1)} / ${getPointsChange(p2,p1,0)} ELO`;
+        document.getElementById('confirmBlock').style.display = 'block';
+    }
+
+    function resetForecastUI() { document.getElementById('forecastBox').style.display = 'none'; document.getElementById('confirmBlock').style.display = 'none'; }
+    function addPlayer() { if(isAdmin) { const n = document.getElementById('playerName').value; if(n) db.ref('players/'+n).set({name:n, elo:1000, isPro:false, tournamentPoints: 0}); } }
+    function deletePlayer(n) { if(isAdmin && confirm("Удалить игрока " + n + "?")) db.ref('players/'+n).remove(); }
+    function manualEditElo(n, e) { if(isAdmin) { const v = prompt("Новое ELO для " + n + ":", e); if(v) db.ref('players/'+n).update({elo: parseInt(v), isPro: parseInt(v) >= 1200}); } }
+    function clearHistory() { if(isAdmin) db.ref('history').remove(); }
+</script>
+</body>
+</html>
