@@ -31,6 +31,12 @@
         .table-wrapper::-webkit-scrollbar { width: 6px; }
         .table-wrapper::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
 
+        /* СТИЛЬ ПОИСКА */
+        .search-container { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; margin-bottom: 20px; padding-bottom: 10px; }
+        .search-container h2 { border: none; margin: 0; padding: 0; }
+        .search-input { background: #252525; border: 1px solid #444; color: #fff; padding: 8px 12px; border-radius: 6px; width: 200px; font-size: 0.85em; outline: none; }
+        .search-input:focus { border-color: var(--gold); }
+
         table { width: 100%; border-collapse: collapse; }
         th { position: sticky; top: 0; background: #252525; padding: 15px; color: #888; font-size: 0.8em; text-align: left; z-index: 10; }
         td { padding: 16px 15px; border-bottom: 1px solid #252525; }
@@ -94,7 +100,10 @@
     </div>
 
     <div class="card">
-        <h2>Турнирная Таблица ZZZ</h2>
+        <div class="search-container">
+            <h2>Турнирная Таблица ZZZ</h2>
+            <input type="text" id="playerSearch" class="search-input" placeholder="Поиск игрока..." onkeyup="filterTable()">
+        </div>
         <div class="table-wrapper">
             <table id="leaderboard">
                 <thead>
@@ -158,6 +167,16 @@
         `).join('');
     });
 
+    // ФУНКЦИЯ ПОИСКА
+    function filterTable() {
+        const query = document.getElementById('playerSearch').value.toLowerCase();
+        const rows = document.querySelectorAll('#leaderboard tbody tr');
+        rows.forEach(row => {
+            const name = row.querySelector('.player-name').textContent.toLowerCase();
+            row.style.display = name.includes(query) ? "" : "none";
+        });
+    }
+
     function calculateEloChange(pA, pB, outcome) {
         const k = pA.elo >= 1200 ? 20 : 50;
         const expected = 1 / (1 + Math.pow(10, (pB.elo - pA.elo) / 400));
@@ -192,8 +211,6 @@
             const rank = i + 1;
             
             let tClass = "t-newbie", tName = "NEWBIE";
-            
-            // ИСПРАВЛЕННАЯ ЛОГИКА ОТОБРАЖЕНИЯ (С БУФЕРОМ)
             if (isHigh && elo >= 1350) { 
                 tClass = "t-high"; tName = "HIGH TIER"; 
             } else if (isMid && elo >= 1150) { 
@@ -222,13 +239,15 @@
                 </tr>`;
         });
 
-        // СЕЛЕКТЫ ОБНОВЛЯЮТСЯ ТОЛЬКО ПРИ ИЗМЕНЕНИИ СПИСКА ИГРОКОВ
         if (isAdmin && players.length !== lastPlayerCount) {
             const s1 = document.getElementById('p1Select'), s2 = document.getElementById('p2Select');
             const opts = players.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
             s1.innerHTML = opts; s2.innerHTML = opts;
             lastPlayerCount = players.length;
         }
+
+        // ПРИМЕНЯЕМ ФИЛЬТР ПОСЛЕ ОБНОВЛЕНИЯ ДАННЫХ
+        filterTable();
     }
 
     function playMatch() {
