@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Профиль Игрока - ZZZ</title>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #0f0f0f; color: #e0e0e0; display: flex; justify-content: center; padding: 40px; }
+        .profile-card { background: #1a1a1a; padding: 30px; border-radius: 20px; border: 1px solid #333; width: 100%; max-width: 500px; text-align: center; }
+        h1 { color: #ffcc00; margin-bottom: 10px; }
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 25px; }
+        .stat-item { background: #222; padding: 20px; border-radius: 12px; border: 1px solid #333; }
+        .stat-label { font-size: 0.8em; color: #888; text-transform: uppercase; margin-bottom: 5px; }
+        .stat-value { font-size: 1.5em; font-weight: bold; }
+        .winrate { color: #2eb82e; }
+        .back-btn { display: inline-block; margin-top: 30px; color: #888; text-decoration: none; font-size: 0.9em; transition: 0.2s; }
+        .back-btn:hover { color: #ffcc00; }
+    </style>
+</head>
+<body>
+
+<div class="profile-card">
+    <h1 id="profName">Загрузка...</h1>
+    <div id="profTier">---</div>
+
+    <div class="stat-grid">
+        <div class="stat-item">
+            <div class="stat-label">Всего игр</div>
+            <div id="totalGames" class="stat-value">0</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-label">Винрейт</div>
+            <div id="winRate" class="stat-value winrate">0%</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-label">Победы</div>
+            <div id="wins" class="stat-value" style="color: #2eb82e;">0</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-label">Поражения</div>
+            <div id="losses" class="stat-value" style="color: #ff4444;">0</div>
+        </div>
+    </div>
+    
+    <a href="index.html" class="back-btn">← Вернуться к таблице</a>
+</div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyAlcnUiLJ1cq7ekCQFi_NOPAQ6UiG92ZqM",
+        databaseURL: "https://zzz-league-default-rtdb.firebaseio.com",
+        projectId: "zzz-league"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // Получаем имя из ссылки: profile.html?player=Name
+    const params = new URLSearchParams(window.location.search);
+    const playerName = params.get('player');
+
+    if (playerName) {
+        document.getElementById('profName').innerText = playerName;
+        
+        // Считаем статистику по истории
+        db.ref('history').once('value', snap => {
+            const matches = snap.val() ? Object.values(snap.val()) : [];
+            let wins = 0;
+            let losses = 0;
+
+            matches.forEach(m => {
+                if (m.p1 === playerName) {
+                    if (m.change > 0) wins++; else losses++;
+                } else if (m.p2 === playerName) {
+                    if (m.change < 0) wins++; else losses++;
+                }
+            });
+
+            const total = wins + losses;
+            const wr = total > 0 ? Math.round((wins / total) * 100) : 0;
+
+            document.getElementById('totalGames').innerText = total;
+            document.getElementById('wins').innerText = wins;
+            document.getElementById('losses').innerText = losses;
+            document.getElementById('winRate').innerText = wr + '%';
+        });
+
+        // Получаем текущий тир
+        db.ref('players/' + playerName).once('value', snap => {
+            const p = snap.val();
+            if (p) {
+                let t = "NEWBIE";
+                if (p.isHighConfirmed) t = "HIGH TIER";
+                else if (p.isMidConfirmed) t = "MID TIER";
+                document.getElementById('profTier').innerText = t;
+            }
+        });
+    }
+</script>
+</body>
+</html>
