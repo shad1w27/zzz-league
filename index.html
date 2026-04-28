@@ -28,10 +28,9 @@
         h2 { color: var(--gold); text-transform: uppercase; font-size: 1.1em; letter-spacing: 2px; border-bottom: 1px solid #333; padding-bottom: 15px; margin-bottom: 20px; margin-top: 0; }
 
         .table-wrapper { max-height: 650px; overflow-y: auto; border-radius: 8px; }
-        .table-wrapper::-webkit-scrollbar { width: 6px; }
-        .table-wrapper::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        .table-wrapper::-webkit-scrollbar, #logItems::-webkit-scrollbar { width: 6px; }
+        .table-wrapper::-webkit-scrollbar-thumb, #logItems::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
 
-        /* СТИЛЬ ПОИСКА */
         .search-container { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; margin-bottom: 20px; padding-bottom: 10px; }
         .search-container h2 { border: none; margin: 0; padding: 0; }
         .search-input { background: #252525; border: 1px solid #444; color: #fff; padding: 8px 12px; border-radius: 6px; width: 200px; font-size: 0.85em; outline: none; }
@@ -73,6 +72,11 @@
         .promo-wrap { display: inline-flex; gap: 4px; margin-left: 10px; }
         .dot { width: 7px; height: 7px; border-radius: 50%; background: #333; border: 1px solid #444; }
         .dot.active { background: var(--promo-dot); box-shadow: 0 0 5px var(--promo-dot); }
+        
+        .select-filter { padding: 6px 10px; font-size: 0.8em; margin-bottom: 5px; border-color: #444; }
+
+        .history-header { position: sticky; top: 0; background: var(--bg-card); z-index: 5; padding-top: 25px; margin-top: 0; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; padding-bottom: 10px; }
+        #logItems { max-height: 200px; overflow-y: auto; margin-top: 0; padding-right: 5px; }
     </style>
 </head>
 <body>
@@ -84,7 +88,10 @@
         <button onclick="addPlayer()">Добавить игрока</button>
         <hr style="border:0; border-top:1px solid #333; margin:20px 0;">
         
+        <input type="text" id="f1" class="select-filter" placeholder="Поиск Игрока 1..." onkeyup="filterSelect('f1', 'p1Select')">
         <select id="p1Select"></select>
+        
+        <input type="text" id="f2" class="select-filter" placeholder="Поиск Игрока 2..." onkeyup="filterSelect('f2', 'p2Select')">
         <select id="p2Select"></select>
         
         <button class="btn-forecast" onclick="showForecast()">📈 Прогноз ELO</button>
@@ -102,7 +109,7 @@
     <div class="card">
         <div class="search-container">
             <h2>Турнирная Таблица ZZZ</h2>
-            <input type="text" id="playerSearch" class="search-input" placeholder="Поиск игрока..." onkeyup="filterTable()">
+            <input type="text" id="playerSearch" class="search-input" placeholder="Поиск в таблице..." onkeyup="filterTable()">
         </div>
         <div class="table-wrapper">
             <table id="leaderboard">
@@ -120,11 +127,11 @@
             </table>
         </div>
         
-        <div style="margin-top:25px; display:flex; justify-content:space-between; align-items:center;">
+        <div class="history-header">
             <h3 style="color:#555; font-size:0.8em; margin:0; letter-spacing:1px;">ИСТОРИЯ МАТЧЕЙ</h3>
             <button class="admin-only" onclick="clearHistory()" style="width:auto; padding:5px 10px; font-size:0.7em; background:#441111; color:#ff4444; border-color:#662222; margin:0;">ОЧИСТИТЬ</button>
         </div>
-        <div id="logItems" style="margin-top:10px;"></div>
+        <div id="logItems"></div>
     </div>
 </div>
 
@@ -157,7 +164,7 @@
         updateUI();
     });
 
-    db.ref('history').limitToLast(5).on('value', snap => {
+    db.ref('history').on('value', snap => {
         const data = snap.val();
         if (!data) { document.getElementById('logItems').innerHTML = ""; return; }
         document.getElementById('logItems').innerHTML = Object.values(data).reverse().map(m => `
@@ -167,7 +174,6 @@
         `).join('');
     });
 
-    // ФУНКЦИЯ ПОИСКА
     function filterTable() {
         const query = document.getElementById('playerSearch').value.toLowerCase();
         const rows = document.querySelectorAll('#leaderboard tbody tr');
@@ -177,21 +183,41 @@
         });
     }
 
+    function filterSelect(inputId, selectId) {
+        const query = document.getElementById(inputId).value.toLowerCase();
+        const select = document.getElementById(selectId);
+        const options = select.options;
+        for (let i = 0; i < options.length; i++) {
+            const text = options[i].text.toLowerCase();
+            options[i].style.display = text.includes(query) ? "" : "none";
+        }
+    }
+
     function calculateEloChange(pA, pB, outcome) {
-        const k = pA.elo >= 1200 ? 20 : 50;
-        const expected = 1 / (1 + Math.pow(10, (pB.elo - pA.elo) / 400));
-        return Math.round(k * (outcome - expected)) || (outcome === 1 ? 1 : -1);
+        const k = (pA.elo || 1000) >= 1200 ? 20 : 50;
+        const expected = 1 / (1 + Math.pow(10, ((pB.elo || 1000) - (pA.elo || 1000)) / 400));
+        let change = Math.round(k * (outcome - expected));
+        if (outcome === 1 && change <= 0) change = 1;
+        if (outcome === 0 && change >= 0) change = -1;
+        return change;
     }
 
     function showForecast() {
         const p1 = players.find(p => p.name === document.getElementById('p1Select').value);
         const p2 = players.find(p => p.name === document.getElementById('p2Select').value);
         if (!p1 || !p2 || p1.name === p2.name) return alert("Выберите разных игроков");
+        
         const win1 = calculateEloChange(p1, p2, 1);
         const loss1 = calculateEloChange(p1, p2, 0);
+        const win2 = calculateEloChange(p2, p1, 1);
+        const loss2 = calculateEloChange(p2, p1, 0);
+
         const fBox = document.getElementById('forecast');
         fBox.style.display = 'block';
-        fBox.innerHTML = `<div><span class="forecast-name">${p1.name}:</span> <span class="gain">+${win1}</span><span class="slash">/</span><span class="loss">${loss1}</span> ELO</div>`;
+        fBox.innerHTML = `
+            <div><span class="forecast-name">${p1.name}:</span> <span class="gain">+${win1}</span><span class="slash">/</span><span class="loss">${loss1}</span></div>
+            <div style="font-size:0.9em; opacity:0.7;"><span class="forecast-name">${p2.name}:</span> <span class="gain">+${win2}</span><span class="slash">/</span><span class="loss">${loss2}</span></div>
+        `;
     }
 
     function updateUI() {
@@ -200,7 +226,7 @@
         if(thAdmin) thAdmin.style.display = isAdmin ? 'table-cell' : 'none';
 
         const tbody = document.querySelector('#leaderboard tbody');
-        const sorted = [...players].sort((a,b) => b.elo - a.elo);
+        const sorted = [...players].sort((a,b) => (b.elo || 1000) - (a.elo || 1000));
         tbody.innerHTML = "";
         
         sorted.forEach((p, i) => {
@@ -211,11 +237,8 @@
             const rank = i + 1;
             
             let tClass = "t-newbie", tName = "NEWBIE";
-            if (isHigh && elo >= 1350) { 
-                tClass = "t-high"; tName = "HIGH TIER"; 
-            } else if (isMid && elo >= 1150) { 
-                tClass = "t-mid"; tName = "MID TIER"; 
-            }
+            if (isHigh && elo >= 1350) { tClass = "t-high"; tName = "HIGH TIER"; }
+            else if (isMid && elo >= 1150) { tClass = "t-mid"; tName = "MID TIER"; }
 
             let promoHtml = "";
             if (elo >= 1200 && elo < 1400 && !isMid) {
@@ -224,10 +247,11 @@
 
             const curPts = p.tournamentPoints || 0;
             const level = Math.min(10, Math.floor((elo - 1000) / 40) + 1);
+            let rankDisplay = rank === 1 ? "🥇" : (rank === 2 ? "🥈" : (rank === 3 ? "🥉" : rank));
 
             tbody.innerHTML += `
                 <tr class="${rank <= 3 ? 'top-'+rank : ''}">
-                    <td>${rank}</td>
+                    <td>${rankDisplay}</td>
                     <td><span class="tier-badge ${tClass}">${tName}</span></td>
                     <td class="player-name">${p.name} ${promoHtml}</td>
                     <td><b>${elo}</b> ${curPts !== 0 ? `<small class="${curPts > 0 ? 'gain' : 'loss'}">(${curPts > 0 ? '+' : ''}${curPts})</small>` : ''}</td>
@@ -245,8 +269,6 @@
             s1.innerHTML = opts; s2.innerHTML = opts;
             lastPlayerCount = players.length;
         }
-
-        // ПРИМЕНЯЕМ ФИЛЬТР ПОСЛЕ ОБНОВЛЕНИЯ ДАННЫХ
         filterTable();
     }
 
@@ -255,39 +277,34 @@
         const p2 = players.find(p => p.name === document.getElementById('p2Select').value);
         const res = parseFloat(document.getElementById('matchResult').value);
         if(!p1 || !p2 || p1.name === p2.name) return;
-
+        
         const c1 = calculateEloChange(p1, p2, res);
+        const c2 = calculateEloChange(p2, p1, res === 1 ? 0 : 1);
+        
         updateMatchData(p1, c1, res === 1);
-        updateMatchData(p2, -c1, res === 0);
+        updateMatchData(p2, c2, res === 0);
+        
         db.ref('history').push({ p1: p1.name, p2: p2.name, change: c1 });
         document.getElementById('forecast').style.display = 'none';
     }
 
     function updateMatchData(p, change, isWin) {
-        let streak = p.promoStreak || 0;
-        let confirmed = p.isMidConfirmed || false;
-        if (p.elo >= 1200 && !confirmed) {
+        let streak = p.promoStreak || 0, confirmed = p.isMidConfirmed || false;
+        if ((p.elo || 1000) >= 1200 && !confirmed) {
             if (isWin) { streak++; if(streak >= 3) { confirmed = true; streak = 0; } }
             else { streak = 0; }
         }
-        db.ref('players/' + p.name).update({ 
-            tournamentPoints: (p.tournamentPoints || 0) + change,
-            promoStreak: streak,
-            isMidConfirmed: confirmed
-        });
+        db.ref('players/' + p.name).update({ tournamentPoints: (p.tournamentPoints || 0) + change, promoStreak: streak, isMidConfirmed: confirmed });
     }
 
     function finalizeTournament() {
         if(!confirm("Применить изменения?")) return;
         players.forEach(p => {
             const newElo = (p.elo || 1000) + (p.tournamentPoints || 0);
-            let mStatus = p.isMidConfirmed || false;
-            let hStatus = p.isHighConfirmed || false;
-
+            let mStatus = p.isMidConfirmed || false, hStatus = p.isHighConfirmed || false;
             if (mStatus && newElo < 1150) mStatus = false;
             if (hStatus && newElo < 1350) hStatus = false;
             if (newElo >= 1400) hStatus = true;
-
             db.ref('players/' + p.name).update({ elo: newElo, tournamentPoints: 0, isMidConfirmed: mStatus, isHighConfirmed: hStatus });
         });
     }
@@ -296,12 +313,7 @@
         const v = prompt(`Установить ELO для ${n}:`, c);
         if (v !== null && !isNaN(v)) {
             const val = parseInt(v);
-            db.ref('players/'+n).update({ 
-                elo: val, 
-                isMidConfirmed: val >= 1200, 
-                isHighConfirmed: val >= 1400,
-                promoStreak: 0
-            });
+            db.ref('players/'+n).update({ elo: val, isMidConfirmed: val >= 1200, isHighConfirmed: val >= 1400, promoStreak: 0 });
         }
     }
 
