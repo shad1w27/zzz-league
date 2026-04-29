@@ -30,29 +30,17 @@
 
         body { font-family: 'Segoe UI', sans-serif; background: #0f0f0f; color: #e0e0e0; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
         .layout { display: grid; grid-template-columns: 320px 1fr; gap: 25px; width: 100%; max-width: 1400px; }
-        .layout.no-admin { grid-template-columns: 1fr; }
+        .layout.no-admin { grid-template-columns: 320px 1fr; } /* Сохраняем сетку для блока регистрации */
         
-        .card { background: var(--bg-card); padding: 25px; border-radius: 16px; border: 1px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.7); height: fit-content; }
+        @media (max-width: 800px) {
+            .layout, .layout.no-admin { grid-template-columns: 1fr; }
+        }
+
+        .card { background: var(--bg-card); padding: 25px; border-radius: 16px; border: 1px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.7); height: fit-content; margin-bottom: 20px; }
         h2 { color: var(--gold); text-transform: uppercase; font-size: 1.1em; letter-spacing: 2px; border-bottom: 1px solid #333; padding-bottom: 15px; margin-bottom: 20px; margin-top: 0; }
 
-        /* СКРОЛЛ ТАБЛИЦЫ - РОВНО НА 10 ИГРОКОВ */
-        .table-wrapper { 
-            border-radius: 8px; 
-            margin-bottom: 20px; 
-            max-height: 598px; 
-            overflow-y: auto; 
-            border: 1px solid #252525;
-            position: relative;
-        }
-
-        /* СКРОЛЛ ИСТОРИИ МАТЧЕЙ */
-        #logItems { 
-            max-height: 250px; 
-            overflow-y: auto; 
-            margin-top: 10px; 
-            padding-right: 10px;
-            border-bottom: 1px solid #222;
-        }
+        .table-wrapper { border-radius: 8px; margin-bottom: 20px; max-height: 598px; overflow-y: auto; border: 1px solid #252525; position: relative; }
+        #logItems { max-height: 250px; overflow-y: auto; margin-top: 10px; padding-right: 10px; border-bottom: 1px solid #222; }
 
         .search-container { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; margin-bottom: 20px; padding-bottom: 10px; }
         .search-container h2 { border: none; margin: 0; padding: 0; }
@@ -63,13 +51,10 @@
         th { background: #252525; padding: 15px; color: #888; font-size: 0.8em; text-align: left; position: sticky; top: 0; z-index: 100; }
         td { padding: 16px 15px; border-bottom: 1px solid #252525; }
 
-        /* ИСПРАВЛЕННОЕ СВЕЧЕНИЕ ДЛЯ ССЫЛОК В ТОП-3 */
         .top-1 { background: rgba(255, 204, 0, 0.08) !important; border-left: 4px solid var(--gold); }
         .top-1 .player-name a { color: var(--gold) !important; text-shadow: 0 0 15px rgba(255, 204, 0, 0.6); font-weight: bold; }
-        
         .top-2 { background: rgba(224, 224, 224, 0.05) !important; border-left: 4px solid var(--silver); }
         .top-2 .player-name a { color: var(--silver) !important; text-shadow: 0 0 12px rgba(224, 224, 224, 0.4); font-weight: bold; }
-        
         .top-3 { background: rgba(205, 127, 50, 0.05) !important; border-left: 4px solid var(--bronze); }
         .top-3 .player-name a { color: var(--bronze) !important; text-shadow: 0 0 12px rgba(205, 127, 50, 0.4); font-weight: bold; }
 
@@ -82,14 +67,15 @@
         .gain { color: var(--gain); font-weight: bold; }
         .loss { color: var(--loss); font-weight: bold; }
 
-        input, select { background: #252525; border: 1px solid #333; color: #fff; padding: 12px; border-radius: 8px; width: 100%; margin-bottom: 10px; }
+        input, select { background: #252525; border: 1px solid #333; color: #fff; padding: 12px; border-radius: 8px; width: 100%; margin-bottom: 10px; box-sizing: border-box; }
         
         .btn-forecast { background: var(--gold) !important; color: #000 !important; border: none; padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; box-shadow: 0 4px 15px rgba(255, 204, 0, 0.2); }
         .btn-forecast:hover { background: #ffdb4d !important; transform: translateY(-1px); }
 
-        button { background: #333; color: #fff; border: 1px solid #444; padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; margin-bottom: 5px; }
+        button { background: #333; color: #fff; border: 1px solid #444; padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; margin-bottom: 5px; transition: 0.2s; }
         button:hover { background: #444; }
         .btn-play { background: var(--gold); color: #000; border: none; }
+        .btn-play:hover { background: #ffdb4d; }
 
         .lvl-badge { padding: 3px 7px; background: #333; color: var(--gold); border-radius: 4px; font-size: 0.75em; font-weight: bold; }
         .admin-only { display: none; }
@@ -110,35 +96,50 @@
         .archive-btn:hover { background: #333; }
         .archive-del { background: #441111; color: #ff4444; border: none; padding: 8px 10px; cursor: pointer; font-size: 0.8em; border-left: 1px solid #333; display: none; }
         .archive-del:hover { background: #662222; }
+
+        #authStatus { font-size: 0.8em; margin-top: 10px; text-align: center; min-height: 1.2em; }
     </style>
 </head>
 <body>
 
 <div class="layout no-admin" id="mainLayout">
-    <div class="card admin-only">
-        <h2>Control Panel</h2>
-        <button onclick="setTimer()" style="background:#444; margin-bottom:15px;">⏳ Установить таймер</button>
-        <input type="text" id="playerName" placeholder="Имя игрока">
-        <button onclick="addPlayer()">Добавить игрока</button>
-        <hr style="border:0; border-top:1px solid #333; margin:20px 0;">
-        
-        <input type="text" id="f1" class="select-filter" placeholder="Поиск Игрока 1..." onkeyup="filterSelect('f1', 'p1Select')">
-        <select id="p1Select"></select>
-        
-        <input type="text" id="f2" class="select-filter" placeholder="Поиск Игрока 2..." onkeyup="filterSelect('f2', 'p2Select')">
-        <select id="p2Select"></select>
-        
-        <button class="btn-forecast" onclick="showForecast()">📈 Прогноз ELO</button>
-        <div class="forecast-box" id="forecast"></div>
+    <div id="sidePanel">
+        <div class="card" id="userAuthCard">
+            <h2>Вход / Регистрация</h2>
+            <input type="text" id="pNick" placeholder="Никнейм">
+            <input type="password" id="pPass" placeholder="Пароль">
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-play" onclick="handleUserAuth('login')" style="flex:1;">Войти</button>
+                <button onclick="handleUserAuth('register')" style="flex:1;">Создать</button>
+            </div>
+            <p id="authStatus"></p>
+        </div>
 
-        <select id="matchResult">
-            <option value="1">Победа Игрока 1</option>
-            <option value="0">Победа Игрока 2</option>
-        </select>
-        <button class="btn-play" onclick="playMatch()">⚔️ Записать матч</button>
-        <button onclick="finalizeTournament()" style="background:#2eb82e; color:white; border:none; margin-top:10px;">✅ Применить итоги</button>
-        <button onclick="resetSeason()" style="background:none; border:1px solid #ff4444; color:#ff4444; margin-top:10px;">📦 Сброс сезона</button>
-        <button onclick="logout()" style="background:none; color:#555; border:none; margin-top:20px;">Выйти</button>
+        <div class="card admin-only">
+            <h2>Control Panel</h2>
+            <button onclick="setTimer()" style="background:#444; margin-bottom:15px;">⏳ Установить таймер</button>
+            <input type="text" id="playerName" placeholder="Имя игрока">
+            <button onclick="addPlayer()">Добавить игрока (Admin)</button>
+            <hr style="border:0; border-top:1px solid #333; margin:20px 0;">
+            
+            <input type="text" id="f1" class="select-filter" placeholder="Поиск Игрока 1..." onkeyup="filterSelect('f1', 'p1Select')">
+            <select id="p1Select"></select>
+            
+            <input type="text" id="f2" class="select-filter" placeholder="Поиск Игрока 2..." onkeyup="filterSelect('f2', 'p2Select')">
+            <select id="p2Select"></select>
+            
+            <button class="btn-forecast" onclick="showForecast()">📈 Прогноз ELO</button>
+            <div class="forecast-box" id="forecast"></div>
+
+            <select id="matchResult">
+                <option value="1">Победа Игрока 1</option>
+                <option value="0">Победа Игрока 2</option>
+            </select>
+            <button class="btn-play" onclick="playMatch()">⚔️ Записать матч</button>
+            <button onclick="finalizeTournament()" style="background:#2eb82e; color:white; border:none; margin-top:10px;">✅ Применить итоги</button>
+            <button onclick="resetSeason()" style="background:none; border:1px solid #ff4444; color:#ff4444; margin-top:10px;">📦 Сброс сезона</button>
+            <button onclick="logout()" style="background:none; color:#555; border:none; margin-top:20px;">Выйти из Admin</button>
+        </div>
     </div>
 
     <div class="card">
@@ -184,7 +185,7 @@
     </div>
 </div>
 
-<button id="loginBtn" onclick="login()" style="background:transparent; color:#333; width:auto; border:1px solid #222; margin-top:40px;">Admin</button>
+<button id="loginBtn" onclick="login()" style="background:transparent; color:#333; width:auto; border:1px solid #222; margin-top:40px;">Admin Login</button>
 
 <script>
     const firebaseConfig = {
@@ -206,6 +207,57 @@
         document.getElementById('mainLayout').className = isAdmin ? 'layout' : 'layout no-admin';
         updateUI();
     });
+
+    // ФУНКЦИЯ РЕГИСТРАЦИИ И ЛОГИНА ПОЛЬЗОВАТЕЛЕЙ
+    function handleUserAuth(type) {
+        const nick = document.getElementById('pNick').value.trim();
+        const pass = document.getElementById('pPass').value.trim();
+        const status = document.getElementById('authStatus');
+
+        if (nick.length < 2 || pass.length < 4) {
+            status.innerText = "Ник (мин. 2) или пароль (мин. 4) слишком коротки";
+            status.style.color = "var(--loss)";
+            return;
+        }
+
+        const playerRef = db.ref('players/' + nick);
+
+        playerRef.once('value', snap => {
+            const userData = snap.val();
+
+            if (type === 'register') {
+                if (snap.exists()) {
+                    status.innerText = "Этот ник уже занят!";
+                    status.style.color = "var(--loss)";
+                } else {
+                    playerRef.set({
+                        name: nick,
+                        password: pass,
+                        elo: 1000,
+                        tournamentPoints: 0,
+                        promoStreak: 0,
+                        isMidConfirmed: false,
+                        isHighConfirmed: false
+                    }).then(() => {
+                        status.innerText = "Успешно! Вы добавлены в таблицу.";
+                        status.style.color = "var(--gain)";
+                        document.getElementById('pPass').value = "";
+                    });
+                }
+            } else if (type === 'login') {
+                if (!snap.exists()) {
+                    status.innerText = "Игрок не найден";
+                    status.style.color = "var(--loss)";
+                } else if (userData.password === pass) {
+                    status.innerText = "Вход выполнен успешно!";
+                    status.style.color = "var(--gain)";
+                } else {
+                    status.innerText = "Неверный пароль!";
+                    status.style.color = "var(--loss)";
+                }
+            }
+        });
+    }
 
     db.ref('timer').on('value', snap => {
         const endTime = snap.val();
@@ -407,13 +459,13 @@
 
     function clearHistory() { if(confirm("Очистить историю?")) db.ref('history').remove(); }
     async function login() {
-        const e = prompt("Email:"), p = prompt("Pass:");
+        const e = prompt("Admin Email:"), p = prompt("Admin Pass:");
         if(e && p) await auth.signInWithEmailAndPassword(e, p).catch(a => alert(a.message));
     }
     function logout() { auth.signOut(); }
     function addPlayer() {
         const n = document.getElementById('playerName').value.trim();
-        if(n) db.ref('players/'+n).set({name:n, elo:1000, tournamentPoints:0, promoStreak:0, isMidConfirmed:false, isHighConfirmed:false});
+        if(n) db.ref('players/'+n).set({name:n, elo:1000, password:'123', tournamentPoints:0, promoStreak:0, isMidConfirmed:false, isHighConfirmed:false});
     }
     function deletePlayer(n) { if(confirm("Удалить игрока?")) db.ref('players/'+n).remove(); }
 </script>
