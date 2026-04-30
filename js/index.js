@@ -4,9 +4,12 @@ let players = [];
 let isViewingArchive = false;
 
 auth.onAuthStateChanged(async user => {
+	console.log(user);
 	if (user) {
 		const playerRef = db.ref('players/' + user.uid);
 		const snapshot = await playerRef.once('value');
+		
+		console.log(user.uid);
 
 		if (snapshot.exists()) {
 			const userData = snapshot.val();
@@ -19,6 +22,8 @@ auth.onAuthStateChanged(async user => {
 				isMidConfirmed: userData.isMidConfirmed,
 				isHighConfirmed: userData.isHighConfirmed
 			};
+			
+			console.log(currentUser);
 
 			isAdmin = !!userData.isAdmin;
 		}
@@ -100,7 +105,8 @@ async function handleUserRegister() {
 					tournamentPoints: 0,
 					promoStreak: 0,
 					isMidConfirmed: false,
-					isHighConfirmed: false
+					isHighConfirmed: false,
+					discord: discord
 				};
 			}
 
@@ -249,7 +255,7 @@ function renderTable(dataList, hideOptions = false) {
                     <td>${i + 1}</td>
                     <td><span class="tier-badge ${tClass}">${tName}</span></td>
                     <td class="player-name">
-                        <a href="profile.html?player=${encodeURIComponent(p.name)}" style="color: inherit; text-decoration: none;">${p.name}</a> 
+                        <a href="profile.html?player=${encodeURIComponent(p.uid)}" style="color: inherit; text-decoration: none;">${p.name}</a> 
                         ${promoHtml}
                     </td>
                     <td><b>${elo}</b> ${p.tournamentPoints ? `<small class="${p.tournamentPoints > 0 ? 'gain' : 'loss'}">(${p.tournamentPoints > 0 ? '+' : ''}${p.tournamentPoints})</small>` : ''}</td>
