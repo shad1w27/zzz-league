@@ -48,6 +48,11 @@ body {
 	min-height: 100vh;
 }
 
+a {
+	text-decoration: none;
+	color: inherit;
+}
+
 .layout {
 	display: grid;
 	grid-template-columns: 320px 1fr;
@@ -166,7 +171,12 @@ td {
 	border-left: 4px solid var(--gold);
 }
 
-.top-1 .player-name a {
+.player-name button {
+	all: unset;
+	cursor: pointer;
+}
+
+.top-1 .player-name button {
 	color: var(--gold) !important;
 	text-shadow: 0 0 15px rgba(255, 204, 0, 0.6);
 	font-weight: bold;
@@ -177,7 +187,7 @@ td {
 	border-left: 4px solid var(--silver);
 }
 
-.top-2 .player-name a {
+.top-2 .player-name button {
 	color: var(--silver) !important;
 	text-shadow: 0 0 12px rgba(224, 224, 224, 0.4);
 	font-weight: bold;
@@ -188,7 +198,7 @@ td {
 	border-left: 4px solid var(--bronze);
 }
 
-.top-3 .player-name a {
+.top-3 .player-name button {
 	color: var(--bronze) !important;
 	text-shadow: 0 0 12px rgba(205, 127, 50, 0.4);
 	font-weight: bold;
@@ -223,7 +233,6 @@ td {
 	border-radius: 8px;
 	border: 1px dashed #444;
 	margin: 15px 0;
-	display: none;
 	line-height: 1.6;
 }
 
@@ -272,7 +281,7 @@ select {
 	transform: translateY(-1px);
 }
 
-button {
+.btn-common {
 	background: #333;
 	color: #fff;
 	border: 1px solid #444;
@@ -285,7 +294,7 @@ button {
 	transition: 0.2s;
 }
 
-button:hover {
+.btn-common:hover {
 	background: #444;
 }
 
@@ -438,7 +447,7 @@ button:hover {
 }
 
 .popup {
-	display: none;
+	display: flex;
 	position: fixed;
 	inset: 0;
 	background: rgba(0, 0, 0, 0.6);
@@ -449,4 +458,59 @@ button:hover {
 
 .popup .card {
 	width: 320px;
+}
+
+/* profile */
+
+.profile-card {
+	width: 500px;
+	text-align: center;
+}
+
+h1 {
+	color: #ffcc00;
+	margin-bottom: 10px;
+}
+
+.stat-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 15px;
+	margin-top: 25px;
+}
+
+.stat-item {
+	background: #222;
+	padding: 20px;
+	border-radius: 12px;
+	border: 1px solid #333;
+}
+
+.stat-label {
+	font-size: 0.8em;
+	color: #888;
+	text-transform: uppercase;
+	margin-bottom: 5px;
+}
+
+.stat-value {
+	font-size: 1.5em;
+	font-weight: bold;
+}
+
+.winrate {
+	color: #2eb82e;
+}
+
+.back-btn {
+	display: inline-block;
+	margin-top: 30px;
+	color: #888;
+	text-decoration: none;
+	font-size: 0.9em;
+	transition: 0.2s;
+}
+
+.back-btn:hover {
+	color: #ffcc00;
 }
