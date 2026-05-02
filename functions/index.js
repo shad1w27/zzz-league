@@ -1,20 +1,20 @@
 const admin = require("firebase-admin");
 
-const { setGlobalOptions } = require("firebase-functions");
-const { onCall, HttpsError } = require("firebase-functions/https");
+const {setGlobalOptions} = require("firebase-functions");
+const {onCall, HttpsError} = require("firebase-functions/https");
 const logger = require("firebase-functions/logger");
 
-setGlobalOptions({ maxInstances: 10 });
+setGlobalOptions({maxInstances: 10});
 
 admin.initializeApp();
 
 const db = admin.database();
 const auth = admin.auth();
 
-exports.register = onCall({ cors: true }, async (request) => {
+exports.register = onCall({cors: true}, async (request) => {
   let userRecord = null;
   try {
-    const { username, email, password, discord } = request.data;
+    const {username, email, password, discord} = request.data;
 
     if (!username || !email || !password || !discord) {
       throw new HttpsError("invalid-argument", "Missing required fields");
@@ -25,7 +25,7 @@ exports.register = onCall({ cors: true }, async (request) => {
       throw new HttpsError("already-exists", "Username is already taken");
     }
 
-    userRecord = await auth.createUser({ email, password });
+    userRecord = await auth.createUser({email, password});
     const uid = userRecord.uid;
 
     const prevSnapshot = await db.ref("players/" + username).once("value");
@@ -64,7 +64,7 @@ exports.register = onCall({ cors: true }, async (request) => {
     });
 
     const token = await auth.createCustomToken(uid);
-    return { success: true, token };
+    return {success: true, token};
   } catch (error) {
     logger.error(error);
     if (userRecord) await auth.deleteUser(userRecord.uid);
@@ -86,10 +86,10 @@ async function validateRequest(request) {
   }
 }
 
-exports.deletePlayer = onCall({ cors: true }, async (request) => {
+exports.deletePlayer = onCall({cors: true}, async (request) => {
   await validateRequest(request);
 
-  const { uid } = request.data;
+  const {uid} = request.data;
 
   if (!uid) {
     throw new HttpsError("invalid-argument", "uid is required");
@@ -110,13 +110,13 @@ exports.deletePlayer = onCall({ cors: true }, async (request) => {
 
   await auth.deleteUser(uid);
 
-  return { success: true };
+  return {success: true};
 });
 
-exports.updatePlayerElo = onCall({ cors: true }, async (request) => {
+exports.updatePlayerElo = onCall({cors: true}, async (request) => {
   await validateRequest(request);
 
-  const { uid, elo } = request.data;
+  const {uid, elo} = request.data;
 
   if (!uid) {
     throw new HttpsError("invalid-argument", "uid is required");
@@ -134,20 +134,34 @@ exports.updatePlayerElo = onCall({ cors: true }, async (request) => {
     isHighConfirmed: elo >= 1400,
   });
 
-  return { success: true };
+  return {success: true};
 });
 
-exports.clearHistory = onCall({ cors: true }, async (request) => {
+exports.addHistoryEntry = onCall({cors: true}, async (request) => {
+  await validateRequest(request);
+
+  const {playerName1, playerName2, change} = request.data;
+
+  await db.ref("history").push({
+    p1: playerName1,
+    p2: playerName2,
+    change,
+  });
+
+  return {success: true};
+});
+
+exports.clearHistory = onCall({cors: true}, async (request) => {
   await validateRequest(request);
   await db.ref("history").remove();
 
-  return { success: true };
+  return {success: true};
 });
 
-exports.updateMatchData = onCall({ cors: true }, async (request) => {
+exports.updateMatchData = onCall({cors: true}, async (request) => {
   await validateRequest(request);
 
-  const { uid, change, isWin } = request.data;
+  const {uid, change, isWin} = request.data;
 
   const snapshot = await db.ref("players/" + uid).once("value");
 
@@ -157,8 +171,8 @@ exports.updateMatchData = onCall({ cors: true }, async (request) => {
 
   const player = snapshot.val();
 
-  let streak = player.promoStreak || 0,
-    confirmed = player.isMidConfirmed || false;
+  let streak = player.promoStreak || 0;
+  let confirmed = player.isMidConfirmed || false;
 
   if ((player.elo || 1000) >= 1200 && !confirmed) {
     if (isWin) {
@@ -176,11 +190,62 @@ exports.updateMatchData = onCall({ cors: true }, async (request) => {
   });
 });
 
-exports.setTimer = onCall({ cors: true }, async (request) => {
+exports.setTimer = onCall({cors: true}, async (request) => {
   await validateRequest(request);
 
-  const { date } = request.data;
-
-  db.ref("timer").set(date);
+  const {timer} = request.data;
+  await db.ref("timer").set(timer);
+  return {success: true};
 });
 
+exports.resetSeason = onCall({cors: true}, async (request) => {
+  await validateRequest(request);
+
+  const {seasonName} = request.data;
+
+  const allPlayers = await db.ref("players").once("value");
+
+  await db.ref("archives/" + seasonName).set(
+      allPlayers.map((player) => ({
+        name: player.name,
+        elo: player.elo || 1000,
+        isMidConfirmed: player.isMidConfirmed || false,
+        isHighConfirmed: player.isHighConfirmed || false,
+      })),
+  );
+
+  allPlayers.forEach((player) => {
+    const start = player.isHighConfirmed ?
+      1400 : player.isMidConfirmed ? 1200 : 1000;
+    db.ref("players/" + player.uid).update({
+      elo: start,
+      tournamentPoints: 0,
+      promoStreak: 0,
+    });
+  });
+
+  await db.ref("history").remove();
+
+  return {success: true};
+});
+
+exports.finalizeTournament = onCall({cors: true}, async (request) => {
+  validateRequest();
+
+  const allPlayers = await db.ref("players").once("value");
+
+  allPlayers.forEach((p) => {
+    const next = (p.elo || 1000) + (p.tournamentPoints || 0);
+    let m = p.isMidConfirmed;
+    let h = p.isHighConfirmed;
+    if (m && next < 1150) m = false;
+    if (h && next < 1350) h = false;
+    if (next >= 1400) h = true;
+    db.ref("players/" + p.uid).update({
+      elo: next,
+      tournamentPoints: 0,
+      isMidConfirmed: m,
+      isHighConfirmed: h,
+    });
+  });
+});

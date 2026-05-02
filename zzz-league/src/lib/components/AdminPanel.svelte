@@ -1,7 +1,10 @@
 <script lang="ts">
 	import {
+		addHistoryEntry,
 		addPlayer,
 		clearHistory,
+		finalizeTournament,
+		resetSeason,
 		setTimer,
 		updateMatchData,
 	} from "$lib/firebase";
@@ -9,10 +12,9 @@
 
 	interface Props {
 		players?: Player[];
-		isAdmin?: boolean;
 	}
 
-	let { players = [], isAdmin = false }: Props = $props();
+	let { players = [] }: Props = $props();
 
 	let addingPlayerName = $state("");
 
@@ -31,6 +33,16 @@
 			p.name.toLowerCase().includes(searchQueryP2.toLowerCase()),
 		),
 	);
+
+	type Forecast = {
+		p1: { player: Player; w: number; l: number };
+		p2: { player: Player; w: number; l: number };
+	};
+
+	let showingForecast = $state(false);
+	let forecast = $state<Forecast | null>(null);
+
+	let winningPlayer = $state(0);
 
 	function handleSetTimer() {
 		const hours = prompt("Через сколько часов закончить?");
@@ -62,22 +74,27 @@
 			!selectedPlayer1 ||
 			!selectedPlayer2 ||
 			selectedPlayer1.name === selectedPlayer2.name
-		)
+		) {
 			return alert("Выберите разных");
+		}
 
-		const w1 = calculateEloChange(selectedPlayer1, selectedPlayer2, 1);
-		const l1 = calculateEloChange(selectedPlayer1, selectedPlayer2, 0);
-		const w2 = calculateEloChange(selectedPlayer2, selectedPlayer1, 1);
-		const l2 = calculateEloChange(selectedPlayer2, selectedPlayer1, 0);
+		forecast = {
+			p1: {
+				player: selectedPlayer1,
+				w: calculateEloChange(selectedPlayer1, selectedPlayer2, 1),
+				l: calculateEloChange(selectedPlayer1, selectedPlayer2, 0),
+			},
+			p2: {
+				player: selectedPlayer2,
+				w: calculateEloChange(selectedPlayer2, selectedPlayer1, 1),
+				l: calculateEloChange(selectedPlayer2, selectedPlayer1, 0),
+			},
+		};
 
-		const fBox = document.getElementById("forecast");
-		fBox.style.display = "block";
-		fBox.innerHTML = `<div>${selectedPlayer1.name}: <span class="gain">+${w1}</span> / <span class="loss">${l1}</span></div><div>${selectedPlayer2.name}: <span class="gain">+${w2}</span> / <span class="loss">${l2}</span></div>`;
+		showingForecast = true;
 	}
 
-	function playMatch() {
-		const result = parseFloat(document.getElementById("matchResult").value);
-
+	async function playMatch() {
 		if (
 			!selectedPlayer1 ||
 			!selectedPlayer2 ||
@@ -88,44 +105,34 @@
 		const change1 = calculateEloChange(
 			selectedPlayer1,
 			selectedPlayer2,
-			result,
+			winningPlayer,
 		);
 		const change2 = calculateEloChange(
 			selectedPlayer2,
 			selectedPlayer1,
-			result === 1 ? 0 : 1,
+			winningPlayer === 1 ? 0 : 1,
 		);
-		handleUpdateMatchData(selectedPlayer1, change1, result === 1);
-		handleUpdateMatchData(selectedPlayer2, change2, result === 0);
-		db.ref("history").push({
-			p1: selectedPlayer1.name,
-			p2: selectedPlayer2.name,
-			change: change1,
-		});
 
-		document.getElementById("forecast").style.display = "none";
+		handleUpdateMatchData(selectedPlayer1, change1, winningPlayer === 1);
+		handleUpdateMatchData(selectedPlayer2, change2, winningPlayer === 0);
+
+		try {
+			await addHistoryEntry(
+				selectedPlayer1.name,
+				selectedPlayer2.name,
+				change1,
+			);
+		} catch (error) {
+			alert(error);
+		}
+
+		showingForecast = false;
 	}
 
-	function resetSeason() {
+	function handleResetSeason() {
 		const name = prompt("Название сезона для архива:");
 		if (!name) return;
-		db.ref("archives/" + name).set(
-			players.map((p) => ({
-				name: p.name,
-				elo: p.elo || 1000,
-				isMidConfirmed: p.isMidConfirmed || false,
-				isHighConfirmed: p.isHighConfirmed || false,
-			})),
-		);
-		players.forEach((p) => {
-			let start = p.isHighConfirmed ? 1400 : p.isMidConfirmed ? 1200 : 1000;
-			db.ref("players/" + p.uid).update({
-				elo: start,
-				tournamentPoints: 0,
-				promoStreak: 0,
-			});
-		});
-		db.ref("history").remove();
+		resetSeason(name);
 	}
 
 	function handleUpdateMatchData(
@@ -140,75 +147,87 @@
 		}
 	}
 
-	function finalizeTournament() {
+	function handleFinalizeTournament() {
 		if (!confirm("Применить очки?")) return;
-		players.forEach((p) => {
-			const next = (p.elo || 1000) + (p.tournamentPoints || 0);
-			let m = p.isMidConfirmed,
-				h = p.isHighConfirmed;
-			if (m && next < 1150) m = false;
-			if (h && next < 1350) h = false;
-			if (next >= 1400) h = true;
-			db.ref("players/" + p.uid).update({
-				elo: next,
-				tournamentPoints: 0,
-				isMidConfirmed: m,
-				isHighConfirmed: h,
-			});
-		});
+
+		try {
+			finalizeTournament();
+		} catch (error) {
+			alert(error);
+		}
 	}
 </script>
 
-{#if isAdmin}
-	<div class="card admin-only">
-		<h2>Control Panel</h2>
-		<button onclick={() => handleSetTimer()}>⏳ Установить таймер</button>
-		<input
-			type="text"
-			id="playerName"
-			placeholder="Имя игрока"
-			bind:value={addingPlayerName}
-		/>
-		<button onclick={() => handleAddPlayer()}>Добавить игрока (Admin)</button>
-		<hr />
+<div class="card">
+	<h2>Control Panel</h2>
+	<button class="btn-common" onclick={() => handleSetTimer()}
+		>⏳ Установить таймер</button
+	>
+	<input
+		type="text"
+		id="playerName"
+		placeholder="Имя игрока"
+		bind:value={addingPlayerName}
+	/>
+	<button class="btn-common" onclick={() => handleAddPlayer()}
+		>Добавить игрока (Admin)</button
+	>
+	<hr />
 
-		<input
-			type="text"
-			class="select-filter"
-			placeholder="Поиск Игрока 1..."
-			bind:value={searchQueryP1}
-		/>
-		<select bind:value={selectedPlayer1}>
-			{#each filteredPlayers1 as player}
-				<option value={player}>{player.name}</option>
-			{/each}
-		</select>
+	<input
+		type="text"
+		class="select-filter"
+		placeholder="Поиск Игрока 1..."
+		bind:value={searchQueryP1}
+	/>
+	<select bind:value={selectedPlayer1}>
+		{#each filteredPlayers1 as player}
+			<option value={player}>{player.name}</option>
+		{/each}
+	</select>
 
-		<input
-			type="text"
-			class="select-filter"
-			placeholder="Поиск Игрока 2..."
-			bind:value={searchQueryP2}
-		/>
-		<select bind:value={selectedPlayer2}>
-			{#each filteredPlayers2 as player}
-				<option value={player}>{player.name}</option>
-			{/each}
-		</select>
+	<input
+		type="text"
+		class="select-filter"
+		placeholder="Поиск Игрока 2..."
+		bind:value={searchQueryP2}
+	/>
+	<select bind:value={selectedPlayer2}>
+		{#each filteredPlayers2 as player}
+			<option value={player}>{player.name}</option>
+		{/each}
+	</select>
 
-		<button class="btn-forecast" onclick={() => showForecast()}
-			>📈 Прогноз ELO</button
-		>
-		<div class="forecast-box" id="forecast"></div>
+	<button class="btn-common btn-forecast" onclick={() => showForecast()}
+		>📈 Прогноз ELO</button
+	>
+	{#if showingForecast}
+		{@const f = forecast!}
+		<div class="forecast-box">
+			<div>
+				{f.p1.player.name}:
+				<span class="gain">{f.p1.w}</span> /
+				<span class="loss">{f.p1.l}</span>
+			</div>
 
-		<select id="matchResult">
-			<option value="1">Победа Игрока 1</option>
-			<option value="0">Победа Игрока 2</option>
-		</select>
-		<button class="btn-play" onclick={() => playMatch()}
-			>⚔️ Записать матч</button
-		>
-		<button onclick={() => finalizeTournament()}>✅ Применить итоги</button>
-		<button onclick={() => resetSeason()}>📦 Сброс сезона</button>
-	</div>
-{/if}
+			<div>
+				{f.p2.player.name}:
+				<span class="gain">{f.p2.w}</span> /
+				<span class="loss">{f.p2.l}</span>
+			</div>
+		</div>
+	{/if}
+
+	<select bind:value={winningPlayer}>
+		<option value="1">Победа Игрока 1</option>
+		<option value="0">Победа Игрока 2</option>
+	</select>
+	<button class="btn-common btn-play" onclick={() => playMatch()}>⚔️ Записать матч</button
+	>
+	<button class="btn-common" onclick={() => handleFinalizeTournament()}
+		>✅ Применить итоги</button
+	>
+	<button class="btn-common" onclick={() => handleResetSeason()}
+		>📦 Сброс сезона</button
+	>
+</div>

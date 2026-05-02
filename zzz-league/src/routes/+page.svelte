@@ -7,7 +7,7 @@
 	import Leaderboard from "$lib/components/Leaderboard.svelte";
 	import LoginPopup from "$lib/components/LoginPopup.svelte";
 	import RegisterPopup from "$lib/components/RegisterPopup.svelte";
-    import AdminPanel from "$lib/components/AdminPanel.svelte";
+	import AdminPanel from "$lib/components/AdminPanel.svelte";
 
 	let currentUser = $state<{ name: string } | null>(null);
 	let isAdmin = $state(false);
@@ -119,7 +119,9 @@
 		{:else}
 			<div class="card">
 				<h2>{currentUser.name}</h2>
-				<button class="btn-common" onclick={() => signOut(auth)}>Выход</button>
+				<button class="btn-common" onclick={() => signOut(auth)}
+					>Выход</button
+				>
 			</div>
 		{/if}
 

@@ -317,10 +317,6 @@ select {
 	font-weight: bold;
 }
 
-.admin-only {
-	display: none;
-}
-
 .promo-wrap {
 	display: inline-flex;
 	gap: 4px;
