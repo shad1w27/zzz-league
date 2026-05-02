@@ -81,6 +81,9 @@ a {
 	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
 	height: fit-content;
 	margin-bottom: 20px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
 }
 
 h2 {
@@ -473,6 +476,10 @@ select {
 	text-align: center;
 	min-height: 1.2em;
 	margin-bottom: 0;
+}
+
+.error {
+	color: red;
 }
 
 .rules-list {

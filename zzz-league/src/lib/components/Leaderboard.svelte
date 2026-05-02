@@ -17,15 +17,18 @@
 		searchQuery = "",
 	}: Props = $props();
 
-	let sorted = $derived(
+	let sortedPlayers = $derived(
 		[...players]
 			.filter((p) => p?.name)
-			.sort((a, b) => (b.elo || 1000) - (a.elo || 1000))
-			.filter(
-				(p) =>
-					!searchQuery ||
-					p.name.toLowerCase().includes(searchQuery.toLowerCase()),
-			),
+			.sort((a, b) => (b.elo || 1000) - (a.elo || 1000)),
+	);
+
+	let filteredPlayers = $derived(
+		[...sortedPlayers].filter(
+			(p) =>
+				!searchQuery ||
+				p.name.toLowerCase().includes(searchQuery.toLowerCase()),
+		),
 	);
 
 	let profileOpen = $state(false);
@@ -63,6 +66,10 @@
 		return { cls: "t-newbie", name: "NEWBIE" };
 	}
 
+	function getLadderPos(p: Player) {
+		return sortedPlayers.indexOf(p);
+	}
+
 	function getLvl(elo: number) {
 		return Math.min(10, Math.floor(((elo || 1000) - 1000) / 40) + 1);
 	}
@@ -80,14 +87,15 @@
 		</tr>
 	</thead>
 	<tbody>
-		{#each sorted as player, index}
+		{#each filteredPlayers as player, index}
 			{@const elo = player.elo || 1000}
 			{@const tier = getTier(player)}
 			{@const streak = player.promoStreak || 0}
 			{@const showPromo =
 				elo >= 1200 && elo < 1400 && !player.isMidConfirmed}
+			{@const ladderPos = getLadderPos(player)}
 
-			<tr class={index < 3 ? `top-${index + 1}` : ""}>
+			<tr class={ladderPos < 3 ? `top-${ladderPos + 1}` : ""}>
 				<td>{index + 1}</td>
 				<td><span class="tier-badge {tier.cls}">{tier.name}</span></td>
 				<td class="player-name">
