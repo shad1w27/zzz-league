@@ -5,9 +5,9 @@ import { getFunctions } from 'firebase/functions'
 import { httpsCallable } from 'firebase/functions'
 
 const firebaseConfig = {
-	apiKey: "AIzaSyCCACnq23Ozr0KGUW2MNAti2rltAoBR3EA",
-	databaseURL: "https://zzz-shad1w-default-rtdb.firebaseio.com",
-	projectId: "zzz-shad1w"
+	apiKey: "AIzaSyAlcnUiLJ1cq7ekCQFi_NOPAQ6UiG92ZqM",
+	databaseURL: "https://zzz-league-default-rtdb.firebaseio.com",
+	projectId: "zzz-league"
 }
 
 const app = initializeApp(firebaseConfig);
