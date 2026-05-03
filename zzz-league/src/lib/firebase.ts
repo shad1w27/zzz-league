@@ -14,7 +14,7 @@ const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
 export const db = getDatabase(app);
-export const functions = getFunctions(app);
+export const functions = getFunctions(app, "europe-west1");
 
 export async function addPlayer(name: string): Promise<void> {
 	if (!name.trim()) return;

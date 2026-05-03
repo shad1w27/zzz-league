@@ -4,7 +4,10 @@ const {setGlobalOptions} = require("firebase-functions");
 const {onCall, HttpsError} = require("firebase-functions/https");
 const logger = require("firebase-functions/logger");
 
-setGlobalOptions({maxInstances: 10});
+setGlobalOptions({
+  maxInstances: 10,
+  region: "europe-west1",
+});
 
 admin.initializeApp();
 

@@ -10,7 +10,11 @@
 	let confirmPass = $state("");
 	let status = $state("");
 
+	let isLoading = false;
+
 	async function handleRegister() {
+		if (isLoading) return;
+
 		status = "";
 		if (username.length < 3 || username.length > 32) {
 			status = "Username от 3 до 32 символов";
@@ -25,11 +29,15 @@
 			return;
 		}
 
+		isLoading = true;
+
 		try {
 			await registerUser(username, email, password, discord);
 			open = false;
 		} catch (e: any) {
 			status = e.message;
+		} finally {
+			isLoading = false;
 		}
 	}
 </script>
