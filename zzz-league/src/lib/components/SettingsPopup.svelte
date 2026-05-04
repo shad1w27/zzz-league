@@ -1,6 +1,11 @@
 <script lang="ts">
 	import { auth } from "$lib/firebase";
 	import type { Player } from "$lib/types";
+	import {
+		EmailAuthProvider,
+		reauthenticateWithCredential,
+		updatePassword,
+	} from "firebase/auth";
 
 	let { open = $bindable(false), user = $bindable<Player>() } = $props();
 
@@ -22,6 +27,25 @@
 
 	async function handleSaveSettings() {
 		open = false;
+
+		if (newPassword.length > 0) {
+			if (newPassword !== confirmPass) {
+				status = "Пароли не совпадают";
+				return;
+			}
+
+			try {
+				const credential = EmailAuthProvider.credential(
+					user.email,
+					currentPassword,
+				);
+
+				await reauthenticateWithCredential(auth.currentUser!, credential);
+				await updatePassword(auth.currentUser!, newPassword);
+			} catch (error: any) {
+				status = error.message;
+			}
+		}
 	}
 </script>
 
