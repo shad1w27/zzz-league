@@ -10,6 +10,7 @@
 	import AdminPanel from "$lib/components/AdminPanel.svelte";
 	import PlayerProfile from "$lib/components/PlayerProfile.svelte";
 	import { profilePlayer } from "$lib/store";
+    import SettingsPopup from "$lib/components/SettingsPopup.svelte";
 
 	let currentUser = $state<Player | null>(null);
 	let isAdmin = $state(false);
@@ -23,6 +24,7 @@
 
 	let loginOpen = $state(false);
 	let registerOpen = $state(false);
+	let settingsOpen = $state(false);
 
 	let profileOpen = $derived($profilePlayer !== null);
 
@@ -137,6 +139,10 @@
 	function openProfile(player: Player) {
 		$profilePlayer = player;
 	}
+
+	function openSettings() {
+		settingsOpen = true;
+	}
 </script>
 
 <div class="layout" class:no-admin={!isAdmin}>
@@ -157,6 +163,9 @@
 			<div class="card">
 				<button class="user-label" onclick={() => openProfile(currentUser!)}
 					>{currentUser.name}</button
+				>
+				<button class="btn-common" onclick={() => openSettings()}
+					>Настройки</button
 				>
 				<button class="btn-common" onclick={() => signOut(auth)}
 					>Выход</button
@@ -310,6 +319,8 @@
 </div>
 
 <PlayerProfile bind:open={profileOpen} player={$profilePlayer} />
+
+<SettingsPopup bind:open={settingsOpen} user={currentUser} />
 
 <LoginPopup bind:open={loginOpen} />
 <RegisterPopup bind:open={registerOpen} />
