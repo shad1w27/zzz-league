@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { deletePlayer, updatePlayerElo } from "$lib/firebase";
+	import { profilePlayer } from "$lib/store";
 	import type { Player } from "$lib/types";
 	import PlayerProfile from "./PlayerProfile.svelte";
 
@@ -31,12 +32,8 @@
 		),
 	);
 
-	let profileOpen = $state(false);
-	let selectedPlayer = $state<Player | null>(null);
-
-	function openProfile(p: Player) {
-		selectedPlayer = p;
-		profileOpen = true;
+	function openProfile(player: Player) {
+		$profilePlayer = player;
 	}
 
 	async function handleUpdatePlayerElo(uid: string, currentElo: number) {
@@ -137,5 +134,3 @@
 		{/each}
 	</tbody>
 </table>
-
-<PlayerProfile bind:open={profileOpen} bind:player={selectedPlayer} />

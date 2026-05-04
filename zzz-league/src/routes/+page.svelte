@@ -3,23 +3,28 @@
 	import { auth, clearHistory, db, deleteArchive } from "$lib/firebase";
 	import { onAuthStateChanged, signOut } from "firebase/auth";
 	import { ref, onValue } from "firebase/database";
-	import type { Player } from "$lib/types";
+	import type { Archives, MatchRecord, Player } from "$lib/types";
 	import Leaderboard from "$lib/components/Leaderboard.svelte";
 	import LoginPopup from "$lib/components/LoginPopup.svelte";
 	import RegisterPopup from "$lib/components/RegisterPopup.svelte";
 	import AdminPanel from "$lib/components/AdminPanel.svelte";
+	import PlayerProfile from "$lib/components/PlayerProfile.svelte";
+	import { profilePlayer } from "$lib/store";
 
-	let currentUser = $state<{ name: string } | null>(null);
+	let currentUser = $state<Player | null>(null);
 	let isAdmin = $state(false);
 	let players = $state<Player[]>([]);
-	let archives = $state<Record<string, Player[]>>({});
-	let matchHistory = $state<{ p1: string; p2: string; change: number }[]>([]);
+	let archives = $state<Archives>({});
+	let matchHistory = $state<MatchRecord[]>([]);
 	let timerText = $state("0д 00:00:00");
 	let searchQuery = $state("");
 	let isViewingArchive = $state(false);
 	let archiveKey = $state("");
+
 	let loginOpen = $state(false);
 	let registerOpen = $state(false);
+
+	let profileOpen = $derived($profilePlayer !== null);
 
 	let timerInterval: ReturnType<typeof setInterval> | null = null;
 
@@ -34,9 +39,19 @@
 					onValue(ref(db, "players/" + user.uid), res, { onlyOnce: true }),
 				);
 				if (snap.exists()) {
-					const d = snap.val();
-					currentUser = { name: d.name };
-					isAdmin = !!d.isAdmin;
+					const player = snap.val();
+					currentUser = {
+						uid: player.uid,
+						name: player.name,
+						discord: player.discord,
+						elo: player.elo,
+						tournamentPoints: player.tournamentPoints,
+						promoStreak: player.promoStreak,
+						isMidConfirmed: player.isMidConfirmed,
+						isHighConfirmed: player.isHighConfirmed,
+					};
+
+					isAdmin = !!player.isAdmin;
 				}
 			} else {
 				currentUser = null;
@@ -118,6 +133,10 @@
 			alert(error);
 		}
 	}
+
+	function openProfile(player: Player) {
+		$profilePlayer = player;
+	}
 </script>
 
 <div class="layout" class:no-admin={!isAdmin}>
@@ -136,7 +155,9 @@
 			</div>
 		{:else}
 			<div class="card">
-				<h2>{currentUser.name}</h2>
+				<button class="user-label" onclick={() => openProfile(currentUser!)}
+					>{currentUser.name}</button
+				>
 				<button class="btn-common" onclick={() => signOut(auth)}
 					>Выход</button
 				>
@@ -242,7 +263,7 @@
 			/>
 		</div>
 
-		{#if archives}
+		{#if Object.keys(archives).length > 0}
 			<div class="archive-section">
 				<div class="section-label">АРХИВ СЕЗОНОВ:</div>
 				<div class="archive-buttons">
@@ -270,8 +291,7 @@
 				{#if isAdmin}
 					<button
 						class="btn-common btn-clear-history"
-						onclick={() => handleClearHistory()}
-						>ОЧИСТИТЬ</button
+						onclick={() => handleClearHistory()}>ОЧИСТИТЬ</button
 					>
 				{/if}
 			</div>
@@ -288,6 +308,8 @@
 		{/if}
 	</div>
 </div>
+
+<PlayerProfile bind:open={profileOpen} player={$profilePlayer} />
 
 <LoginPopup bind:open={loginOpen} />
 <RegisterPopup bind:open={registerOpen} />
