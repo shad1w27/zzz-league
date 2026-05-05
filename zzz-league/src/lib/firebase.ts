@@ -68,3 +68,7 @@ export async function finalizeTournament(): Promise<void> {
 export async function deleteArchive(key: string): Promise<void> {
 	await httpsCallable(functions, "deleteArchive")({ key });
 }
+
+export async function updateProfile(username: string | null, discord: string | null): Promise<void> {
+	await httpsCallable(functions, 'updateProfile')({ username, discord })
+}
