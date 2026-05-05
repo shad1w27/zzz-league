@@ -1,5 +1,13 @@
 const admin = require("firebase-admin");
 
+const {defineSecret} = require("firebase-functions/params");
+
+const DISCORD_BOT_TOKEN = defineSecret("DISCORD_BOT_TOKEN");
+const DISCORD_GUILD_ID = defineSecret("DISCORD_GUILD_ID");
+const DISCORD_NEWBIE_ROLE = defineSecret("DISCORD_NEWBIE_ROLE");
+const DISCORD_MID_ROLE = defineSecret("DISCORD_MID_ROLE");
+const DISCORD_HIGH_ROLE = defineSecret("DISCORD_HIGH_ROLE");
+
 const {setGlobalOptions} = require("firebase-functions");
 const {onCall, HttpsError} = require("firebase-functions/https");
 const logger = require("firebase-functions/logger");
@@ -182,6 +190,8 @@ exports.updatePlayerElo = onCall({cors: true}, async (request) => {
     isHighConfirmed: elo >= 1400,
   });
 
+  assignDiscordRole(uid);
+
   return {success: true};
 });
 
@@ -296,6 +306,7 @@ exports.finalizeTournament = onCall({cors: true}, async (request) => {
   }
 
   const updates = {};
+  const uidsToUpdate = [];
 
   Object.values(playersObj).forEach((p) => {
     const next = (p.elo || 1000) + (p.tournamentPoints || 0);
@@ -309,9 +320,14 @@ exports.finalizeTournament = onCall({cors: true}, async (request) => {
     updates["players/" + p.uid + "/tournamentPoints"] = 0;
     updates["players/" + p.uid + "/isMidConfirmed"] = mid;
     updates["players/" + p.uid + "/isHighConfirmed"] = high;
+
+    if (mid != p.isMidConfirmed || high != p.isHighConfirmed) {
+      uidsToUpdate.push(p.uid);
+    }
   });
 
   await db.ref().update(updates);
+  await Promise.all(uidsToUpdate.map((uid) => assignDiscordRole(uid)));
 
   return {success: true};
 });
@@ -356,3 +372,59 @@ exports.addPlayer = onCall({cors: true}, async (request) => {
 
   return {success: true};
 });
+
+exports.linkDiscord = onCall({cors: true}, async (request) => {
+  const callerUid = request.auth?.uid;
+  if (!callerUid) throw new HttpsError("unauthenticated", "Not logged in");
+
+  const {code, redirectUri} = request.data;
+
+  const tokenRes = await fetch("https://discord.com/api/oauth2/token", {
+    method: "POST",
+    headers: {"Content-Type": "application/x-www-form-urlencoded"},
+    body: new URLSearchParams({
+      client_id: process.env.DISCORD_CLIENT_ID,
+      client_secret: process.env.DISCORD_CLIENT_SECRET,
+      grant_type: "authorization_code",
+      code,
+      redirect_uri: redirectUri,
+    }),
+  });
+  const tokenData = await tokenRes.json();
+
+  const userRes = await fetch("https://discord.com/api/users/@me", {
+    headers: {Authorization: `Bearer ${tokenData.access_token}`},
+  });
+  const discordUser = await userRes.json();
+
+  await db.ref("players/" + callerUid).update({
+    discordId: discordUser.id,
+    discord: discordUser.username,
+  });
+
+  await assignDiscordRole(callerUid);
+
+  return {success: true, username: discordUser.username};
+});
+
+async function assignDiscordRole(uid) {
+  const snap = await db.ref("players/" + uid).once("value");
+  const player = snap.val();
+  if (!player?.discordId) return;
+
+  const elo = player.elo || 1000;
+
+  const guildId = DISCORD_GUILD_ID.value();
+  const token = DISCORD_BOT_TOKEN.value();
+
+  const roleId = elo >= 1400 ? DISCORD_HIGH_ROLE.value() :
+    elo >= 1200 ? DISCORD_MID_ROLE.value() :
+      DISCORD_NEWBIE_ROLE.value();
+
+  await fetch(`https://discord.com/api/guilds/${guildId}/members/${player.discordId}/roles/${roleId}`, {
+    method: "PUT",
+    headers: {Authorization: `Bot ${token}`},
+  });
+
+  return {success: true, username: discordUser.username};
+}

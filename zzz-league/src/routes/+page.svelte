@@ -46,6 +46,7 @@
 							uid: player.uid,
 							name: player.name,
 							discord: player.discord,
+							discordId: player.discordId,
 							elo: player.elo,
 							tournamentPoints: player.tournamentPoints,
 							promoStreak: player.promoStreak,

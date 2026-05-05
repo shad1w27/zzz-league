@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { auth, updateProfile } from "$lib/firebase";
+	import { auth, linkDiscord, updateProfile } from "$lib/firebase";
 	import type { Player } from "$lib/types";
 	import {
 		EmailAuthProvider,
@@ -22,6 +22,7 @@
 
 		username = user.name;
 		email = auth.currentUser?.email ?? "";
+
 		discord = user.discord ?? "";
 	});
 
@@ -31,6 +32,10 @@
 		confirmPass = "";
 		status = "";
 		open = false;
+	}
+
+	async function handleLinkDiscord() {
+		
 	}
 
 	async function handleSaveSettings() {
@@ -92,7 +97,21 @@
 				disabled
 			/>
 			<input type="text" bind:value={username} placeholder="Ник" />
-			<input type="text" bind:value={discord} placeholder="Discord" />
+			<input
+				type="text"
+				class={user.discordId ? "disabled" : ""}
+				bind:value={discord}
+				placeholder="Discord"
+			/>
+			{#if user.discordId}
+				<button class="btn-common" onclick={() => {}}
+					>Отвязать Discord</button
+				>
+			{:else}
+				<button class="btn-common" onclick={() => handleLinkDiscord()}
+					>Привязать Discord</button
+				>
+			{/if}
 			<br />
 			<input
 				type="password"
