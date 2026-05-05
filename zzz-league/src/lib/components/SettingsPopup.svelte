@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { auth } from "$lib/firebase";
+	import { auth, updateProfile } from "$lib/firebase";
 	import type { Player } from "$lib/types";
 	import {
 		EmailAuthProvider,
@@ -25,8 +25,16 @@
 		discord = user.discord ?? "";
 	});
 
-	async function handleSaveSettings() {
+	function close() {
+		currentPassword = "";
+		newPassword = "";
+		confirmPass = "";
+		status = "";
 		open = false;
+	}
+
+	async function handleSaveSettings() {
+		let successPw = false;
 
 		if (newPassword.length > 0) {
 			if (newPassword !== confirmPass) {
@@ -36,15 +44,38 @@
 
 			try {
 				const credential = EmailAuthProvider.credential(
-					user.email,
+					auth.currentUser!.email!,
 					currentPassword,
 				);
 
 				await reauthenticateWithCredential(auth.currentUser!, credential);
 				await updatePassword(auth.currentUser!, newPassword);
+				successPw = true;
 			} catch (error: any) {
 				status = error.message;
 			}
+		} else {
+			successPw = true;
+		}
+
+		let successData = false;
+
+		const newUsername = username !== user.name ? username : null;
+		const newDiscord = discord !== user.discord ? discord : null;
+
+		if (newUsername || newDiscord) {
+			try {
+				await updateProfile(newUsername, newDiscord);
+				successData = true;
+			} catch (error: any) {
+				status = error.message;
+			}
+		} else {
+			successData = true;
+		}
+
+		if (successPw && successData) {
+			close();
 		}
 	}
 </script>
@@ -85,9 +116,7 @@
 					class="btn-common btn-play"
 					onclick={() => handleSaveSettings()}>Сохранить</button
 				>
-				<button class="btn-common" onclick={() => (open = false)}
-					>Закрыть</button
-				>
+				<button class="btn-common" onclick={() => close()}>Закрыть</button>
 			</div>
 		</div>
 	</div>

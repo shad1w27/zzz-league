@@ -10,7 +10,7 @@
 	import AdminPanel from "$lib/components/AdminPanel.svelte";
 	import PlayerProfile from "$lib/components/PlayerProfile.svelte";
 	import { profilePlayer } from "$lib/store";
-    import SettingsPopup from "$lib/components/SettingsPopup.svelte";
+	import SettingsPopup from "$lib/components/SettingsPopup.svelte";
 
 	let currentUser = $state<Player | null>(null);
 	let isAdmin = $state(false);
@@ -35,26 +35,26 @@
 	);
 
 	onMount(() => {
+		let unsubPlayer: (() => void) | null = null;
+
 		const unsubAuth = onAuthStateChanged(auth, async (user) => {
 			if (user) {
-				const snap = await new Promise<any>((res) =>
-					onValue(ref(db, "players/" + user.uid), res, { onlyOnce: true }),
-				);
-				if (snap.exists()) {
-					const player = snap.val();
-					currentUser = {
-						uid: player.uid,
-						name: player.name,
-						discord: player.discord,
-						elo: player.elo,
-						tournamentPoints: player.tournamentPoints,
-						promoStreak: player.promoStreak,
-						isMidConfirmed: player.isMidConfirmed,
-						isHighConfirmed: player.isHighConfirmed,
-					};
-
-					isAdmin = !!player.isAdmin;
-				}
+				unsubPlayer = onValue(ref(db, "players/" + user.uid), (snap) => {
+					if (snap.exists()) {
+						const player = snap.val();
+						currentUser = {
+							uid: player.uid,
+							name: player.name,
+							discord: player.discord,
+							elo: player.elo,
+							tournamentPoints: player.tournamentPoints,
+							promoStreak: player.promoStreak,
+							isMidConfirmed: player.isMidConfirmed,
+							isHighConfirmed: player.isHighConfirmed,
+						};
+						isAdmin = !!player.isAdmin;
+					}
+				});
 			} else {
 				currentUser = null;
 				isAdmin = false;
@@ -100,6 +100,7 @@
 
 		return () => {
 			unsubAuth();
+			unsubPlayer?.();
 			unsubPlayers();
 			unsubTimer();
 			unsubArchives();
