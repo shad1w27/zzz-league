@@ -1,6 +1,11 @@
 <script lang="ts">
 	import { openDiscordOAuth } from "$lib/discord";
-	import { auth, linkDiscord, updateProfile } from "$lib/firebase";
+	import {
+		auth,
+		linkDiscord,
+		unlinkDiscord,
+		updateProfile,
+	} from "$lib/firebase";
 	import type { Player } from "$lib/types";
 	import {
 		EmailAuthProvider,
@@ -38,6 +43,14 @@
 	async function handleLinkDiscord() {
 		try {
 			openDiscordOAuth();
+		} catch (error: any) {
+			status = error.message;
+		}
+	}
+
+	async function handleUnlinkDiscord() {
+		try {
+			await unlinkDiscord();
 		} catch (error: any) {
 			status = error.message;
 		}
@@ -104,12 +117,13 @@
 			<input type="text" bind:value={username} placeholder="Ник" />
 			<input
 				type="text"
-				class={user.discordId ? "disabled" : ""}
+				class={user.discordId ? "input-disabled" : ""}
 				bind:value={discord}
 				placeholder="Discord"
+				disabled={!!user.discordId}
 			/>
 			{#if user.discordId}
-				<button class="btn-common" onclick={() => {}}
+				<button class="btn-common" onclick={() => handleUnlinkDiscord()}
 					>Отвязать Discord</button
 				>
 			{:else}
