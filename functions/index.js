@@ -14,6 +14,19 @@ admin.initializeApp();
 const db = admin.database();
 const auth = admin.auth();
 
+async function validateAdminRequest(request) {
+  const callerUid = request.auth?.uid;
+
+  if (!callerUid) {
+    throw new HttpsError("unauthenticated", "User must be logged in");
+  }
+
+  const callerSnapshot = await db.ref("players/" + callerUid).once("value");
+  if (!callerSnapshot.exists() || callerSnapshot.val().isAdmin !== true) {
+    throw new HttpsError("permission-denied", "Permission denied");
+  }
+}
+
 exports.register = onCall({cors: true}, async (request) => {
   let userRecord = null;
   try {
@@ -76,21 +89,53 @@ exports.register = onCall({cors: true}, async (request) => {
   }
 });
 
-async function validateRequest(request) {
+exports.updateProfile = onCall({cors: true}, async (request) => {
   const callerUid = request.auth?.uid;
-
   if (!callerUid) {
     throw new HttpsError("unauthenticated", "User must be logged in");
   }
 
-  const callerSnapshot = await db.ref("players/" + callerUid).once("value");
-  if (!callerSnapshot.exists() || callerSnapshot.val().isAdmin !== true) {
-    throw new HttpsError("permission-denied", "Permission denied");
+  const {username, discord} = request.data;
+
+  if (!username && !discord) {
+    throw new HttpsError("invalid-argument", "Nothing to update");
   }
-}
+
+  const callerSnapshot = await db.ref("players/" + callerUid).once("value");
+  if (!callerSnapshot.exists()) {
+    throw new HttpsError("not-found", "Player not found");
+  }
+
+  const updates = {};
+
+  if (username) {
+    const oldUsername = callerSnapshot.val().name;
+
+    if (username === oldUsername) {
+      throw new HttpsError("invalid-argument", "Username haven't changed");
+    }
+
+    const usernameSnap = await db.ref("usernames/" + username).once("value");
+    if (usernameSnap.exists()) {
+      throw new HttpsError("already-exists", "Username is already taken");
+    }
+
+    updates["usernames/" + oldUsername] = null;
+    updates["usernames/" + username] = true;
+    updates["players/" + callerUid + "/name"] = username;
+  }
+
+  if (discord) {
+    updates["players/" + callerUid + "/discord"] = discord;
+  }
+
+  await db.ref().update(updates);
+
+  return {success: true};
+});
 
 exports.deletePlayer = onCall({cors: true}, async (request) => {
-  await validateRequest(request);
+  await validateAdminRequest(request);
 
   const {uid} = request.data;
 
@@ -117,7 +162,7 @@ exports.deletePlayer = onCall({cors: true}, async (request) => {
 });
 
 exports.updatePlayerElo = onCall({cors: true}, async (request) => {
-  await validateRequest(request);
+  await validateAdminRequest(request);
 
   const {uid, elo} = request.data;
 
@@ -141,7 +186,7 @@ exports.updatePlayerElo = onCall({cors: true}, async (request) => {
 });
 
 exports.addHistoryEntry = onCall({cors: true}, async (request) => {
-  await validateRequest(request);
+  await validateAdminRequest(request);
 
   const {playerName1, playerName2, change} = request.data;
 
@@ -155,14 +200,14 @@ exports.addHistoryEntry = onCall({cors: true}, async (request) => {
 });
 
 exports.clearHistory = onCall({cors: true}, async (request) => {
-  await validateRequest(request);
+  await validateAdminRequest(request);
   await db.ref("history").remove();
 
   return {success: true};
 });
 
 exports.updateMatchData = onCall({cors: true}, async (request) => {
-  await validateRequest(request);
+  await validateAdminRequest(request);
 
   const {uid, change, isWin} = request.data;
 
@@ -194,7 +239,7 @@ exports.updateMatchData = onCall({cors: true}, async (request) => {
 });
 
 exports.setTimer = onCall({cors: true}, async (request) => {
-  await validateRequest(request);
+  await validateAdminRequest(request);
 
   const {timer} = request.data;
   await db.ref("timer").set(timer);
@@ -202,7 +247,7 @@ exports.setTimer = onCall({cors: true}, async (request) => {
 });
 
 exports.resetSeason = onCall({cors: true}, async (request) => {
-  await validateRequest(request);
+  await validateAdminRequest(request);
 
   const {seasonName} = request.data;
   if (!seasonName) {
@@ -242,7 +287,7 @@ exports.resetSeason = onCall({cors: true}, async (request) => {
 });
 
 exports.finalizeTournament = onCall({cors: true}, async (request) => {
-  await validateRequest(request);
+  await validateAdminRequest(request);
 
   const snap = await db.ref("players").once("value");
   const playersObj = snap.val();
@@ -272,7 +317,7 @@ exports.finalizeTournament = onCall({cors: true}, async (request) => {
 });
 
 exports.deleteArchive = onCall({cors: true}, async (request) => {
-  await validateRequest(request);
+  await validateAdminRequest(request);
 
   const {key} = request.data;
   await db.ref("archives/" + key).remove();
@@ -281,7 +326,7 @@ exports.deleteArchive = onCall({cors: true}, async (request) => {
 });
 
 exports.addPlayer = onCall({cors: true}, async (request) => {
-  await validateRequest(request);
+  await validateAdminRequest(request);
 
   const {name} = request.data;
   const trimmedName = name.trim();
