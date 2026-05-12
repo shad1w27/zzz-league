@@ -17,10 +17,10 @@
 	let loading = $state(false);
 
 	$effect(() => {
-		if (open && player) loadStats(player.uid);
+		if (open && player) loadStats(player.name);
 	});
 
-	async function loadStats(uid: string) {
+	async function loadStats(name: string) {
 		loading = true;
 
 		const historySnap = await get(ref(db, "history"));
@@ -31,10 +31,10 @@
 		let wins = 0,
 			losses = 0;
 		matches.forEach((m: any) => {
-			if (m.p1 === uid) {
+			if (m.p1 === name) {
 				if (m.change > 0) wins++;
 				else losses++;
-			} else if (m.p2 === uid) {
+			} else if (m.p2 === name) {
 				if (m.change < 0) wins++;
 				else losses++;
 			}
