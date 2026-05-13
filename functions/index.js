@@ -489,3 +489,30 @@ exports.unlinkDiscord = onCall({
 
   return {success: true};
 });
+
+exports.createTournament = onCall({cors: true}, async (request) => {
+  await validateAdminRequest(request);
+
+  const {name, description, registrationStartDate, registrationEndDate,
+    tournamentStartDate, tournamentEndDate} = request.data;
+
+  if (!name || !registrationStartDate || !registrationEndDate ||
+    !tournamentStartDate || !tournamentEndDate) {
+    throw new HttpsError("invalid-argument", "Missing required fields");
+  }
+
+  const newRef = db.ref("tournaments").push();
+  const id = newRef.key;
+
+  await newRef.set({
+    id,
+    name,
+    description: description ?? "",
+    registrationStartDate,
+    registrationEndDate,
+    tournamentStartDate,
+    tournamentEndDate,
+  });
+
+  return {success: true, id};
+});

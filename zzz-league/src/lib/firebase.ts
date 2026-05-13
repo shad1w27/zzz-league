@@ -3,6 +3,7 @@ import { getAuth, signInWithCustomToken } from 'firebase/auth'
 import { getDatabase } from 'firebase/database'
 import { getFunctions } from 'firebase/functions'
 import { httpsCallable } from 'firebase/functions'
+import type { Tournament } from './types'
 
 const firebaseConfig = {
 	apiKey: "AIzaSyAlcnUiLJ1cq7ekCQFi_NOPAQ6UiG92ZqM",
@@ -79,4 +80,10 @@ export async function linkDiscord(code: string, redirectUri: string): Promise<vo
 
 export async function unlinkDiscord(): Promise<void> {
 	await httpsCallable(functions, 'unlinkDiscord')();
+}
+
+export async function createTournament(data: Omit<Tournament, 'id'>): Promise<string> {
+  const fn = httpsCallable(functions, 'createTournament');
+  const result = await fn(data) as any;
+  return result.data.id;
 }

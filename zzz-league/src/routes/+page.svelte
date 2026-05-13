@@ -3,7 +3,7 @@
 	import { auth, clearHistory, db, deleteArchive } from "$lib/firebase";
 	import { onAuthStateChanged, signOut } from "firebase/auth";
 	import { ref, onValue } from "firebase/database";
-	import type { Archives, MatchRecord, Player } from "$lib/types";
+	import type { Archives, MatchRecord, Player, Tournament } from "$lib/types";
 	import Leaderboard from "$lib/components/Leaderboard.svelte";
 	import LoginPopup from "$lib/components/LoginPopup.svelte";
 	import RegisterPopup from "$lib/components/RegisterPopup.svelte";
@@ -11,30 +11,33 @@
 	import PlayerProfile from "$lib/components/PlayerProfile.svelte";
 	import { profilePlayer } from "$lib/store";
 	import SettingsPopup from "$lib/components/SettingsPopup.svelte";
-	import { handleDiscordCallback } from "$lib/discord";
-	import { goto } from "$app/navigation";
 
 	let currentUser = $state<Player | null>(null);
 	let isAdmin = $state(false);
 	let players = $state<Player[]>([]);
+
+	let tournaments = $state<Tournament[]>([]);
 	let archives = $state<Archives>({});
 	let matchHistory = $state<MatchRecord[]>([]);
-	let timerText = $state("0д 00:00:00");
+
 	let searchQuery = $state("");
+
 	let isViewingArchive = $state(false);
 	let archiveKey = $state("");
 
 	let loginOpen = $state(false);
 	let registerOpen = $state(false);
 	let settingsOpen = $state(false);
-
 	let profileOpen = $derived($profilePlayer !== null);
 
+	let timerText = $state("0д 00:00:00");
 	let timerInterval: ReturnType<typeof setInterval> | null = null;
 
 	let displayPlayers = $derived(
 		isViewingArchive ? (archives[archiveKey] ?? []) : players,
 	);
+
+	let now = $state(Date.now());
 
 	onMount(() => {
 		let unsubPlayer: (() => void) | null = null;
@@ -101,6 +104,15 @@
 			matchHistory = val ? (Object.values(val).reverse() as any[]) : [];
 		});
 
+		const unsubTournaments = onValue(ref(db, "tournaments"), (snap) => {
+			const val = snap.val();
+			tournaments = val ? (Object.values(val) as Tournament[]) : [];
+		});
+
+		const interval = setInterval(() => {
+			now = Date.now();
+		}, 1000);
+
 		return () => {
 			unsubAuth();
 			unsubPlayer?.();
@@ -108,7 +120,9 @@
 			unsubTimer();
 			unsubArchives();
 			unsubHistory();
+			unsubTournaments();
 			if (timerInterval) clearInterval(timerInterval);
+			clearInterval(interval);
 		};
 	});
 
@@ -245,6 +259,35 @@
 		<div class="main-timer">
 			<div class="timer-label">ДО КОНЦА ЛИГИ:</div>
 			<div class="timer-value">{timerText}</div>
+		</div>
+
+		<div>
+			<div>Турниры:</div>
+			<div>
+				{#each tournaments as t}
+					<button>
+						<p>{t.name}</p>
+						<p>
+							{new Date(t.tournamentStartDate).toLocaleString()} - {new Date(
+								t.tournamentEndDate,
+							).toLocaleString()}
+						</p>
+						{#if now > t.registrationStartDate && now < t.registrationEndDate}
+							<p>
+								Идёт регистрация до {new Date(
+									t.registrationEndDate,
+								).toLocaleString()}
+							</p>
+						{/if}
+						{#if now > t.tournamentStartDate && now < t.tournamentEndDate}
+							<p>Турнир идёт</p>
+						{/if}
+						{#if now > t.tournamentEndDate}
+							<p>Турнир окончен</p>
+						{/if}
+					</button>
+				{/each}
+			</div>
 		</div>
 
 		<div class="search-container">
