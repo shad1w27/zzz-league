@@ -2,6 +2,7 @@
 	import { db } from "$lib/firebase";
 	import { ref, get } from "firebase/database";
 	import type { Player } from "$lib/types";
+	import { closeProfilePopup } from "$lib/uiCommon";
 
 	interface Stats {
 		wins: number;
@@ -10,14 +11,13 @@
 		winRate: number;
 	}
 
-	let { open = $bindable(false), player = $bindable<Player | null>(null) } =
-		$props();
+	let { player = $bindable<Player | null>(null) } = $props();
 
 	let stats = $state<Stats>({ wins: 0, losses: 0, total: 0, winRate: 0 });
 	let loading = $state(false);
 
 	$effect(() => {
-		if (open && player) loadStats(player.name);
+		if (player) loadStats(player.name);
 	});
 
 	async function loadStats(name: string) {
@@ -57,47 +57,45 @@
 	}
 </script>
 
-{#if open}
-	<div class="popup">
-		<div class="card profile-card">
-			{#if loading}
-				<h1>Загрузка...</h1>
-			{:else if !player}
-				<h1>Игрок не найден</h1>
-			{:else}
-				{@const tier = getTier(player)}
+<div class="popup">
+	<div class="card profile-card">
+		{#if loading}
+			<h1>Загрузка...</h1>
+		{:else if !player}
+			<h1>Игрок не найден</h1>
+		{:else}
+			{@const tier = getTier(player)}
 
-				<h1 id="profName">{player.name}</h1>
-				<div id="profTier">
-					<span class="tier-badge {tier.cls}">{tier.name}</span>
+			<h1 id="profName">{player.name}</h1>
+			<div id="profTier">
+				<span class="tier-badge {tier.cls}">{tier.name}</span>
+			</div>
+			<div id="discordTag">Discord: {player.discord ?? "-"}</div>
+
+			<div class="stat-grid">
+				<div class="stat-item">
+					<div class="stat-label">Всего игр</div>
+					<div id="totalGames" class="stat-value">{stats.total}</div>
 				</div>
-				<div id="discordTag">Discord: {player.discord ?? "-"}</div>
-
-				<div class="stat-grid">
-					<div class="stat-item">
-						<div class="stat-label">Всего игр</div>
-						<div id="totalGames" class="stat-value">{stats.total}</div>
-					</div>
-					<div class="stat-item">
-						<div class="stat-label">Винрейт</div>
-						<div id="winRate" class="stat-value winrate">
-							{stats.winRate}%
-						</div>
-					</div>
-					<div class="stat-item">
-						<div class="stat-label">Победы</div>
-						<div id="wins" class="stat-value gain">{stats.wins}</div>
-					</div>
-					<div class="stat-item">
-						<div class="stat-label">Поражения</div>
-						<div id="losses" class="stat-value loss">{stats.losses}</div>
+				<div class="stat-item">
+					<div class="stat-label">Винрейт</div>
+					<div id="winRate" class="stat-value winrate">
+						{stats.winRate}%
 					</div>
 				</div>
+				<div class="stat-item">
+					<div class="stat-label">Победы</div>
+					<div id="wins" class="stat-value gain">{stats.wins}</div>
+				</div>
+				<div class="stat-item">
+					<div class="stat-label">Поражения</div>
+					<div id="losses" class="stat-value loss">{stats.losses}</div>
+				</div>
+			</div>
 
-				<button class="btn-common back-btn" onclick={() => (open = false)}
-					>← Закрыть</button
-				>
-			{/if}
-		</div>
+			<button class="btn-common back-btn" onclick={closeProfilePopup}
+				>← Закрыть</button
+			>
+		{/if}
 	</div>
-{/if}
+</div>

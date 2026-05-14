@@ -512,3 +512,42 @@ exports.createTournament = onCall({cors: true}, async (request) => {
 
   return {success: true, id};
 });
+
+exports.applyForTournament = onCall({cors: true}, async (request) => {
+  const callerUid = request.auth?.uid;
+  if (!callerUid) throw new HttpsError("unauthenticated", "Not logged in");
+
+  const snap = await db.ref("players/" + callerUid).once("value");
+  const player = snap.val();
+  if (!player) throw new HttpsError("not-found", "Player not found");
+  if (!player.discordId) {
+    throw new HttpsError("discord-error", "Please link discord first");
+  }
+
+  const {
+    tournamentId,
+    darteNickname,
+    darteAccount,
+    dartePreset,
+    rosterScreenshot,
+  } = request.data;
+
+  if (!tournamentId || !darteNickname || !darteAccount ||
+    !dartePreset || !rosterScreenshot) {
+    throw new HttpsError("invalid-argument", "Missing required fields");
+  }
+
+  const rosterScreenshotLink = "";
+
+  await db.ref(`tournamentRegistrations/${tournamentId}/${callerUid}`).set({
+    uid: callerUid,
+    darteNickname,
+    darteAccount,
+    dartePreset,
+    rosterScreenshot: rosterScreenshotLink,
+    registrationTimestamp: Date.now(),
+    approved: false,
+  });
+
+  return {success: true};
+});

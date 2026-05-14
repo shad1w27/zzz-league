@@ -19,11 +19,25 @@ export interface MatchRecord {
 export type Archives = Record<string, Player[]>
 
 export interface Tournament {
-	id: string;
-	name: string;
-	description: string;
-	registrationStartDate: number;
-	registrationEndDate: number;
-	tournamentStartDate: number;
-	tournamentEndDate: number;
+	id: string,
+	name: string,
+	description: string,
+	registrationStartDate: number,
+	registrationEndDate: number,
+	tournamentStartDate: number,
+	tournamentEndDate: number,
+}
+
+export interface TournamentRegistration {
+	uid: string,
+	darteAccount: string,
+	dartePreset: string,
+	rosterScreenshot: string,
+	approved: boolean,
+	registrationTimestamp: number
+}
+
+export interface RegisteredPlayer {
+	player: Player,
+	registration: TournamentRegistration
 }

@@ -90,3 +90,15 @@ export async function createTournament(data: Omit<Tournament, 'id'>): Promise<st
 	const result = await fn(data) as any;
 	return result.data.id;
 }
+
+export async function applyForTournament(tournamentId: string, darteNickname: string,
+	darteAccount: string, dartePreset: string, rosterScreenshot: File): Promise<void> {
+
+	await httpsCallable(functions, 'applyForTournament')({
+		tournamentId,
+		darteNickname,
+		darteAccount,
+		dartePreset,
+		rosterScreenshot	
+	});
+}

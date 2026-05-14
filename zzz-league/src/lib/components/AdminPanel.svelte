@@ -2,25 +2,19 @@
 	import {
 		addHistoryEntry,
 		addPlayer,
-		clearHistory,
 		createTournament,
 		finalizeTournament,
 		resetSeason,
 		setTimer,
 		updateMatchData,
 	} from "$lib/firebase";
+	import { players } from "$lib/store";
 	import type { Player } from "$lib/types";
-
-	interface Props {
-		players?: Player[];
-	}
-
-	let { players = [] }: Props = $props();
 
 	let searchQueryP1 = $state("");
 	let selectedPlayer1: Player | null = $state(null);
 	let filteredPlayers1 = $derived(
-		players.filter((p: Player) =>
+		$players.filter((p: Player) =>
 			p.name.toLowerCase().includes(searchQueryP1.toLowerCase()),
 		),
 	);
@@ -28,7 +22,7 @@
 	let searchQueryP2 = $state("");
 	let selectedPlayer2: Player | null = $state(null);
 	let filteredPlayers2 = $derived(
-		players.filter((p: Player) =>
+		$players.filter((p: Player) =>
 			p.name.toLowerCase().includes(searchQueryP2.toLowerCase()),
 		),
 	);

@@ -1,20 +1,18 @@
 <script lang="ts">
 	import { onMount } from "svelte";
-	import { auth, clearHistory, db, deleteArchive, deleteHistoryEntry } from "$lib/firebase";
-	import { onAuthStateChanged, signOut } from "firebase/auth";
+	import {
+		auth,
+		clearHistory,
+		db,
+		deleteArchive,
+		deleteHistoryEntry,
+	} from "$lib/firebase";
 	import { ref, onValue } from "firebase/database";
 	import type { Archives, MatchRecord, Player, Tournament } from "$lib/types";
 	import Leaderboard from "$lib/components/Leaderboard.svelte";
-	import LoginPopup from "$lib/components/LoginPopup.svelte";
-	import RegisterPopup from "$lib/components/RegisterPopup.svelte";
-	import AdminPanel from "$lib/components/AdminPanel.svelte";
-	import PlayerProfile from "$lib/components/PlayerProfile.svelte";
-	import { profilePlayer } from "$lib/store";
-	import SettingsPopup from "$lib/components/SettingsPopup.svelte";
-
-	let currentUser = $state<Player | null>(null);
-	let isAdmin = $state(false);
-	let players = $state<Player[]>([]);
+	import { resolve } from "$app/paths";
+	import SidePanel from "$lib/components/SidePanel.svelte";
+	import { isAdmin, players } from "$lib/store";
 
 	let tournaments = $state<Tournament[]>([]);
 	let archives = $state<Archives>({});
@@ -24,55 +22,16 @@
 
 	let isViewingArchive = $state(false);
 	let archiveKey = $state("");
-
-	let loginOpen = $state(false);
-	let registerOpen = $state(false);
-	let settingsOpen = $state(false);
-	let profileOpen = $derived($profilePlayer !== null);
-
 	let timerText = $state("0д 00:00:00");
 	let timerInterval: ReturnType<typeof setInterval> | null = null;
 
 	let displayPlayers = $derived(
-		isViewingArchive ? (archives[archiveKey] ?? []) : players,
+		isViewingArchive ? (archives[archiveKey] ?? []) : $players,
 	);
 
 	let now = $state(Date.now());
 
 	onMount(() => {
-		let unsubPlayer: (() => void) | null = null;
-
-		const unsubAuth = onAuthStateChanged(auth, async (user) => {
-			if (user) {
-				unsubPlayer = onValue(ref(db, "players/" + user.uid), (snap) => {
-					if (snap.exists()) {
-						const player = snap.val();
-						currentUser = {
-							uid: player.uid,
-							name: player.name,
-							discord: player.discord,
-							discordId: player.discordId,
-							elo: player.elo,
-							tournamentPoints: player.tournamentPoints,
-							isMidConfirmed: player.isMidConfirmed,
-							isHighConfirmed: player.isHighConfirmed,
-						};
-						isAdmin = !!player.isAdmin;
-					}
-				});
-			} else {
-				currentUser = null;
-				isAdmin = false;
-			}
-		});
-
-		const unsubPlayers = onValue(ref(db, "players"), (snap) => {
-			const val = snap.val();
-			players = val
-				? (Object.values(val).filter((p: any) => p?.name) as Player[])
-				: [];
-		});
-
 		const unsubTimer = onValue(ref(db, "timer"), (snap) => {
 			const endTime = snap.val();
 			if (!endTime) return;
@@ -119,9 +78,6 @@
 		}, 1000);
 
 		return () => {
-			unsubAuth();
-			unsubPlayer?.();
-			unsubPlayers();
 			unsubTimer();
 			unsubArchives();
 			unsubHistory();
@@ -141,7 +97,7 @@
 		archiveKey = "";
 	}
 
-	async function handleDeleteArcive(key: string) {
+	async function handleDeleteArchive(key: string) {
 		try {
 			await deleteArchive(key);
 		} catch (error) {
@@ -151,7 +107,7 @@
 
 	async function handleDeleteHistoryEntry(key: string) {
 		if (!confirm("Удалить запись?")) return;
-		
+
 		try {
 			await deleteHistoryEntry(key);
 		} catch (error) {
@@ -168,110 +124,10 @@
 			alert(error);
 		}
 	}
-
-	function openProfile(player: Player) {
-		$profilePlayer = player;
-	}
-
-	function openSettings() {
-		settingsOpen = true;
-	}
 </script>
 
-<div class="layout" class:no-admin={!isAdmin}>
-	<div class="side-panel">
-		{#if !currentUser}
-			<div class="card">
-				<div class="btn-row">
-					<button
-						class="btn-common btn-play"
-						onclick={() => (loginOpen = true)}>Вход</button
-					>
-					<button class="btn-common" onclick={() => (registerOpen = true)}
-						>Регистрация</button
-					>
-				</div>
-			</div>
-		{:else}
-			<div class="card">
-				<button class="user-label" onclick={() => openProfile(currentUser!)}
-					>{currentUser.name}</button
-				>
-				<button class="btn-common" onclick={() => openSettings()}
-					>Настройки</button
-				>
-				<button class="btn-common" onclick={() => signOut(auth)}
-					>Выход</button
-				>
-			</div>
-		{/if}
-
-		{#if !isAdmin}
-			<div class="card">
-				<h2>🏆 Кодекс Лиги</h2>
-				<ul class="rules-list">
-					<li>
-						<b>Ранги:</b> <span class="tier-badge t-newbie">NEWBIE</span>
-						<b>1000+</b>, <span class="tier-badge t-mid">MID</span>
-						<b>1200+</b>, <span class="tier-badge t-high">HIGH</span>
-						<b>1400+</b>.
-					</li>
-					<li>
-						<b>Квалификация:</b> Для входа в
-						<span class="tier-badge t-mid">MID TIER</span>
-						нужно
-						<b>1200</b> ELO. Для
-						<span class="tier-badge t-high">HIGH TIER</span>
-						достаточно достичь отметки <b>1400</b> ELO.
-					</li>
-					<li>
-						<b>Уровни (LVL):</b> Каждые <b>40</b> единиц ELO повышают ваш
-						уровень. Максимальный уровень —
-						<b>L10</b> (начинается с <b>1360</b> ELO).
-					</li>
-					<li>
-						<b>Турнирный бонус:</b> За победу на <b>любом</b> турнире
-						игрок получает фиксированную награду
-						<b>+40 ELO</b>.
-					</li>
-					<li>
-						<b>Финальный турнир:</b> На последней неделе сезона проводится
-						масштабный турнир для
-						<b>ТОП-16</b> игроков рейтинга.
-					</li>
-					<li>
-						<b>Сброс лиги:</b> По завершении таймера прогресс уходит в архив.
-						ELO сбрасывается до стартового значения текущего подтвержденного
-						тира.
-					</li>
-					<li>
-						<b>Сезоны:</b> Новый сезон — это возможность занять топы с чистого
-						листа.
-					</li>
-					<li>
-						<b>Вылет:</b> При падении ELO на <b>50</b> пунктов ниже границы
-						тира, вы переходите в предыдущую лигу.
-					</li>
-					<li>
-						<b>ELO-очки:</b> Начисляются сразу, но фиксируются в основном балансе
-						игрока только после завершения турнирного дня.
-					</li>
-					<li>
-						<b>Техлузы:</b> Если игрок получает техлуз по
-						<b>уважительной причине</b>, <b>ELO</b> с него не снимается, а
-						его оппонент не получает <b>ELO за победу.</b>
-						Если техлуз происходит <b>во время игры</b>, игрок, получивший
-						техлуз, получает <b>двойную потерю ELO</b>
-					</li>
-				</ul>
-			</div>
-		{/if}
-
-		{#if isAdmin}
-			<AdminPanel {players} />
-		{/if}
-	</div>
-
+<div class="layout">
+	<SidePanel></SidePanel>
 	<div class="card main-content">
 		<div class="main-timer">
 			<div class="timer-label">ДО КОНЦА ЛИГИ:</div>
@@ -281,28 +137,32 @@
 		<div>
 			<div>Турниры:</div>
 			<div>
-				{#each tournaments as t}
-					<button>
-						<p>{t.name}</p>
+				{#each tournaments as tournament}
+					<a
+						class="btn-common"
+						style="display: block; width:fit-content"
+						href={resolve(`/tournaments/${tournament.id}`)}
+					>
+						>
+						<p>{tournament.name}</p>
 						<p>
-							{new Date(t.tournamentStartDate).toLocaleString()} - {new Date(
-								t.tournamentEndDate,
-							).toLocaleString()}
+							{new Date(tournament.tournamentStartDate).toLocaleString()}
+							- {new Date(tournament.tournamentEndDate).toLocaleString()}
 						</p>
-						{#if now > t.registrationStartDate && now < t.registrationEndDate}
+						{#if now > tournament.registrationStartDate && now < tournament.registrationEndDate}
 							<p>
 								Идёт регистрация до {new Date(
-									t.registrationEndDate,
+									tournament.registrationEndDate,
 								).toLocaleString()}
 							</p>
 						{/if}
-						{#if now > t.tournamentStartDate && now < t.tournamentEndDate}
+						{#if now > tournament.tournamentStartDate && now < tournament.tournamentEndDate}
 							<p>Турнир идёт</p>
 						{/if}
-						{#if now > t.tournamentEndDate}
+						{#if now > tournament.tournamentEndDate}
 							<p>Турнир окончен</p>
 						{/if}
-					</button>
+					</a>
 				{/each}
 			</div>
 		</div>
@@ -330,7 +190,6 @@
 		<div class="table-wrapper">
 			<Leaderboard
 				players={displayPlayers}
-				{isAdmin}
 				{searchQuery}
 				hideOptions={isViewingArchive}
 			/>
@@ -349,7 +208,7 @@
 							{#if isAdmin}
 								<button
 									class="btn-common archive-del"
-									onclick={() => handleDeleteArcive(key)}>✕</button
+									onclick={() => handleDeleteArchive(key)}>✕</button
 								>
 							{/if}
 						</div>
@@ -388,10 +247,3 @@
 		{/if}
 	</div>
 </div>
-
-<PlayerProfile bind:open={profileOpen} player={$profilePlayer} />
-
-<SettingsPopup bind:open={settingsOpen} user={currentUser} />
-
-<LoginPopup bind:open={loginOpen} />
-<RegisterPopup bind:open={registerOpen} />
