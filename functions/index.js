@@ -1,6 +1,6 @@
 const admin = require("firebase-admin");
 
-const { defineSecret } = require("firebase-functions/params");
+const {defineSecret} = require("firebase-functions/params");
 
 const DISCORD_BOT_TOKEN = defineSecret("DISCORD_BOT_TOKEN");
 const DISCORD_GUILD_ID = defineSecret("DISCORD_GUILD_ID");
@@ -10,8 +10,8 @@ const DISCORD_HIGH_ROLE = defineSecret("DISCORD_HIGH_ROLE");
 const DISCORD_CLIENT_ID = defineSecret("DISCORD_CLIENT_ID");
 const DISCORD_CLIENT_SECRET = defineSecret("DISCORD_CLIENT_SECRET");
 
-const { setGlobalOptions } = require("firebase-functions");
-const { onCall, HttpsError } = require("firebase-functions/https");
+const {setGlobalOptions} = require("firebase-functions");
+const {onCall, HttpsError} = require("firebase-functions/https");
 const logger = require("firebase-functions/logger");
 
 setGlobalOptions({
@@ -37,10 +37,10 @@ async function validateAdminRequest(request) {
   }
 }
 
-exports.register = onCall({ cors: true }, async (request) => {
+exports.register = onCall({cors: true}, async (request) => {
   let userRecord = null;
   try {
-    const { username, email, password, discord } = request.data;
+    const {username, email, password, discord} = request.data;
 
     if (!username || !email || !password || !discord) {
       throw new HttpsError("invalid-argument", "Missing required fields");
@@ -51,7 +51,7 @@ exports.register = onCall({ cors: true }, async (request) => {
       throw new HttpsError("already-exists", "Username is already taken");
     }
 
-    userRecord = await auth.createUser({ email, password });
+    userRecord = await auth.createUser({email, password});
     const uid = userRecord.uid;
 
     const prevSnapshot = await db.ref("players/" + username).once("value");
@@ -88,7 +88,7 @@ exports.register = onCall({ cors: true }, async (request) => {
     });
 
     const token = await auth.createCustomToken(uid);
-    return { success: true, token };
+    return {success: true, token};
   } catch (error) {
     logger.error(error);
     if (userRecord) await auth.deleteUser(userRecord.uid);
@@ -97,13 +97,13 @@ exports.register = onCall({ cors: true }, async (request) => {
   }
 });
 
-exports.updateProfile = onCall({ cors: true }, async (request) => {
+exports.updateProfile = onCall({cors: true}, async (request) => {
   const callerUid = request.auth?.uid;
   if (!callerUid) {
     throw new HttpsError("unauthenticated", "User must be logged in");
   }
 
-  const { username, discord } = request.data;
+  const {username, discord} = request.data;
 
   if (!username && !discord) {
     throw new HttpsError("invalid-argument", "Nothing to update");
@@ -139,13 +139,13 @@ exports.updateProfile = onCall({ cors: true }, async (request) => {
 
   await db.ref().update(updates);
 
-  return { success: true };
+  return {success: true};
 });
 
-exports.deletePlayer = onCall({ cors: true }, async (request) => {
+exports.deletePlayer = onCall({cors: true}, async (request) => {
   await validateAdminRequest(request);
 
-  const { uid } = request.data;
+  const {uid} = request.data;
 
   if (!uid) {
     throw new HttpsError("invalid-argument", "uid is required");
@@ -166,7 +166,7 @@ exports.deletePlayer = onCall({ cors: true }, async (request) => {
 
   await auth.deleteUser(uid);
 
-  return { success: true };
+  return {success: true};
 });
 
 exports.updatePlayerElo = onCall({
@@ -176,7 +176,7 @@ exports.updatePlayerElo = onCall({
 }, async (request) => {
   await validateAdminRequest(request);
 
-  const { uid, elo } = request.data;
+  const {uid, elo} = request.data;
 
   if (!uid) {
     throw new HttpsError("invalid-argument", "uid is required");
@@ -196,13 +196,13 @@ exports.updatePlayerElo = onCall({
 
   assignDiscordRole(uid);
 
-  return { success: true };
+  return {success: true};
 });
 
-exports.addHistoryEntry = onCall({ cors: true }, async (request) => {
+exports.addHistoryEntry = onCall({cors: true}, async (request) => {
   await validateAdminRequest(request);
 
-  const { playerName1, playerName2, change } = request.data;
+  const {playerName1, playerName2, change} = request.data;
 
   await db.ref("history").push({
     p1: playerName1,
@@ -210,20 +210,20 @@ exports.addHistoryEntry = onCall({ cors: true }, async (request) => {
     change,
   });
 
-  return { success: true };
+  return {success: true};
 });
 
-exports.clearHistory = onCall({ cors: true }, async (request) => {
+exports.clearHistory = onCall({cors: true}, async (request) => {
   await validateAdminRequest(request);
   await db.ref("history").remove();
 
-  return { success: true };
+  return {success: true};
 });
 
-exports.updateMatchData = onCall({ cors: true }, async (request) => {
+exports.updateMatchData = onCall({cors: true}, async (request) => {
   await validateAdminRequest(request);
 
-  const { uid, change, isWin } = request.data;
+  const {uid, change, isWin} = request.data;
 
   const snapshot = await db.ref("players/" + uid).once("value");
 
@@ -246,18 +246,18 @@ exports.updateMatchData = onCall({ cors: true }, async (request) => {
   });
 });
 
-exports.setTimer = onCall({ cors: true }, async (request) => {
+exports.setTimer = onCall({cors: true}, async (request) => {
   await validateAdminRequest(request);
 
-  const { timer } = request.data;
+  const {timer} = request.data;
   await db.ref("timer").set(timer);
-  return { success: true };
+  return {success: true};
 });
 
-exports.resetSeason = onCall({ cors: true }, async (request) => {
+exports.resetSeason = onCall({cors: true}, async (request) => {
   await validateAdminRequest(request);
 
-  const { seasonName } = request.data;
+  const {seasonName} = request.data;
   if (!seasonName) {
     throw new HttpsError("invalid-argument", "seasonName is required");
   }
@@ -290,7 +290,7 @@ exports.resetSeason = onCall({ cors: true }, async (request) => {
 
   await db.ref().update(updates);
 
-  return { success: true };
+  return {success: true};
 });
 
 exports.finalizeTournament = onCall({
@@ -330,22 +330,22 @@ exports.finalizeTournament = onCall({
   await db.ref().update(updates);
   await Promise.all(uidsToUpdate.map((uid) => assignDiscordRole(uid)));
 
-  return { success: true };
+  return {success: true};
 });
 
-exports.deleteArchive = onCall({ cors: true }, async (request) => {
+exports.deleteArchive = onCall({cors: true}, async (request) => {
   await validateAdminRequest(request);
 
-  const { key } = request.data;
+  const {key} = request.data;
   await db.ref("archives/" + key).remove();
 
-  return { success: true };
+  return {success: true};
 });
 
-exports.addPlayer = onCall({ cors: true }, async (request) => {
+exports.addPlayer = onCall({cors: true}, async (request) => {
   await validateAdminRequest(request);
 
-  const { name } = request.data;
+  const {name} = request.data;
   const trimmedName = name.trim();
 
   if (!name || trimmedName.length < 2) {
@@ -353,7 +353,7 @@ exports.addPlayer = onCall({ cors: true }, async (request) => {
   }
 
   const existing = await db.ref("players")
-    .orderByChild("name").equalTo(trimmedName).once("value");
+      .orderByChild("name").equalTo(trimmedName).once("value");
   if (existing.exists()) {
     throw new HttpsError("already-exists", "Player already exists");
   }
@@ -370,7 +370,7 @@ exports.addPlayer = onCall({ cors: true }, async (request) => {
 
   await db.ref("players/" + trimmedName).set(player);
 
-  return { success: true };
+  return {success: true};
 });
 
 exports.linkDiscord = onCall({
@@ -381,11 +381,11 @@ exports.linkDiscord = onCall({
   const callerUid = request.auth?.uid;
   if (!callerUid) throw new HttpsError("unauthenticated", "Not logged in");
 
-  const { code, redirectUri } = request.data;
+  const {code, redirectUri} = request.data;
 
   const tokenRes = await fetch("https://discord.com/api/oauth2/token", {
     method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    headers: {"Content-Type": "application/x-www-form-urlencoded"},
     body: new URLSearchParams({
       client_id: DISCORD_CLIENT_ID.value(),
       client_secret: DISCORD_CLIENT_SECRET.value(),
@@ -398,13 +398,13 @@ exports.linkDiscord = onCall({
   const tokenData = await tokenRes.json();
 
   const userRes = await fetch("https://discord.com/api/users/@me", {
-    headers: { Authorization: `Bearer ${tokenData.access_token}` },
+    headers: {Authorization: `Bearer ${tokenData.access_token}`},
   });
   const discordUser = await userRes.json();
 
   if (!discordUser.id) {
     throw new HttpsError("internal",
-      `Discord error: ${JSON.stringify(discordUser)}`);
+        `Discord error: ${JSON.stringify(discordUser)}`);
   }
 
   await db.ref("players/" + callerUid).update({
@@ -414,7 +414,7 @@ exports.linkDiscord = onCall({
 
   await assignDiscordRole(callerUid);
 
-  return { success: true, username: discordUser.username };
+  return {success: true, username: discordUser.username};
 });
 
 async function assignDiscordRole(uid) {
@@ -439,7 +439,7 @@ async function assignDiscordRole(uid) {
   await Promise.all(allRoles.map((roleId) =>
     fetch(`https://discord.com/api/guilds/${guildId}/members/${player.discordId}/roles/${roleId}`, {
       method: roleId === newRoleId ? "PUT" : "DELETE",
-      headers: { Authorization: `Bot ${token}` },
+      headers: {Authorization: `Bot ${token}`},
     }),
   ));
 }
@@ -467,7 +467,7 @@ exports.unlinkDiscord = onCall({
     await Promise.all(allRoles.map((roleId) =>
       fetch(`https://discord.com/api/guilds/${guildId}/members/${player.discordId}/roles/${roleId}`, {
         method: "DELETE",
-        headers: { Authorization: `Bot ${token}` },
+        headers: {Authorization: `Bot ${token}`},
       }),
     ));
   }
@@ -477,5 +477,5 @@ exports.unlinkDiscord = onCall({
     discord: null,
   });
 
-  return { success: true };
+  return {success: true};
 });
