@@ -208,6 +208,7 @@ exports.addHistoryEntry = onCall({cors: true}, async (request) => {
     p1: playerName1,
     p2: playerName2,
     change,
+    timestamp: Date.now(),
   });
 
   return {success: true};
@@ -215,8 +216,8 @@ exports.addHistoryEntry = onCall({cors: true}, async (request) => {
 
 exports.deleteHistoryEntry = onCall({cors: true}, async (request) => {
   await validateAdminRequest(request);
-  
-  const { key } = request.data;
+
+  const {key} = request.data;
   await db.ref("history/" + key).remove();
 
   return {success: true};
@@ -323,13 +324,15 @@ exports.finalizeTournament = onCall({
     let mid = p.isMidConfirmed;
     let high = p.isHighConfirmed;
     if (mid && next < 1150) mid = false;
+    if (!mid && next >= 1200) mid = true;
     if (high && next < 1350) high = false;
-    if (next >= 1400) high = true;
+    if (!high && next >= 1400) high = true;
 
     updates["players/" + p.uid + "/elo"] = next;
     updates["players/" + p.uid + "/tournamentPoints"] = 0;
     updates["players/" + p.uid + "/isMidConfirmed"] = mid;
     updates["players/" + p.uid + "/isHighConfirmed"] = high;
+    updates["players/" + p.uid + "/lastEloUpdateTimestamp"] = Date.now();
 
     if (p.discordId && mid != p.isMidConfirmed || high != p.isHighConfirmed) {
       uidsToUpdate.push(p.uid);

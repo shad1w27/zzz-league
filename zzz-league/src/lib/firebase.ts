@@ -7,7 +7,6 @@ import { httpsCallable } from 'firebase/functions'
 const firebaseConfig = {
 	apiKey: "AIzaSyAlcnUiLJ1cq7ekCQFi_NOPAQ6UiG92ZqM",
 	databaseURL: "https://zzz-league-default-rtdb.firebaseio.com",
-	// databaseURL: "https://zzz-league-test.europe-west1.firebasedatabase.app/",
 	projectId: "zzz-league"
 }
 
