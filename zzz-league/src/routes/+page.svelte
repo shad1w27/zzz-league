@@ -191,7 +191,7 @@
 						<b>Квалификация:</b> Для входа в
 						<span class="tier-badge t-mid">MID TIER</span>
 						нужно
-						<b>1200</b> ELO
+						<b>1200</b> ELO и <b>3</b> победы подряд. Для
 						<span class="tier-badge t-high">HIGH TIER</span>
 						достаточно достичь отметки <b>1400</b> ELO.
 					</li>
