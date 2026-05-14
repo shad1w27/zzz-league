@@ -31,6 +31,13 @@
 
 	let now = $state(Date.now());
 
+	const dateOptions: Intl.DateTimeFormatOptions = {
+		month: "short",
+		day: "numeric",
+		hour: "2-digit",
+		minute: "2-digit",
+	};
+
 	onMount(() => {
 		const unsubTimer = onValue(ref(db, "timer"), (snap) => {
 			const endTime = snap.val();
@@ -135,25 +142,38 @@
 		</div>
 
 		<div>
-			<div>Турниры:</div>
-			<div>
+			<h2>Турниры:</h2>
+			<div class="tournament-container">
 				{#each tournaments as tournament}
+					{@const status =
+						now > tournament.tournamentEndDate
+							? "ended"
+							: now > tournament.tournamentStartDate
+								? "ongoing"
+								: now > tournament.registrationStartDate &&
+									  now < tournament.registrationEndDate
+									? "registration"
+									: "upcoming"}
 					<a
-						class="btn-common"
-						style="display: block; width:fit-content"
+						class="btn-common tournament status-{status}"
 						href={resolve(`/tournaments/${tournament.id}`)}
 					>
-						>
 						<p>{tournament.name}</p>
 						<p>
-							{new Date(tournament.tournamentStartDate).toLocaleString()}
-							- {new Date(tournament.tournamentEndDate).toLocaleString()}
+							{new Date(tournament.tournamentStartDate).toLocaleString(
+								"ru",
+								dateOptions,
+							)}
+							- {new Date(tournament.tournamentEndDate).toLocaleString(
+								"ru",
+								dateOptions,
+							)}
 						</p>
 						{#if now > tournament.registrationStartDate && now < tournament.registrationEndDate}
 							<p>
-								Идёт регистрация до {new Date(
+								Регистрация до {new Date(
 									tournament.registrationEndDate,
-								).toLocaleString()}
+								).toLocaleString("ru", dateOptions)}
 							</p>
 						{/if}
 						{#if now > tournament.tournamentStartDate && now < tournament.tournamentEndDate}

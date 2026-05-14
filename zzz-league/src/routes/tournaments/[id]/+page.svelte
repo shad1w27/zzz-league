@@ -68,23 +68,24 @@
 	<SidePanel></SidePanel>
 
 	<div class="card main-content">
-		<div class="search-container">
-			{#if tournament}
-				<h2>{tournament.name}</h2>
-			{/if}
-			<div style="display:flex; align-items:center; gap:10px;">
-				<input
-					class="search-input"
-					placeholder="Поиск..."
-					bind:value={searchQuery}
-				/>
+		{#if tournament}
+			<h2>{tournament.name}</h2>
+			<div class="description-container">
+				<p>{tournament.description}</p>
+
+				<button class="btn-common btn-play" onclick={() => (registrationOpen = true)}
+					>Зарегистрироваться</button
+				>
 			</div>
+		{/if}
+		<div class="search-container">
+			<div></div>
+			<input
+				class="search-input"
+				placeholder="Поиск..."
+				bind:value={searchQuery}
+			/>
 		</div>
-
-		<button class="btn-common" onclick={() => (registrationOpen = true)}
-			>Зарегистрироваться</button
-		>
-
 		<div class="table-wrapper">
 			<TournamentPlayerTable
 				registrations={registeredPlayers}

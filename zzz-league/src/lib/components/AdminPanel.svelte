@@ -44,7 +44,7 @@
 	let showingForecast = $state(false);
 	let forecast = $state<Forecast | null>(null);
 
-	let winningPlayer = $state("0");
+	let winningPlayer = $state("1");
 
 	async function handleSetTimer() {
 		const hours = prompt("Через сколько часов закончить?");
