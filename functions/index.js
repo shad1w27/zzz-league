@@ -40,9 +40,9 @@ async function validateAdminRequest(request) {
 exports.register = onCall({cors: true}, async (request) => {
   let userRecord = null;
   try {
-    const {username, email, password, discord} = request.data;
+    const {username, email, password} = request.data;
 
-    if (!username || !email || !password || !discord) {
+    if (!username || !email || !password) {
       throw new HttpsError("invalid-argument", "Missing required fields");
     }
 
@@ -67,7 +67,6 @@ exports.register = onCall({cors: true}, async (request) => {
         tournamentPoints: prevUserData.tournamentPoints ?? 0,
         isMidConfirmed: prevUserData.isMidConfirmed ?? false,
         isHighConfirmed: prevUserData.isHighConfirmed ?? false,
-        discord,
       };
     } else {
       playerData = {
@@ -77,7 +76,6 @@ exports.register = onCall({cors: true}, async (request) => {
         tournamentPoints: 0,
         isMidConfirmed: false,
         isHighConfirmed: false,
-        discord,
       };
     }
 
@@ -103,9 +101,9 @@ exports.updateProfile = onCall({cors: true}, async (request) => {
     throw new HttpsError("unauthenticated", "User must be logged in");
   }
 
-  const {username, discord} = request.data;
+  const {username} = request.data;
 
-  if (!username && !discord) {
+  if (!username) {
     throw new HttpsError("invalid-argument", "Nothing to update");
   }
 
@@ -131,10 +129,6 @@ exports.updateProfile = onCall({cors: true}, async (request) => {
     updates["usernames/" + oldUsername] = null;
     updates["usernames/" + username] = true;
     updates["players/" + callerUid + "/name"] = username;
-  }
-
-  if (discord) {
-    updates["players/" + callerUid + "/discord"] = discord;
   }
 
   await db.ref().update(updates);

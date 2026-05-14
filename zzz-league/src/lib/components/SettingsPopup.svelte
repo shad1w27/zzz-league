@@ -84,11 +84,10 @@
 		let successData = false;
 
 		const newUsername = username !== user.name ? username : null;
-		const newDiscord = discord !== user.discord ? discord : null;
 
-		if (newUsername || newDiscord) {
+		if (newUsername) {
 			try {
-				await updateProfile(newUsername, newDiscord);
+				await updateProfile(newUsername);
 				successData = true;
 			} catch (error: any) {
 				status = error.message;

@@ -134,6 +134,8 @@
 	}
 
 	async function handleDeleteHistoryEntry(key: string) {
+		if (!confirm("Удалить запись?")) return;
+		
 		try {
 			await deleteHistoryEntry(key);
 		} catch (error) {

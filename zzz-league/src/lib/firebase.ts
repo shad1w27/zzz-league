@@ -34,10 +34,9 @@ export async function registerUser(
 	username: string,
 	email: string,
 	password: string,
-	discord: string
 ): Promise<void> {
 	const fn = httpsCallable(functions, 'register');
-	const result = await fn({ username, email, password, discord }) as any;
+	const result = await fn({ username, email, password }) as any;
 	await signInWithCustomToken(auth, result.data.token);
 }
 
@@ -69,8 +68,8 @@ export async function deleteArchive(key: string): Promise<void> {
 	await httpsCallable(functions, "deleteArchive")({ key });
 }
 
-export async function updateProfile(username: string | null, discord: string | null): Promise<void> {
-	await httpsCallable(functions, 'updateProfile')({ username, discord });
+export async function updateProfile(username: string | null): Promise<void> {
+	await httpsCallable(functions, 'updateProfile')({ username });
 }
 
 export async function linkDiscord(code: string, redirectUri: string): Promise<void> {

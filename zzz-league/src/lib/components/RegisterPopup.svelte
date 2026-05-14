@@ -6,7 +6,6 @@
 	let username = $state("");
 	let email = $state("");
 	let password = $state("");
-	let discord = $state("");
 	let confirmPass = $state("");
 	let status = $state("");
 
@@ -20,10 +19,7 @@
 			status = "Username от 3 до 32 символов";
 			return;
 		}
-		if (discord.length < 2 || discord.length > 32) {
-			status = "Не похоже на Discord";
-			return;
-		}
+		
 		if (password !== confirmPass) {
 			status = "Пароли не совпадают";
 			return;
@@ -32,7 +28,7 @@
 		isLoading = true;
 
 		try {
-			await registerUser(username, email, password, discord);
+			await registerUser(username, email, password);
 			open = false;
 		} catch (e: any) {
 			status = e.message;
@@ -47,7 +43,6 @@
 		<div class="card">
 			<h2>Регистрация</h2>
 			<input type="text" bind:value={username} placeholder="Ник" />
-			<input type="text" bind:value={discord} placeholder="Discord" />
 			<input type="email" bind:value={email} placeholder="Email" />
 			<input type="password" bind:value={password} placeholder="Пароль" />
 			<input
