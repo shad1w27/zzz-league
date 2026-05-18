@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { closeImagePopup } from "$lib/uiCommon";
+	import { bustCache, closeImagePopup } from "$lib/uiCommon";
 
 	let { src = "", alt = "" } = $props();
 	let loaded = $state(false);
@@ -20,7 +20,12 @@
 			</div>
 		{/if}
 
-		<img {src} {alt} class:hidden={!loaded} onload={() => (loaded = true)} />
+		<img
+			src={bustCache(src)}
+			{alt}
+			class:hidden={!loaded}
+			onload={() => (loaded = true)}
+		/>
 	</div>
 </div>
 

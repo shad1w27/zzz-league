@@ -1,6 +1,15 @@
 import { loginOpen, profileUser, registerOpen, settingsOpen, viewingImage } from "./store";
 import type { Player } from "./types";
 
+export const dateDisplayOptions: Intl.DateTimeFormatOptions = {
+	month: "short",
+	day: "numeric",
+	hour: "2-digit",
+	minute: "2-digit",
+};
+
+export const bustCache = (url: string) => `${url}?t=${Date.now()}`;
+
 export function openProfilePopup(player: Player) {
 	profileUser.set(player);
 }

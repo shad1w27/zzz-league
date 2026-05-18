@@ -13,6 +13,7 @@
 	import { resolve } from "$app/paths";
 	import SidePanel from "$lib/components/SidePanel.svelte";
 	import { isAdmin, players } from "$lib/store";
+	import { dateDisplayOptions } from "$lib/uiCommon";
 
 	let tournaments = $state<Tournament[]>([]);
 	let archives = $state<Archives>({});
@@ -30,13 +31,6 @@
 	);
 
 	let now = $state(Date.now());
-
-	const dateOptions: Intl.DateTimeFormatOptions = {
-		month: "short",
-		day: "numeric",
-		hour: "2-digit",
-		minute: "2-digit",
-	};
 
 	onMount(() => {
 		const unsubTimer = onValue(ref(db, "timer"), (snap) => {
@@ -162,18 +156,18 @@
 						<p>
 							{new Date(tournament.tournamentStartDate).toLocaleString(
 								"ru",
-								dateOptions,
+								dateDisplayOptions,
 							)}
 							- {new Date(tournament.tournamentEndDate).toLocaleString(
 								"ru",
-								dateOptions,
+								dateDisplayOptions,
 							)}
 						</p>
 						{#if now > tournament.registrationStartDate && now < tournament.registrationEndDate}
 							<p>
 								Регистрация до {new Date(
 									tournament.registrationEndDate,
-								).toLocaleString("ru", dateOptions)}
+								).toLocaleString("ru", dateDisplayOptions)}
 							</p>
 						{/if}
 						{#if now > tournament.tournamentStartDate && now < tournament.tournamentEndDate}

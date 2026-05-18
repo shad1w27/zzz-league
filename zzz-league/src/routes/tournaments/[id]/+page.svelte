@@ -17,10 +17,30 @@
 	const id = $derived(page.params.id);
 
 	let tournament = $state<Tournament>();
-	let userRegistration = $state<TournamentRegistration>();
+	let userRegistration = $state<TournamentRegistration | null>();
 	let registeredPlayers = $state<RegisteredPlayer[]>([]);
 	let searchQuery = $state("");
 	let registrationOpen = $state(false);
+
+	let unsubRegistration: (() => void) | null = null;
+
+	$effect(() => {
+		if ($currentUser) {
+			unsubRegistration?.();
+			unsubRegistration = onValue(
+				ref(db, `tournamentRegistrations/${id}/${$currentUser.uid}`),
+				(snap) => {
+					const data = snap.val();
+					if (!data) return;
+					userRegistration = data as TournamentRegistration;
+				},
+			);
+		} else {
+			unsubRegistration?.();
+			unsubRegistration = null;
+			userRegistration = null;
+		}
+	});
 
 	onMount(() => {
 		const unsubTournament = onValue(ref(db, "tournaments/" + id), (snap) => {
@@ -59,23 +79,9 @@
 			},
 		);
 
-		let unsubRegistration: (() => void) | null = null;
-
-		if ($currentUser) {
-			unsubRegistration = onValue(
-				ref(db, `tournamentRegistrations/${id}/${$currentUser.uid}`),
-				(snap) => {
-					const data = snap.val();
-					if (!data) return;
-					userRegistration = data as TournamentRegistration;
-				},
-			);
-		}
-
 		return () => {
 			unsubTournament();
 			unsubRegistrations();
-			if (unsubRegistration) unsubRegistration();
 		};
 	});
 </script>
@@ -113,5 +119,10 @@
 	</div>
 </div>
 
-<TournamentRegisterPopup bind:open={registrationOpen} {tournament}
-></TournamentRegisterPopup>
+{#if registrationOpen}
+	<TournamentRegisterPopup
+		bind:open={registrationOpen}
+		{tournament}
+		reg={userRegistration}
+	></TournamentRegisterPopup>
+{/if}

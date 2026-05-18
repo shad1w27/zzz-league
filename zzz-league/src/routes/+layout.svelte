@@ -75,10 +75,10 @@
 	});
 </script>
 
+{@render children()}
+
 {#if $loginOpen}<LoginPopup />{/if}
 {#if $registerOpen}<RegisterPopup />{/if}
 {#if $settingsOpen}<SettingsPopup />{/if}
 {#if profileOpen}<PlayerProfilePopup player={$profileUser} />{/if}
 {#if imageViewerOpen}<ImageViwerPopup src={$viewingImage} />{/if}
-
-{@render children()}
