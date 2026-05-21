@@ -261,3 +261,137 @@
 		{/if}
 	</div>
 </div>
+
+<style>
+	.tournament-container {
+		display: flex;
+		flex-direction: row;
+		gap: 8px;
+		flex-wrap: wrap;
+	}
+
+	.tournament {
+		font-size: 14px;
+		flex-direction: column;
+		width: fit-content;
+	}
+
+	.tournament p {
+		margin: 0;
+	}
+
+	.tournament.status-upcoming {
+		background-color: #444;
+	}
+
+	.tournament.status-registration {
+		background-color: #4a9eff;
+	}
+
+	.tournament.status-ongoing {
+		background-color: var(--gain);
+	}
+
+	.tournament.status-ended {
+		background-color: #555;
+		opacity: 0.6;
+	}
+
+	.history-header {
+		border-top: 1px solid #333;
+		padding-top: 25px;
+		margin-top: 30px;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding-bottom: 10px;
+		border-bottom: 1px solid #333;
+	}
+
+	.main-timer {
+		background: #222;
+		border: 1px solid #444;
+		border-radius: 8px;
+		padding: 15px;
+		margin-bottom: 20px;
+		text-align: center;
+	}
+
+	.timer-label {
+		font-size: 0.7em;
+		color: #888;
+		letter-spacing: 1px;
+		margin-bottom: 5px;
+	}
+
+	.timer-value {
+		color: var(--gold);
+		font-weight: bold;
+		font-family: monospace;
+		font-size: 1.6em;
+		text-shadow: 0 0 10px rgba(255, 204, 0, 0.3);
+	}
+
+	.archive-section {
+		margin-top: 25px;
+		border-top: 1px solid #333;
+		padding-top: 20px;
+		display: flex;
+		gap: 10px;
+		flex-wrap: wrap;
+	}
+
+	.archive-buttons {
+		display: flex;
+		flex-direction: row;
+		gap: 8px;
+	}
+
+	.archive-item {
+		display: flex;
+		align-items: center;
+		background: #222;
+		box-sizing: border-box;
+		border-radius: 6px;
+		outline: 1px solid #333;
+		gap: 10px;
+		overflow: hidden;
+	}
+
+	.section-label {
+		width: 100%;
+		color: #555;
+		font-size: 0.8em;
+	}
+
+	.archive-btn {
+		background: transparent;
+		border: 1px solid #333;
+		color: #fff;
+		width: 44px;
+		height: 44px;
+		font-size: 0.8em;
+		transition: 0.2s;
+		margin: 0;
+		border-radius: 6px;
+	}
+
+	.archive-btn:hover {
+		background: #333;
+	}
+
+	.archive-del {
+		background: #441111;
+		color: #ff4444;
+		border: 1px solid #333;
+		width: 44px;
+		height: 44px;
+		font-size: 0.8em;
+		margin: 0;
+		border-radius: 6px;
+	}
+
+	.archive-del:hover {
+		background: #662222;
+	}
+</style>

@@ -99,3 +99,35 @@
 		{/if}
 	</div>
 </div>
+
+<style>
+	.stat-grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 15px;
+		margin-top: 25px;
+	}
+
+	.stat-item {
+		background: #222;
+		padding: 20px;
+		border-radius: 12px;
+		border: 1px solid #333;
+	}
+
+	.stat-label {
+		font-size: 0.8em;
+		color: #888;
+		text-transform: uppercase;
+		margin-bottom: 5px;
+	}
+
+	.stat-value {
+		font-size: 1.5em;
+		font-weight: bold;
+	}
+
+	.winrate {
+		color: #2eb82e;
+	}
+</style>

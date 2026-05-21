@@ -27,7 +27,9 @@
 		</div>
 	{:else}
 		<div class="card">
-			<button class="user-label" onclick={() => openProfilePopup($currentUser)}
+			<button
+				class="user-label"
+				onclick={() => openProfilePopup($currentUser)}
 				>{$currentUser.name}</button
 			>
 			<button class="btn-common" onclick={openSettingsPopup}
@@ -37,7 +39,7 @@
 		</div>
 	{/if}
 
-	{#if !isAdmin}
+	{#if !$isAdmin}
 		<div class="card">
 			<h2>🏆 Кодекс Лиги</h2>
 			<ul class="rules-list">
@@ -98,6 +100,24 @@
 	{/if}
 
 	{#if $isAdmin || false}
-		<AdminPanel/>
+		<AdminPanel />
 	{/if}
 </div>
+
+<style>
+	.rules-list {
+		padding-left: 18px;
+		margin: 0;
+		font-size: 0.85em;
+		line-height: 1.6;
+		color: #bbb;
+	}
+
+	.rules-list li {
+		margin-bottom: 12px;
+	}
+
+	.rules-list li::marker {
+		color: var(--gold);
+	}
+</style>

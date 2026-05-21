@@ -253,3 +253,41 @@
 		>Создать турнир</button
 	>
 </div>
+
+<style>
+	.admin-card {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	.forecast-box {
+		background: #000;
+		padding: 15px;
+		border-radius: 8px;
+		border: 1px dashed #444;
+		margin: 15px 0;
+		line-height: 1.6;
+	}
+
+	.btn-forecast {
+		background: var(--gold) !important;
+		color: #000 !important;
+		border: none;
+		padding: 14px;
+		border-radius: 8px;
+		font-weight: bold;
+		cursor: pointer;
+		width: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 8px;
+		transition: 0.2s;
+		box-shadow: 0 4px 15px rgba(255, 204, 0, 0.2);
+	}
+
+	.btn-forecast:hover {
+		background: #ffdb4d !important;
+	}
+</style>

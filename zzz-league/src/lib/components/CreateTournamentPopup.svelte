@@ -151,7 +151,7 @@
 		color: #888;
 		letter-spacing: 1px;
 		text-transform: uppercase;
-		margin-bottom: 4px;
+		margin: 0 2px;
 		display: block;
 	}
 </style>
