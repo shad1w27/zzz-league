@@ -171,8 +171,10 @@
 		</div>
 		<div class="table-wrapper">
 			<TournamentPlayerTable
-				registrations={registeredPlayers}
+				{tournament}
 				{searchQuery}
+				registrations={registeredPlayers}
+				hideOptions={false}
 			/>
 		</div>
 	</div>

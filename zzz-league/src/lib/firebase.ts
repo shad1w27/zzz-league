@@ -91,13 +91,13 @@ export async function createTournament(data: Tournament): Promise<string> {
 	return result.data.id;
 }
 
-async function fileToBase64(file: File): Promise<string> {
+function fileToBase64(file: File): Promise<string> {
 	return new Promise((resolve, reject) => {
-		const reader = new FileReader()
-		reader.onload = () => resolve(reader.result as string)
-		reader.onerror = reject
-		reader.readAsDataURL(file)
-	})
+		const reader = new FileReader();
+		reader.onload = () => resolve(reader.result as string);
+		reader.onerror = reject;
+		reader.readAsDataURL(file);
+	});
 }
 
 export async function applyForTournament(tournamentId: string, zzzUid: string, darteNickname: string,
@@ -110,5 +110,13 @@ export async function applyForTournament(tournamentId: string, zzzUid: string, d
 		darteAccount,
 		dartePreset,
 		rosterScreenshot: await fileToBase64(rosterScreenshot),
+	});
+}
+
+export async function approveRegistration(tournamentId: string, uid: string, approved: boolean): Promise<void> {
+	await httpsCallable(functions, 'approveRegistration')({
+		tournamentId,
+		uid,
+		approved
 	});
 }

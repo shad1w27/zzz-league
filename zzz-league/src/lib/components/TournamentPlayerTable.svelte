@@ -1,18 +1,21 @@
 <script lang="ts">
+	import { approveRegistration } from "$lib/firebase";
 	import { isAdmin, profileUser } from "$lib/store";
-	import type { Player, RegisteredPlayer } from "$lib/types";
+	import type { Player, RegisteredPlayer, Tournament } from "$lib/types";
 	import { openImagePopup, openProfilePopup } from "$lib/uiCommon";
 
 	interface Props {
-		registrations?: RegisteredPlayer[];
-		hideOptions?: boolean;
-		searchQuery?: string;
+		registrations: RegisteredPlayer[];
+		tournament?: Tournament;
+		hideOptions: boolean;
+		searchQuery: string;
 	}
 
 	let {
 		registrations: registrations = [],
 		hideOptions = false,
 		searchQuery = "",
+		tournament = undefined,
 	}: Props = $props();
 
 	let sortedRegs = $derived(
@@ -29,9 +32,9 @@
 		),
 	);
 
-	async function handleRemoveFromTournament(uid: string) {}
-
-	async function handleApprove(uid: string) {}
+	async function handleApprove(uid: string, approved: boolean) {
+		approveRegistration(tournament!.id, uid, !approved);
+	}
 
 	async function openRosterScreenshot(link: string) {
 		openImagePopup(link);
@@ -41,10 +44,6 @@
 		if (p.isHighConfirmed) return { cls: "t-high", name: "HIGH TIER" };
 		if (p.isMidConfirmed) return { cls: "t-mid", name: "MID TIER" };
 		return { cls: "t-newbie", name: "NEWBIE" };
-	}
-
-	function getLadderPos(p: RegisteredPlayer) {
-		return sortedRegs.indexOf(p);
 	}
 
 	function getLvl(elo: number) {
@@ -62,15 +61,13 @@
 			<th>LVL</th>
 			<th>Подтвержден</th>
 			<th>Ростер</th>
-			{#if isAdmin && !hideOptions}<th>Опции</th>{/if}
+			{#if $isAdmin && !hideOptions}<th>Опции</th>{/if}
 		</tr>
 	</thead>
 	<tbody>
 		{#each filteredRegs as reg, index}
 			{@const elo = reg.player.elo || 1000}
 			{@const tier = getTier(reg.player)}
-			{@const ladderPos = getLadderPos(reg)}
-
 			<tr>
 				<td>{index + 1}</td>
 				<td><span class="tier-badge {tier.cls}">{tier.name}</span></td>
@@ -100,16 +97,15 @@
 						>🖼️</button
 					>
 				</td>
-				{#if isAdmin && !hideOptions}
+				{#if $isAdmin && !hideOptions}
 					<td class="options-cell">
 						<button
 							class="icon-btn"
-							onclick={() => handleApprove(reg.player.uid)}>⚙️</button
-						>
-						<button
-							class="icon-btn danger"
-							onclick={() => handleRemoveFromTournament(reg.player.uid)}
-							>✕</button
+							onclick={() =>
+								handleApprove(
+									reg.player.uid,
+									reg.registration.approved,
+								)}>⚙️</button
 						>
 					</td>
 				{/if}
