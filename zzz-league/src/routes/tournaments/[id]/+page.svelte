@@ -221,21 +221,33 @@
 				<div class="match-list">
 					{#each tournament.matches as match, index}
 						<div class="match-item">
-							<!-- svelte-ignore a11y_click_events_have_key_events -->
-							<!-- svelte-ignore a11y_no_static_element_interactions -->
-							<span
-								class="match-player-name"
-								onclick={() => openRegistration(match.p1)}
-								>{getPlayerName(match.p1)}</span
-							>
-							vs
-							<!-- svelte-ignore a11y_click_events_have_key_events -->
-							<!-- svelte-ignore a11y_no_static_element_interactions -->
-							<span
-								class="match-player-name"
-								onclick={() => openRegistration(match.p2)}
-								>{getPlayerName(match.p2)}</span
-							>
+							{#if match.p1 !== "TBD"}
+								<!-- svelte-ignore a11y_click_events_have_key_events -->
+								<!-- svelte-ignore a11y_no_static_element_interactions -->
+								<span
+									class="match-player-name match-player-left"
+									onclick={() => openRegistration(match.p1)}
+									>{getPlayerName(match.p1)}</span
+								>
+							{:else}
+								<span class="match-player-name match-player-left tbd"
+									>TBD</span
+								>
+							{/if}
+							<span class="match-vs">vs</span>
+							{#if match.p2 !== "TBD"}
+								<!-- svelte-ignore a11y_click_events_have_key_events -->
+								<!-- svelte-ignore a11y_no_static_element_interactions -->
+								<span
+									class="match-player-name match-player-right"
+									onclick={() => openRegistration(match.p2)}
+									>{getPlayerName(match.p2)}</span
+								>
+							{:else}
+								<span class="match-player-name match-player-right tbd"
+									>TBD</span
+								>
+							{/if}
 						</div>
 					{/each}
 				</div>
@@ -280,8 +292,11 @@
 	}
 
 	.match-item {
+		display: grid;
+		gap: 16px;
+		grid-template-columns: 1fr auto 1fr;
+		align-items: center;
 		font-size: 16px;
-		color: #666;
 	}
 
 	.match-player-name {
@@ -289,6 +304,24 @@
 		font-weight: bold;
 		color: white;
 		font-size: 22px;
+	}
+
+	.match-player-left {
+		text-align: right;
+	}
+
+	.match-player-right {
+		text-align: left;
+	}
+
+	.match-vs {
+		text-align: center;
+		color: #666;
+		white-space: nowrap;
+	}
+
+	.tbd {
+		color: #888;
 	}
 
 	.description-container {
