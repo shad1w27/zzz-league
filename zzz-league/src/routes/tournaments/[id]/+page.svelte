@@ -233,7 +233,7 @@
 							<!-- svelte-ignore a11y_no_static_element_interactions -->
 							<span
 								class="match-player-name"
-								onclick={() => openRegistration(match.p1)}
+								onclick={() => openRegistration(match.p2)}
 								>{getPlayerName(match.p2)}</span
 							>
 						</div>
@@ -300,8 +300,7 @@
 		padding-bottom: 16px;
 	}
 
-	.description-container a,
-	button {
+	.description-container button {
 		width: auto;
 		position: absolute;
 		bottom: 16px;

@@ -63,20 +63,29 @@
 	<div class="popup">
 		<div class="card">
 			<h2>Регистрация</h2>
-			<input type="text" bind:value={zzzUid} placeholder="Игровой UID" />
 			<input
+				type="text"
+				class={editable ? "" : "input-disabled"}
+				bind:value={zzzUid}
+				placeholder="Игровой UID"
+				disabled={!editable}
+			/>
+			<input
+				class={editable ? "" : "input-disabled"}
 				type="text"
 				bind:value={darteNickname}
 				placeholder="Ник на Darte"
 				disabled={!editable}
 			/>
 			<input
+				class={editable ? "" : "input-disabled"}
 				type="text"
 				bind:value={darteAccount}
 				placeholder="Название аккаунта на Darte"
 				disabled={!editable}
 			/>
 			<input
+				class={editable ? "" : "input-disabled"}
 				type="text"
 				bind:value={dartePreset}
 				placeholder="Название пресета"
