@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { currentUser } from "$lib/store";
 	import { bustCache, openImagePopup } from "$lib/uiCommon";
 
 	let {
@@ -7,6 +8,10 @@
 		match = $bindable(),
 		registeredPlayers = $bindable([]),
 	} = $props();
+
+	let myGame = $derived(
+		$currentUser?.uid == match.p1 || $currentUser?.uid == match.p2,
+	);
 
 	function getPlayerName(uid: string) {
 		return registeredPlayers.find((p) => p.player.uid === uid)?.player.name;
@@ -35,6 +40,11 @@
 					match.winnerId,
 				)}">{getPlayerName(match.p2)}</span
 			>
+			{#if match.resultP1 && match.resultP2}
+				<span class="match-player-left">match.resultP1</span>
+				<span> </span>
+				<span class="match-player-right">match.resultP2</span>
+			{/if}
 		</div>
 
 		{#if match.resultScreenshot}
@@ -45,6 +55,23 @@
 				<img src={bustCache(match.resultScreenshot)} alt="" />
 			</button>
 		{/if}
+
+		{#if match.winnerId}
+			<span>Результат</span>
+			{#if match.resultScreenshot}
+				<button
+					class="img-btn"
+					onclick={() => openImagePopup(match.resultScreenshot)}
+				>
+					<img src={bustCache(match.resultScreenshot)} alt="" />
+				</button>
+			{/if}
+		{:else if myGame}
+			<button class="btn-common back-btn" onclick={() => (open = false)}
+				>Подтвердить результат</button
+			>
+		{/if}
+
 		<button class="btn-common back-btn" onclick={() => (open = false)}
 			>← Закрыть</button
 		>
