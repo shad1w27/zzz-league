@@ -23,6 +23,7 @@ export interface TournamentMatch {
 	p1: string,
 	p2: string,
 	state: string
+	winnerId: string;
 }
 
 export interface Tournament {

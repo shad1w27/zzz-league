@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { match } from "$app/paths";
 	import { page } from "$app/state";
 	import SidePanel from "$lib/components/SidePanel.svelte";
 	import TournamentPlayerTable from "$lib/components/TournamentPlayerTable.svelte";
@@ -28,7 +29,7 @@
 
 	let filteredMatches = $derived(
 		tournament?.matches.filter(
-			(m: TournamentMatch) => !(m.p1 === "TBD" && m.p2 === "TBD"),
+			(m: TournamentMatch) => !(m.p1 === "TBD" || m.p2 === "TBD"),
 		),
 	);
 
@@ -74,6 +75,12 @@
 	function openMyRegistration() {
 		userRegistration = myRegistration;
 		registrationOpen = true;
+	}
+
+	function getPlayerClass(player: string, winnerId: string) {
+		if (!winnerId) return "";
+
+		return player === winnerId ? "match-winner" : "match-loser";
 	}
 
 	onMount(() => {
@@ -228,32 +235,34 @@
 				<div class="match-list">
 					{#each filteredMatches as match}
 						<div class="match-item">
-							{#if match.p1 !== "TBD"}
+							<div class="match-players">
 								<!-- svelte-ignore a11y_click_events_have_key_events -->
 								<!-- svelte-ignore a11y_no_static_element_interactions -->
 								<span
-									class="match-player-name match-player-left"
+									class="match-player-name match-player-left {getPlayerClass(
+										match.p1,
+										match.winnerId,
+									)}"
 									onclick={() => openRegistration(match.p1)}
 									>{getPlayerName(match.p1)}</span
 								>
-							{:else}
-								<span class="match-player-name match-player-left tbd"
-									>TBD</span
-								>
-							{/if}
-							<span class="match-vs">vs</span>
-							{#if match.p2 !== "TBD"}
+								<span class="match-vs">vs</span>
 								<!-- svelte-ignore a11y_click_events_have_key_events -->
 								<!-- svelte-ignore a11y_no_static_element_interactions -->
 								<span
-									class="match-player-name match-player-right"
+									class="match-player-name match-player-right {getPlayerClass(
+										match.p2,
+										match.winnerId,
+									)}"
 									onclick={() => openRegistration(match.p2)}
 									>{getPlayerName(match.p2)}</span
 								>
-							{:else}
-								<span class="match-player-name match-player-right tbd"
-									>TBD</span
-								>
+							</div>
+							{#if match.state === "open"}
+								<button class="btn-common btn-match">Игра</button>
+							{/if}
+							{#if match.state === "closed"}
+								<button class="btn-common btn-match">Результаты</button>
 							{/if}
 						</div>
 					{/each}
@@ -294,16 +303,22 @@
 	.match-list {
 		display: flex;
 		flex-direction: column;
-		align-items: center;
 		gap: 8px;
 	}
 
 	.match-item {
-		display: grid;
+		display: flex;
+		align-items: center;
 		gap: 16px;
+		margin: 0 auto;
+	}
+
+	.match-players {
+		display: grid;
 		grid-template-columns: 1fr auto 1fr;
 		align-items: center;
-		font-size: 16px;
+		gap: 16px;
+		width: 400px;
 	}
 
 	.match-player-name {
@@ -325,6 +340,23 @@
 		text-align: center;
 		color: #666;
 		white-space: nowrap;
+	}
+
+	.match-winner {
+		color: var(--green);
+	}
+
+	.match-loser {
+		color: var(--loss);
+	}
+
+	.btn-match {
+		background: var(--gold);
+		color: #000;
+		border: none;
+		width: 72px;
+		height: 28px;
+		padding: 0;
 	}
 
 	.tbd {
