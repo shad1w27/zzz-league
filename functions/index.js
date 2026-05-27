@@ -185,10 +185,17 @@ exports.updatePlayerElo = onCall({
     throw new HttpsError("not-found", "Player not found");
   }
 
+  const oldElo = snapshot.val().elo;
+
   await db.ref("players/" + uid).update({
     elo,
     isMidConfirmed: elo >= 1200,
     isHighConfirmed: elo >= 1400,
+  });
+
+  await db.ref("historyV2/" + uid).push({
+    change: elo - oldElo,
+    timestamp: Date.now(),
   });
 
   assignDiscordRole(uid);
@@ -752,10 +759,10 @@ exports.startChallongeTournament = onCall({
   });
 
   await updateTournamentGames(tournamentId, challongeTournamentId);
-  
+
   await db.ref("tournaments/" + tournamentId).update({
     challongeTournamentId,
-    challongeTournamentUrl
+    challongeTournamentUrl,
   });
 
   return {success: true, challongeTournamentId};

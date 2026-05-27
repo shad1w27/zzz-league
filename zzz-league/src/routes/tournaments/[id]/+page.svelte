@@ -9,6 +9,7 @@
 		Player,
 		RegisteredPlayer,
 		Tournament,
+		TournamentMatch,
 		TournamentRegistration,
 	} from "$lib/types";
 	import { dateDisplayOptions } from "$lib/uiCommon";
@@ -24,6 +25,12 @@
 	let registeredPlayers = $state<RegisteredPlayer[]>([]);
 	let searchQuery = $state("");
 	let registrationOpen = $state(false);
+
+	let filteredMatches = $derived(
+		tournament?.matches.filter(
+			(m: TournamentMatch) => !(m.p1 === "TBD" && m.p2 === "TBD"),
+		),
+	);
 
 	let unsubRegistration: (() => void) | null = null;
 
@@ -219,7 +226,7 @@
 			{#if tournament.matches}
 				<h2>Игры</h2>
 				<div class="match-list">
-					{#each tournament.matches as match, index}
+					{#each filteredMatches as match}
 						<div class="match-item">
 							{#if match.p1 !== "TBD"}
 								<!-- svelte-ignore a11y_click_events_have_key_events -->

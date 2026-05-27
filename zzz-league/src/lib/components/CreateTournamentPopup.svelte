@@ -84,6 +84,7 @@
 				maxTier: parseInt(maxTier),
 				challongeTournamentId: "",
 				challongeTournamentUrl: "",
+				matches: [],
 			};
 			await createTournament(tournament);
 			close();
