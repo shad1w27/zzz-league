@@ -1,6 +1,6 @@
 const admin = require("firebase-admin");
 
-const {defineSecret} = require("firebase-functions/params");
+const { defineSecret } = require("firebase-functions/params");
 
 const DISCORD_BOT_TOKEN = defineSecret("DISCORD_BOT_TOKEN");
 const DISCORD_GUILD_ID = defineSecret("DISCORD_GUILD_ID");
@@ -11,10 +11,10 @@ const DISCORD_CLIENT_ID = defineSecret("DISCORD_CLIENT_ID");
 const DISCORD_CLIENT_SECRET = defineSecret("DISCORD_CLIENT_SECRET");
 const CHALLONGE_API_KEY = defineSecret("CHALLONGE_API_KEY");
 
-const {setGlobalOptions} = require("firebase-functions");
-const {onCall, HttpsError} = require("firebase-functions/https");
+const { setGlobalOptions } = require("firebase-functions");
+const { onCall, HttpsError } = require("firebase-functions/https");
 const logger = require("firebase-functions/logger");
-const {getStorage} = require("firebase-admin/storage");
+const { getStorage } = require("firebase-admin/storage");
 
 setGlobalOptions({
   maxInstances: 10,
@@ -40,10 +40,10 @@ async function validateAdminRequest(request) {
   }
 }
 
-exports.register = onCall({cors: true}, async (request) => {
+exports.register = onCall({ cors: true }, async (request) => {
   let userRecord = null;
   try {
-    const {username, email, password} = request.data;
+    const { username, email, password } = request.data;
 
     if (!username || !email || !password) {
       throw new HttpsError("invalid-argument", "Missing required fields");
@@ -54,7 +54,7 @@ exports.register = onCall({cors: true}, async (request) => {
       throw new HttpsError("already-exists", "Username is already taken");
     }
 
-    userRecord = await auth.createUser({email, password});
+    userRecord = await auth.createUser({ email, password });
     const uid = userRecord.uid;
 
     const prevSnapshot = await db.ref("players/" + username).once("value");
@@ -89,7 +89,7 @@ exports.register = onCall({cors: true}, async (request) => {
     });
 
     const token = await auth.createCustomToken(uid);
-    return {success: true, token};
+    return { success: true, token };
   } catch (error) {
     logger.error(error);
     if (userRecord) await auth.deleteUser(userRecord.uid);
@@ -98,13 +98,13 @@ exports.register = onCall({cors: true}, async (request) => {
   }
 });
 
-exports.updateProfile = onCall({cors: true}, async (request) => {
+exports.updateProfile = onCall({ cors: true }, async (request) => {
   const callerUid = request.auth?.uid;
   if (!callerUid) {
     throw new HttpsError("unauthenticated", "User must be logged in");
   }
 
-  const {username} = request.data;
+  const { username } = request.data;
 
   if (!username) {
     throw new HttpsError("invalid-argument", "Nothing to update");
@@ -136,13 +136,13 @@ exports.updateProfile = onCall({cors: true}, async (request) => {
 
   await db.ref().update(updates);
 
-  return {success: true};
+  return { success: true };
 });
 
-exports.deletePlayer = onCall({cors: true}, async (request) => {
+exports.deletePlayer = onCall({ cors: true }, async (request) => {
   await validateAdminRequest(request);
 
-  const {uid} = request.data;
+  const { uid } = request.data;
 
   if (!uid) {
     throw new HttpsError("invalid-argument", "uid is required");
@@ -163,7 +163,7 @@ exports.deletePlayer = onCall({cors: true}, async (request) => {
 
   await auth.deleteUser(uid);
 
-  return {success: true};
+  return { success: true };
 });
 
 exports.updatePlayerElo = onCall({
@@ -173,7 +173,7 @@ exports.updatePlayerElo = onCall({
 }, async (request) => {
   await validateAdminRequest(request);
 
-  const {uid, elo} = request.data;
+  const { uid, elo } = request.data;
 
   if (!uid) {
     throw new HttpsError("invalid-argument", "uid is required");
@@ -200,13 +200,13 @@ exports.updatePlayerElo = onCall({
 
   assignDiscordRole(uid);
 
-  return {success: true};
+  return { success: true };
 });
 
-exports.addHistoryEntry = onCall({cors: true}, async (request) => {
+exports.addHistoryEntry = onCall({ cors: true }, async (request) => {
   await validateAdminRequest(request);
 
-  const {playerName1, playerName2, change} = request.data;
+  const { playerName1, playerName2, change } = request.data;
 
   await db.ref("history").push({
     p1: playerName1,
@@ -215,29 +215,29 @@ exports.addHistoryEntry = onCall({cors: true}, async (request) => {
     timestamp: Date.now(),
   });
 
-  return {success: true};
+  return { success: true };
 });
 
-exports.deleteHistoryEntry = onCall({cors: true}, async (request) => {
+exports.deleteHistoryEntry = onCall({ cors: true }, async (request) => {
   await validateAdminRequest(request);
 
-  const {key} = request.data;
+  const { key } = request.data;
   await db.ref("history/" + key).remove();
 
-  return {success: true};
+  return { success: true };
 });
 
-exports.clearHistory = onCall({cors: true}, async (request) => {
+exports.clearHistory = onCall({ cors: true }, async (request) => {
   await validateAdminRequest(request);
   await db.ref("history").remove();
 
-  return {success: true};
+  return { success: true };
 });
 
-exports.updateMatchData = onCall({cors: true}, async (request) => {
+exports.updateMatchData = onCall({ cors: true }, async (request) => {
   await validateAdminRequest(request);
 
-  const {uid, change, isWin} = request.data;
+  const { uid, change, isWin } = request.data;
 
   const snapshot = await db.ref("players/" + uid).once("value");
 
@@ -260,18 +260,18 @@ exports.updateMatchData = onCall({cors: true}, async (request) => {
   });
 });
 
-exports.setTimer = onCall({cors: true}, async (request) => {
+exports.setTimer = onCall({ cors: true }, async (request) => {
   await validateAdminRequest(request);
 
-  const {timer} = request.data;
+  const { timer } = request.data;
   await db.ref("timer").set(timer);
-  return {success: true};
+  return { success: true };
 });
 
-exports.resetSeason = onCall({cors: true}, async (request) => {
+exports.resetSeason = onCall({ cors: true }, async (request) => {
   await validateAdminRequest(request);
 
-  const {seasonName} = request.data;
+  const { seasonName } = request.data;
   if (!seasonName) {
     throw new HttpsError("invalid-argument", "seasonName is required");
   }
@@ -304,7 +304,7 @@ exports.resetSeason = onCall({cors: true}, async (request) => {
 
   await db.ref().update(updates);
 
-  return {success: true};
+  return { success: true };
 });
 
 exports.finalizeTournament = onCall({
@@ -346,22 +346,22 @@ exports.finalizeTournament = onCall({
   await db.ref().update(updates);
   await Promise.all(uidsToUpdate.map((uid) => assignDiscordRole(uid)));
 
-  return {success: true};
+  return { success: true };
 });
 
-exports.deleteArchive = onCall({cors: true}, async (request) => {
+exports.deleteArchive = onCall({ cors: true }, async (request) => {
   await validateAdminRequest(request);
 
-  const {key} = request.data;
+  const { key } = request.data;
   await db.ref("archives/" + key).remove();
 
-  return {success: true};
+  return { success: true };
 });
 
-exports.addPlayer = onCall({cors: true}, async (request) => {
+exports.addPlayer = onCall({ cors: true }, async (request) => {
   await validateAdminRequest(request);
 
-  const {name} = request.data;
+  const { name } = request.data;
   const trimmedName = name.trim();
 
   if (!name || trimmedName.length < 2) {
@@ -369,7 +369,7 @@ exports.addPlayer = onCall({cors: true}, async (request) => {
   }
 
   const existing = await db.ref("players")
-      .orderByChild("name").equalTo(trimmedName).once("value");
+    .orderByChild("name").equalTo(trimmedName).once("value");
   if (existing.exists()) {
     throw new HttpsError("already-exists", "Player already exists");
   }
@@ -386,7 +386,7 @@ exports.addPlayer = onCall({cors: true}, async (request) => {
 
   await db.ref("players/" + trimmedName).set(player);
 
-  return {success: true};
+  return { success: true };
 });
 
 exports.linkDiscord = onCall({
@@ -397,11 +397,11 @@ exports.linkDiscord = onCall({
   const callerUid = request.auth?.uid;
   if (!callerUid) throw new HttpsError("unauthenticated", "Not logged in");
 
-  const {code, redirectUri} = request.data;
+  const { code, redirectUri } = request.data;
 
   const tokenRes = await fetch("https://discord.com/api/oauth2/token", {
     method: "POST",
-    headers: {"Content-Type": "application/x-www-form-urlencoded"},
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
       client_id: DISCORD_CLIENT_ID.value(),
       client_secret: DISCORD_CLIENT_SECRET.value(),
@@ -414,13 +414,13 @@ exports.linkDiscord = onCall({
   const tokenData = await tokenRes.json();
 
   const userRes = await fetch("https://discord.com/api/users/@me", {
-    headers: {Authorization: `Bearer ${tokenData.access_token}`},
+    headers: { Authorization: `Bearer ${tokenData.access_token}` },
   });
   const discordUser = await userRes.json();
 
   if (!discordUser.id) {
     throw new HttpsError("internal",
-        `Discord error: ${JSON.stringify(discordUser)}`);
+      `Discord error: ${JSON.stringify(discordUser)}`);
   }
 
   await db.ref("players/" + callerUid).update({
@@ -430,7 +430,7 @@ exports.linkDiscord = onCall({
 
   await assignDiscordRole(callerUid);
 
-  return {success: true, username: discordUser.username};
+  return { success: true, username: discordUser.username };
 });
 
 async function assignDiscordRole(uid) {
@@ -455,7 +455,7 @@ async function assignDiscordRole(uid) {
   await Promise.all(allRoles.map((roleId) =>
     fetch(`https://discord.com/api/guilds/${guildId}/members/${player.discordId}/roles/${roleId}`, {
       method: roleId === newRoleId ? "PUT" : "DELETE",
-      headers: {Authorization: `Bot ${token}`},
+      headers: { Authorization: `Bot ${token}` },
     }),
   ));
 }
@@ -483,7 +483,7 @@ exports.unlinkDiscord = onCall({
     await Promise.all(allRoles.map((roleId) =>
       fetch(`https://discord.com/api/guilds/${guildId}/members/${player.discordId}/roles/${roleId}`, {
         method: "DELETE",
-        headers: {Authorization: `Bot ${token}`},
+        headers: { Authorization: `Bot ${token}` },
       }),
     ));
   }
@@ -493,15 +493,15 @@ exports.unlinkDiscord = onCall({
     discord: null,
   });
 
-  return {success: true};
+  return { success: true };
 });
 
-exports.createTournament = onCall({cors: true}, async (request) => {
+exports.createTournament = onCall({ cors: true }, async (request) => {
   await validateAdminRequest(request);
 
-  const {name, description, registrationStartDate, registrationEndDate,
+  const { name, description, registrationStartDate, registrationEndDate,
     tournamentStartDate, tournamentEndDate, minCost, maxCost,
-    minCharacters, minTier, maxTier} = request.data;
+    minCharacters, minTier, maxTier } = request.data;
 
   if (!name || !registrationStartDate || !registrationEndDate ||
     !tournamentStartDate || !tournamentEndDate || minCost == null ||
@@ -528,10 +528,10 @@ exports.createTournament = onCall({cors: true}, async (request) => {
     maxTier,
   });
 
-  return {success: true, id};
+  return { success: true, id };
 });
 
-exports.applyForTournament = onCall({cors: true}, async (request) => {
+exports.applyForTournament = onCall({ cors: true }, async (request) => {
   const callerUid = request.auth?.uid;
   if (!callerUid) throw new HttpsError("unauthenticated", "Not logged in");
 
@@ -571,7 +571,7 @@ exports.applyForTournament = onCall({cors: true}, async (request) => {
   const file = storage.bucket().file(filePath);
 
   await file.save(buffer, {
-    metadata: {contentType},
+    metadata: { contentType },
   });
 
   await file.makePublic();
@@ -588,10 +588,10 @@ exports.applyForTournament = onCall({cors: true}, async (request) => {
     approved: false,
   });
 
-  return {success: true};
+  return { success: true };
 });
 
-exports.approveRegistration = onCall({cors: true}, async (request) => {
+exports.approveRegistration = onCall({ cors: true }, async (request) => {
   await validateAdminRequest(request);
 
   const {
@@ -615,7 +615,7 @@ exports.startChallongeTournament = onCall({
 }, async (request) => {
   await validateAdminRequest(request);
 
-  const {tournamentId} = request.data;
+  const { tournamentId } = request.data;
   if (!tournamentId) {
     throw new HttpsError("invalid-argument", "tournamentId is required");
   }
@@ -667,28 +667,28 @@ exports.startChallongeTournament = onCall({
   const createData = await createRes.json();
   if (!createRes.ok) {
     throw new HttpsError("internal",
-        `Challonge error: ${JSON.stringify(createData)}`);
+      `Challonge error: ${JSON.stringify(createData)}`);
   }
 
   const challongeTournamentId = createData.data.id;
 
   const approved = [
-    {uid: "mbev2I0iWhfJ1DDOIWlGDoYtyd33"},
-    {uid: "Ui7oyEUwuZS5ydAXJnF21wz2nzc2"},
-    {uid: "AirAN2QtX6SCRlVZ54aSXzI2za62"},
-    {uid: "W8zGIX9SfZcE1NVJMNPTmfoepii2"},
-    {uid: "4bVGeJSfk5Vey9NRzvr4Qv8lsPy1"},
+    { uid: "mbev2I0iWhfJ1DDOIWlGDoYtyd33" },
+    { uid: "Ui7oyEUwuZS5ydAXJnF21wz2nzc2" },
+    { uid: "AirAN2QtX6SCRlVZ54aSXzI2za62" },
+    { uid: "W8zGIX9SfZcE1NVJMNPTmfoepii2" },
+    { uid: "4bVGeJSfk5Vey9NRzvr4Qv8lsPy1" },
   ];
 
   const participants = await Promise.all(
-      approved.map(async (r) => {
-        const snap = await db.ref("players/" + r.uid).once("value");
-        const player = snap.val();
-        return {
-          name: player.name,
-          misc: player.uid,
-        };
-      }),
+    approved.map(async (r) => {
+      const snap = await db.ref("players/" + r.uid).once("value");
+      const player = snap.val();
+      return {
+        name: player.name,
+        misc: player.uid,
+      };
+    }),
   );
 
   const addRes = await fetch(`https://api.challonge.com/v2.1/tournaments/${challongeTournamentId}/participants/bulk_add.json`, {
@@ -697,7 +697,7 @@ exports.startChallongeTournament = onCall({
     body: JSON.stringify({
       data: {
         type: "Participant",
-        attributes: {participants},
+        attributes: { participants },
       },
     }),
   });
@@ -705,7 +705,7 @@ exports.startChallongeTournament = onCall({
   const addData = await addRes.json();
   if (!addRes.ok) {
     throw new HttpsError("internal",
-        `Challonge participants error: ${JSON.stringify(addData)}`);
+      `Challonge participants error: ${JSON.stringify(addData)}`);
   }
 
   const randomizeRes = await fetch(`https://api.challonge.com/v2.1/tournaments/${challongeTournamentId}/participants/randomize.json`, {
@@ -714,7 +714,7 @@ exports.startChallongeTournament = onCall({
     body: JSON.stringify({
       data: {
         type: "Participant",
-        attributes: {participants},
+        attributes: { participants },
       },
     }),
   });
@@ -722,34 +722,34 @@ exports.startChallongeTournament = onCall({
   const randomizeData = await randomizeRes.json();
   if (!randomizeRes.ok) {
     throw new HttpsError("internal",
-        `Challonge randomize error: ${JSON.stringify(addData)}`);
+      `Challonge randomize error: ${JSON.stringify(addData)}`);
   }
 
   const res = await fetch(
-      `https://api.challonge.com/v2.1/tournaments/${challongeTournamentId}/change_state.json`,
-      {
-        method: "PUT",
-        headers,
-        body: JSON.stringify({
-          data: {
-            type: "TournamentState",
-            attributes: {
-              state: "start",
-            },
+    `https://api.challonge.com/v2.1/tournaments/${challongeTournamentId}/change_state.json`,
+    {
+      method: "PUT",
+      headers,
+      body: JSON.stringify({
+        data: {
+          type: "TournamentState",
+          attributes: {
+            state: "start",
           },
-        }),
-      },
+        },
+      }),
+    },
   );
 
   const data = await res.json();
 
   if (!res.ok) {
     throw new HttpsError("internal",
-        `Failed to start tournament: ${JSON.stringify(data)}`);
+      `Failed to start tournament: ${JSON.stringify(data)}`);
   }
 
   const challongeParticipants = Object.fromEntries(
-      randomizeData.data.map((m) => [m.id, m.attributes.misc]),
+    randomizeData.data.map((m) => [m.id, m.attributes.misc]),
   );
 
   const challongeTournamentUrl = createData.data.attributes.full_challonge_url;
@@ -765,7 +765,7 @@ exports.startChallongeTournament = onCall({
     challongeTournamentUrl,
   });
 
-  return {success: true, challongeTournamentId};
+  return { success: true, challongeTournamentId };
 });
 
 async function updateTournamentGames(tournamentId, challongeTournamentId) {
@@ -777,7 +777,7 @@ async function updateTournamentGames(tournamentId, challongeTournamentId) {
   };
 
   const snap = await
-  db.ref(`tournaments/${tournamentId}/challongeParticipants`)
+    db.ref(`tournaments/${tournamentId}/challongeParticipants`)
       .once("value");
   const challongeParticipants = snap.val();
   if (!challongeParticipants) {
@@ -785,34 +785,82 @@ async function updateTournamentGames(tournamentId, challongeTournamentId) {
   }
 
   const matchesRes = await
-  fetch(`https://api.challonge.com/v2.1/tournaments/${challongeTournamentId}/matches.json`, {
-    method: "GET",
-    headers,
-  });
+    fetch(`https://api.challonge.com/v2.1/tournaments/${challongeTournamentId}/matches.json`, {
+      method: "GET",
+      headers,
+    });
 
   const matchesData = await matchesRes.json();
   if (!matchesRes.ok) {
     throw new HttpsError("internal",
-        `Challonge matches fetch error: ${JSON.stringify(matchesData)}`);
+      `Challonge matches fetch error: ${JSON.stringify(matchesData)}`);
   }
 
   const matches = Object.fromEntries(
-      matchesData.data.map((m) => {
-        const pp = m.attributes.points_by_participant ?? [];
-        const p1Id = pp[0]?.participant_id;
-        const p2Id = pp[1]?.participant_id;
-        return [
-          m.id,
-          {
-            id: m.id,
-            state: m.attributes.state,
-            winnerId: m.attributes.winner_id,
-            p1: challongeParticipants[p1Id] ?? "TBD",
-            p2: challongeParticipants[p2Id] ?? "TBD",
-          },
-        ];
-      }),
+    matchesData.data.map((m) => {
+      const pp = m.attributes.points_by_participant ?? [];
+      const p1Id = pp[0]?.participant_id;
+      const p2Id = pp[1]?.participant_id;
+      return [
+        m.id,
+        {
+          id: m.id,
+          state: m.attributes.state,
+          winnerId: m.attributes.winner_id,
+          p1: challongeParticipants[p1Id] ?? "TBD",
+          p2: challongeParticipants[p2Id] ?? "TBD",
+        },
+      ];
+    }),
   );
 
   await db.ref(`tournaments/${tournamentId}/matches`).set(matches);
 }
+
+exports.approveResult = onCall({ cors: true }, async (request) => {
+  const {
+    tournamentId,
+    matchId,
+    uid,
+    resultP1,
+    resultP2
+  } = request.data;
+
+  if (!tournamentId || !uid) {
+    throw new HttpsError("invalid-argument", "tournamentId is required");
+  }
+
+  const matchRef = db.ref(`tournaments/${tournamentId}/${matchId}`);
+  let matchSnap =
+    await matchRef.once("value");
+  const match = matchSnap.val();
+  if (!match) {
+    throw new HttpsError("not-found", "Match not found");
+  }
+
+  const updates = [];
+
+  if (resultP1.trim() !== match.resultP1 || resultP2.trim() !== match.resultP2) {
+    updates.p1ApporvedResult = false;
+    updates.p2ApporvedResult = false;
+  }
+
+  switch (uid) {
+    case match.p1:
+      updates["p1ApporvedResult"] = !match.p1ApporvedResult;
+      break;
+    case match.p2:
+      updates["p2ApporvedResult"] = !match.p1ApporvedResult;
+      break;
+    default:
+      throw new HttpsError("not-found", "Match player not found");
+  }
+
+  matchSnap = await match.once("value");
+
+  if (matchSnap.p1ApporvedResult && matchSnap.p2ApporvedResult) {
+
+  }
+
+  return { success: true };
+}); 
