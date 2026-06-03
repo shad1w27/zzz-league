@@ -1,7 +1,8 @@
-const { onCall, HttpsError } = require("firebase-functions/https");
-const { db, storage } = require("..");
+import {onCall, HttpsError} from "firebase-functions/https";
+import {db, storage} from "../config/firebase.js";
+import {defaultOptions} from "../config/options.js";
 
-exports.applyForTournament = onCall({ cors: true }, async (request) => {
+export const applyForTournament = onCall(defaultOptions, async (request) => {
   const callerUid = request.auth?.uid;
   if (!callerUid) throw new HttpsError("unauthenticated", "Not logged in");
 
@@ -9,11 +10,17 @@ exports.applyForTournament = onCall({ cors: true }, async (request) => {
   const player = snap.val();
   if (!player) throw new HttpsError("not-found", "Player not found");
   if (!player.discordId) {
+    // @ts-ignore
     throw new HttpsError("discord-error", "Please link discord first");
   }
 
   const {
-    tournamentId, darteNickname, darteAccount, dartePreset, rosterScreenshot, zzzUid,
+    tournamentId,
+    darteNickname,
+    darteAccount,
+    dartePreset,
+    rosterScreenshot,
+    zzzUid,
   } = request.data;
 
   if (!tournamentId || !darteNickname || !darteAccount ||
@@ -36,7 +43,7 @@ exports.applyForTournament = onCall({ cors: true }, async (request) => {
   const file = storage.bucket().file(filePath);
 
   await file.save(buffer, {
-    metadata: { contentType },
+    metadata: {contentType},
   });
 
   await file.makePublic();
@@ -53,5 +60,5 @@ exports.applyForTournament = onCall({ cors: true }, async (request) => {
     approved: false,
   });
 
-  return { success: true };
+  return {success: true};
 });

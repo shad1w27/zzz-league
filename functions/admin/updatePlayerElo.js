@@ -1,14 +1,29 @@
-const { onCall, HttpsError } = require("firebase-functions/https");
-const { DISCORD_BOT_TOKEN, DISCORD_GUILD_ID, DISCORD_NEWBIE_ROLE, DISCORD_MID_ROLE, DISCORD_HIGH_ROLE, validateAdminRequest, db, assignDiscordRole } = require("..");
+import {onCall, HttpsError} from "firebase-functions/https";
+import {db} from "../config/firebase.js";
+import {
+  DISCORD_BOT_TOKEN,
+  DISCORD_GUILD_ID,
+  DISCORD_NEWBIE_ROLE,
+  DISCORD_MID_ROLE,
+  DISCORD_HIGH_ROLE,
+} from "../config/secrets.js";
+import {assignDiscordRole} from "../utils/assignDiscordRole.js";
+import {validateAdminRequest} from "./utils.js";
+import {defaultOptions} from "../config/options.js";
 
-exports.updatePlayerElo = onCall({
-  cors: true,
-  secrets: [DISCORD_BOT_TOKEN, DISCORD_GUILD_ID,
-    DISCORD_NEWBIE_ROLE, DISCORD_MID_ROLE, DISCORD_HIGH_ROLE],
+export const updatePlayerElo = onCall({
+  ...defaultOptions,
+  secrets: [
+    DISCORD_BOT_TOKEN,
+    DISCORD_GUILD_ID,
+    DISCORD_NEWBIE_ROLE,
+    DISCORD_MID_ROLE,
+    DISCORD_HIGH_ROLE,
+  ],
 }, async (request) => {
   await validateAdminRequest(request);
 
-  const { uid, elo } = request.data;
+  const {uid, elo} = request.data;
 
   if (!uid) {
     throw new HttpsError("invalid-argument", "uid is required");
@@ -35,5 +50,5 @@ exports.updatePlayerElo = onCall({
 
   assignDiscordRole(uid);
 
-  return { success: true };
+  return {success: true};
 });

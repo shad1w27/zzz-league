@@ -1,11 +1,13 @@
-const { onCall } = require("firebase-functions/https");
-const { validateAdminRequest, db } = require("../..");
+import {onCall} from "firebase-functions/https";
+import {validateAdminRequest} from "../utils.js";
+import {db} from "../../config/firebase.js";
+import {defaultOptions} from "../../config/options.js";
 
-exports.deleteHistoryEntry = onCall({ cors: true }, async (request) => {
+export const deleteHistoryEntry = onCall(defaultOptions, async (request) => {
   await validateAdminRequest(request);
 
-  const { key } = request.data;
+  const {key} = request.data;
   await db.ref("history/" + key).remove();
 
-  return { success: true };
+  return {success: true};
 });

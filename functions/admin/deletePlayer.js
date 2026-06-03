@@ -1,10 +1,12 @@
-const { onCall, HttpsError } = require("firebase-functions/https");
-const { validateAdminRequest, db, auth } = require("..");
+import {onCall, HttpsError} from "firebase-functions/https";
+import {auth, db} from "../config/firebase.js";
+import {validateAdminRequest} from "./utils.js";
+import {defaultOptions} from "../config/options.js";
 
-exports.deletePlayer = onCall({ cors: true }, async (request) => {
+export const deletePlayer = onCall(defaultOptions, async (request) => {
   await validateAdminRequest(request);
 
-  const { uid } = request.data;
+  const {uid} = request.data;
 
   if (!uid) {
     throw new HttpsError("invalid-argument", "uid is required");
@@ -25,5 +27,5 @@ exports.deletePlayer = onCall({ cors: true }, async (request) => {
 
   await auth.deleteUser(uid);
 
-  return { success: true };
+  return {success: true};
 });

@@ -1,8 +1,18 @@
-const { onCall, HttpsError } = require("firebase-functions/https");
-const { DISCORD_BOT_TOKEN, DISCORD_GUILD_ID, DISCORD_NEWBIE_ROLE, DISCORD_MID_ROLE, DISCORD_HIGH_ROLE, validateAdminRequest, db, assignDiscordRole } = require("..");
+import {onCall, HttpsError} from "firebase-functions/https";
+import {db} from "../config/firebase.js";
+import {
+  DISCORD_BOT_TOKEN,
+  DISCORD_GUILD_ID,
+  DISCORD_NEWBIE_ROLE,
+  DISCORD_MID_ROLE,
+  DISCORD_HIGH_ROLE,
+} from "../config/secrets.js";
+import {assignDiscordRole} from "../utils/assignDiscordRole.js";
+import {validateAdminRequest} from "./utils.js";
+import {defaultOptions} from "../config/options.js";
 
-exports.finalizeTournament = onCall({
-  cors: true,
+export const finalizeTournament = onCall({
+  ...defaultOptions,
   secrets: [DISCORD_BOT_TOKEN, DISCORD_GUILD_ID,
     DISCORD_NEWBIE_ROLE, DISCORD_MID_ROLE, DISCORD_HIGH_ROLE],
 }, async (request) => {
@@ -40,5 +50,5 @@ exports.finalizeTournament = onCall({
   await db.ref().update(updates);
   await Promise.all(uidsToUpdate.map((uid) => assignDiscordRole(uid)));
 
-  return { success: true };
+  return {success: true};
 });

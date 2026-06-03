@@ -1,10 +1,21 @@
-const { onCall, HttpsError } = require("firebase-functions/https");
-const { DISCORD_BOT_TOKEN, DISCORD_GUILD_ID, DISCORD_NEWBIE_ROLE, DISCORD_MID_ROLE, DISCORD_HIGH_ROLE, db } = require("..");
+import {onCall, HttpsError} from "firebase-functions/https";
+import {db} from "../config/firebase.js";
+import {
+  DISCORD_BOT_TOKEN,
+  DISCORD_GUILD_ID,
+  DISCORD_NEWBIE_ROLE,
+  DISCORD_MID_ROLE,
+  DISCORD_HIGH_ROLE,
+} from "../config/secrets.js";
+import {defaultOptions} from "../config/options.js";
 
-exports.unlinkDiscord = onCall({
-  cors: true,
-  secrets: [DISCORD_BOT_TOKEN, DISCORD_GUILD_ID,
-    DISCORD_NEWBIE_ROLE, DISCORD_MID_ROLE, DISCORD_HIGH_ROLE],
+export const unlinkDiscord = onCall({
+  ...defaultOptions,
+  secrets: [DISCORD_BOT_TOKEN,
+    DISCORD_GUILD_ID,
+    DISCORD_NEWBIE_ROLE,
+    DISCORD_MID_ROLE,
+    DISCORD_HIGH_ROLE],
 }, async (request) => {
   const callerUid = request.auth?.uid;
   if (!callerUid) throw new HttpsError("unauthenticated", "Not logged in");
@@ -19,13 +30,13 @@ exports.unlinkDiscord = onCall({
     const allRoles = [
       DISCORD_NEWBIE_ROLE.value(),
       DISCORD_MID_ROLE.value(),
-      DISCORD_HIGH_ROLE.value()
+      DISCORD_HIGH_ROLE.value(),
     ];
 
     await Promise.all(allRoles.map((roleId) => fetch(`https://discord.com/api/guilds/${guildId}/members/${player.discordId}/roles/${roleId}`, {
       method: "DELETE",
-      headers: { Authorization: `Bot ${token}` },
-    })
+      headers: {Authorization: `Bot ${token}`},
+    }),
     ));
   }
 
@@ -34,5 +45,5 @@ exports.unlinkDiscord = onCall({
     discord: null,
   });
 
-  return { success: true };
+  return {success: true};
 });

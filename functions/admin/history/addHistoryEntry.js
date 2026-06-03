@@ -1,10 +1,12 @@
-const { onCall } = require("firebase-functions/https");
-const { validateAdminRequest, db } = require("../..");
+import {onCall} from "firebase-functions/https";
+import {validateAdminRequest} from "../utils.js";
+import {db} from "../../config/firebase.js";
+import {defaultOptions} from "../../config/options.js";
 
-exports.addHistoryEntry = onCall({ cors: true }, async (request) => {
+export const addHistoryEntry = onCall(defaultOptions, async (request) => {
   await validateAdminRequest(request);
 
-  const { playerName1, playerName2, change } = request.data;
+  const {playerName1, playerName2, change} = request.data;
 
   await db.ref("history").push({
     p1: playerName1,
@@ -13,5 +15,5 @@ exports.addHistoryEntry = onCall({ cors: true }, async (request) => {
     timestamp: Date.now(),
   });
 
-  return { success: true };
+  return {success: true};
 });

@@ -1,11 +1,11 @@
-const { onCall, HttpsError } = require("firebase-functions/https");
-const logger = require("firebase-functions/logger");
-const { db, auth } = require("..");
+import {onCall, HttpsError} from "firebase-functions/https";
+import {auth, db} from "../config/firebase.js";
+import {defaultOptions} from "../config/options.js";
 
-exports.register = onCall({ cors: true }, async (request) => {
+export const register = onCall(defaultOptions, async (request) => {
   let userRecord = null;
   try {
-    const { username, email, password } = request.data;
+    const {username, email, password} = request.data;
 
     if (!username || !email || !password) {
       throw new HttpsError("invalid-argument", "Missing required fields");
@@ -16,7 +16,7 @@ exports.register = onCall({ cors: true }, async (request) => {
       throw new HttpsError("already-exists", "Username is already taken");
     }
 
-    userRecord = await auth.createUser({ email, password });
+    userRecord = await auth.createUser({email, password});
     const uid = userRecord.uid;
 
     const prevSnapshot = await db.ref("players/" + username).once("value");
@@ -51,11 +51,9 @@ exports.register = onCall({ cors: true }, async (request) => {
     });
 
     const token = await auth.createCustomToken(uid);
-    return { success: true, token };
+    return {success: true, token};
   } catch (error) {
-    logger.error(error);
     if (userRecord) await auth.deleteUser(userRecord.uid);
-    if (error instanceof HttpsError) throw error;
     throw new HttpsError("internal", error.message ?? "Internal server error");
   }
 });

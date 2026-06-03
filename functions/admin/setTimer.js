@@ -1,10 +1,12 @@
-const { onCall } = require("firebase-functions/https");
-const { validateAdminRequest, db } = require("..");
+import {onCall} from "firebase-functions/https";
+import {db} from "../config/firebase.js";
+import {validateAdminRequest} from "./utils.js";
+import {defaultOptions} from "../config/options.js";
 
-exports.setTimer = onCall({ cors: true }, async (request) => {
+export const setTimer = onCall(defaultOptions, async (request) => {
   await validateAdminRequest(request);
 
-  const { timer } = request.data;
+  const {timer} = request.data;
   await db.ref("timer").set(timer);
-  return { success: true };
+  return {success: true};
 });

@@ -1,10 +1,12 @@
-const { onCall, HttpsError } = require("firebase-functions/https");
-const { validateAdminRequest, db } = require("..");
+import {onCall, HttpsError} from "firebase-functions/https";
+import {db} from "../config/firebase.js";
+import {validateAdminRequest} from "./utils.js";
+import {defaultOptions} from "../config/options.js";
 
-exports.resetSeason = onCall({ cors: true }, async (request) => {
+export const resetSeason = onCall(defaultOptions, async (request) => {
   await validateAdminRequest(request);
 
-  const { seasonName } = request.data;
+  const {seasonName} = request.data;
   if (!seasonName) {
     throw new HttpsError("invalid-argument", "seasonName is required");
   }
@@ -37,5 +39,5 @@ exports.resetSeason = onCall({ cors: true }, async (request) => {
 
   await db.ref().update(updates);
 
-  return { success: true };
+  return {success: true};
 });

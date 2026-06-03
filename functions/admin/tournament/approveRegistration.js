@@ -1,7 +1,9 @@
-const { onCall, HttpsError } = require("firebase-functions/https");
-const { validateAdminRequest, db } = require("../..");
+import {onCall, HttpsError} from "firebase-functions/https";
+import {db} from "../../config/firebase.js";
+import {validateAdminRequest} from "../utils.js";
+import {defaultOptions} from "../../config/options.js";
 
-exports.approveRegistration = onCall({ cors: true }, async (request) => {
+export const approveRegistration = onCall(defaultOptions, async (request) => {
   await validateAdminRequest(request);
 
   const {

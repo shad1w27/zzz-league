@@ -1,10 +1,12 @@
-const { onCall, HttpsError } = require("firebase-functions/https");
-const { validateAdminRequest, db } = require("..");
+import {onCall, HttpsError} from "firebase-functions/https";
+import {db} from "../config/firebase.js";
+import {validateAdminRequest} from "./utils.js";
+import {defaultOptions} from "../config/options.js";
 
-exports.addPlayer = onCall({ cors: true }, async (request) => {
+export const addPlayer = onCall(defaultOptions, async (request) => {
   await validateAdminRequest(request);
 
-  const { name } = request.data;
+  const {name} = request.data;
   const trimmedName = name.trim();
 
   if (!name || trimmedName.length < 2) {
@@ -12,7 +14,7 @@ exports.addPlayer = onCall({ cors: true }, async (request) => {
   }
 
   const existing = await db.ref("players")
-    .orderByChild("name").equalTo(trimmedName).once("value");
+      .orderByChild("name").equalTo(trimmedName).once("value");
   if (existing.exists()) {
     throw new HttpsError("already-exists", "Player already exists");
   }
@@ -29,5 +31,5 @@ exports.addPlayer = onCall({ cors: true }, async (request) => {
 
   await db.ref("players/" + trimmedName).set(player);
 
-  return { success: true };
+  return {success: true};
 });

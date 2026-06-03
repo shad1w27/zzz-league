@@ -1,8 +1,7 @@
-const { HttpsError } = require("firebase-functions/https");
-const { db } = require("..");
+import {HttpsError} from "firebase-functions/https";
+import {db} from "../config/firebase.js";
 
-
-async function validateAdminRequest(request) {
+export async function validateAdminRequest(request) {
   const callerUid = request.auth?.uid;
 
   if (!callerUid) {

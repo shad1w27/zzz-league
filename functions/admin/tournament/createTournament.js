@@ -1,10 +1,22 @@
-const { onCall, HttpsError } = require("firebase-functions/https");
-const { validateAdminRequest, db } = require("../..");
+import {onCall, HttpsError} from "firebase-functions/https";
+import {db} from "../../config/firebase.js";
+import {validateAdminRequest} from "../utils.js";
+import {defaultOptions} from "../../config/options.js";
 
-exports.createTournament = onCall({ cors: true }, async (request) => {
+export const createTournament = onCall(defaultOptions, async (request) => {
   await validateAdminRequest(request);
 
-  const { name, description, registrationStartDate, registrationEndDate, tournamentStartDate, tournamentEndDate, minCost, maxCost, minCharacters, minTier, maxTier } = request.data;
+  const {name,
+    description,
+    registrationStartDate,
+    registrationEndDate,
+    tournamentStartDate,
+    tournamentEndDate,
+    minCost,
+    maxCost,
+    minCharacters,
+    minTier,
+    maxTier} = request.data;
 
   if (!name || !registrationStartDate || !registrationEndDate ||
     !tournamentStartDate || !tournamentEndDate || minCost == null ||
@@ -31,5 +43,5 @@ exports.createTournament = onCall({ cors: true }, async (request) => {
     maxTier,
   });
 
-  return { success: true, id };
+  return {success: true, id};
 });

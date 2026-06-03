@@ -1,24 +1,30 @@
-const { onCall, HttpsError } = require("firebase-functions/https");
-const { CHALLONGE_API_KEY, validateAdminRequest, db, updateTournamentGames } = require("../..");
+import {onCall, HttpsError} from "firebase-functions/https";
+import {db} from "../../config/firebase.js";
+import {CHALLONGE_API_KEY} from "../../config/secrets.js";
+import {updateTournamentGames} from "../../utils/updateTournamentGames.js";
+import {validateAdminRequest} from "../utils.js";
+import {defaultOptions} from "../../config/options.js";
 
-exports.startChallongeTournament = onCall({
-  cors: true,
+export const startChallongeTournament = onCall({
+  ...defaultOptions,
   secrets: [CHALLONGE_API_KEY],
 }, async (request) => {
   await validateAdminRequest(request);
 
-  const { tournamentId } = request.data;
+  const {tournamentId} = request.data;
   if (!tournamentId) {
     throw new HttpsError("invalid-argument", "tournamentId is required");
   }
 
-  const tournamentSnap = await db.ref("tournaments/" + tournamentId).once("value");
+  const tournamentSnap =
+    await db.ref("tournaments/" + tournamentId).once("value");
   const tournament = tournamentSnap.val();
   if (!tournament) {
     throw new HttpsError("not-found", "Tournament not found");
   }
 
-  const regSnap = await db.ref("tournamentRegistrations/" + tournamentId).once("value");
+  const regSnap =
+    await db.ref("tournamentRegistrations/" + tournamentId).once("value");
   const registrations = regSnap.val();
   if (!registrations) {
     throw new HttpsError("not-found", "No registrations found");
@@ -56,28 +62,28 @@ exports.startChallongeTournament = onCall({
   const createData = await createRes.json();
   if (!createRes.ok) {
     throw new HttpsError("internal",
-      `Challonge error: ${JSON.stringify(createData)}`);
+        `Challonge error: ${JSON.stringify(createData)}`);
   }
 
   const challongeTournamentId = createData.data.id;
 
   const approved = [
-    { uid: "mbev2I0iWhfJ1DDOIWlGDoYtyd33" },
-    { uid: "Ui7oyEUwuZS5ydAXJnF21wz2nzc2" },
-    { uid: "AirAN2QtX6SCRlVZ54aSXzI2za62" },
-    { uid: "W8zGIX9SfZcE1NVJMNPTmfoepii2" },
-    { uid: "4bVGeJSfk5Vey9NRzvr4Qv8lsPy1" },
+    {uid: "mbev2I0iWhfJ1DDOIWlGDoYtyd33"},
+    {uid: "Ui7oyEUwuZS5ydAXJnF21wz2nzc2"},
+    {uid: "AirAN2QtX6SCRlVZ54aSXzI2za62"},
+    {uid: "W8zGIX9SfZcE1NVJMNPTmfoepii2"},
+    {uid: "4bVGeJSfk5Vey9NRzvr4Qv8lsPy1"},
   ];
 
   const participants = await Promise.all(
-    approved.map(async (r) => {
-      const snap = await db.ref("players/" + r.uid).once("value");
-      const player = snap.val();
-      return {
-        name: player.name,
-        misc: player.uid,
-      };
-    })
+      approved.map(async (r) => {
+        const snap = await db.ref("players/" + r.uid).once("value");
+        const player = snap.val();
+        return {
+          name: player.name,
+          misc: player.uid,
+        };
+      }),
   );
 
   const addRes = await fetch(`https://api.challonge.com/v2.1/tournaments/${challongeTournamentId}/participants/bulk_add.json`, {
@@ -86,7 +92,7 @@ exports.startChallongeTournament = onCall({
     body: JSON.stringify({
       data: {
         type: "Participant",
-        attributes: { participants },
+        attributes: {participants},
       },
     }),
   });
@@ -94,7 +100,7 @@ exports.startChallongeTournament = onCall({
   const addData = await addRes.json();
   if (!addRes.ok) {
     throw new HttpsError("internal",
-      `Challonge participants error: ${JSON.stringify(addData)}`);
+        `Challonge participants error: ${JSON.stringify(addData)}`);
   }
 
   const randomizeRes = await fetch(`https://api.challonge.com/v2.1/tournaments/${challongeTournamentId}/participants/randomize.json`, {
@@ -103,7 +109,7 @@ exports.startChallongeTournament = onCall({
     body: JSON.stringify({
       data: {
         type: "Participant",
-        attributes: { participants },
+        attributes: {participants},
       },
     }),
   });
@@ -111,34 +117,34 @@ exports.startChallongeTournament = onCall({
   const randomizeData = await randomizeRes.json();
   if (!randomizeRes.ok) {
     throw new HttpsError("internal",
-      `Challonge randomize error: ${JSON.stringify(addData)}`);
+        `Challonge randomize error: ${JSON.stringify(addData)}`);
   }
 
   const res = await fetch(
-    `https://api.challonge.com/v2.1/tournaments/${challongeTournamentId}/change_state.json`,
-    {
-      method: "PUT",
-      headers,
-      body: JSON.stringify({
-        data: {
-          type: "TournamentState",
-          attributes: {
-            state: "start",
+      `https://api.challonge.com/v2.1/tournaments/${challongeTournamentId}/change_state.json`,
+      {
+        method: "PUT",
+        headers,
+        body: JSON.stringify({
+          data: {
+            type: "TournamentState",
+            attributes: {
+              state: "start",
+            },
           },
-        },
-      }),
-    }
+        }),
+      },
   );
 
   const data = await res.json();
 
   if (!res.ok) {
     throw new HttpsError("internal",
-      `Failed to start tournament: ${JSON.stringify(data)}`);
+        `Failed to start tournament: ${JSON.stringify(data)}`);
   }
 
   const challongeParticipants = Object.fromEntries(
-    randomizeData.data.map((m) => [m.id, m.attributes.misc])
+      randomizeData.data.map((m) => [m.id, m.attributes.misc]),
   );
 
   const challongeTournamentUrl = createData.data.attributes.full_challonge_url;
@@ -154,5 +160,5 @@ exports.startChallongeTournament = onCall({
     challongeTournamentUrl,
   });
 
-  return { success: true, challongeTournamentId };
+  return {success: true, challongeTournamentId};
 });

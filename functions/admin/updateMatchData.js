@@ -1,10 +1,12 @@
-const { onCall, HttpsError } = require("firebase-functions/https");
-const { validateAdminRequest, db } = require("..");
+import {onCall, HttpsError} from "firebase-functions/https";
+import {db} from "../config/firebase.js";
+import {validateAdminRequest} from "./utils.js";
+import {defaultOptions} from "../config/options.js";
 
-exports.updateMatchData = onCall({ cors: true }, async (request) => {
+export const updateMatchData = onCall(defaultOptions, async (request) => {
   await validateAdminRequest(request);
 
-  const { uid, change, isWin } = request.data;
+  const {uid, change, isWin} = request.data;
 
   const snapshot = await db.ref("players/" + uid).once("value");
 

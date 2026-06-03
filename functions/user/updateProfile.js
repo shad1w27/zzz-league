@@ -1,13 +1,14 @@
-const { onCall, HttpsError } = require("firebase-functions/https");
-const { db } = require("..");
+import {onCall, HttpsError} from "firebase-functions/https";
+import {db} from "../config/firebase.js";
+import {defaultOptions} from "../config/options.js";
 
-exports.updateProfile = onCall({ cors: true }, async (request) => {
+export const updateProfile = onCall(defaultOptions, async (request) => {
   const callerUid = request.auth?.uid;
   if (!callerUid) {
     throw new HttpsError("unauthenticated", "User must be logged in");
   }
 
-  const { username } = request.data;
+  const {username} = request.data;
 
   if (!username) {
     throw new HttpsError("invalid-argument", "Nothing to update");
@@ -39,5 +40,5 @@ exports.updateProfile = onCall({ cors: true }, async (request) => {
 
   await db.ref().update(updates);
 
-  return { success: true };
+  return {success: true};
 });
