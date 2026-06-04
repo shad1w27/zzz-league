@@ -68,7 +68,10 @@
 			return;
 		}
 
+		let creatingTournament = false;
 		try {
+			if (creatingTournament) return;
+			creatingTournament = true;
 			let tournament: Tournament = {
 				id: "",
 				name,
@@ -90,6 +93,8 @@
 			close();
 		} catch (e: any) {
 			status = e.message;
+		} finally {
+			creatingTournament = false;
 		}
 	}
 </script>

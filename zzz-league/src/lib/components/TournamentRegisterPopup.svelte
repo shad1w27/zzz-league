@@ -22,7 +22,10 @@
 	let awareness = $state(false);
 	let status = $state();
 
+	let isRegistering = false;
 	async function handleRegister() {
+		if (isRegistering) return;
+
 		if (!awareness) {
 			status = "Ты не ОСОЗНАЛ.";
 			return;
@@ -42,6 +45,7 @@
 
 		const screenshotFile = rosterScreenshot[0];
 
+		isRegistering = true;
 		try {
 			await applyForTournament(
 				tournament.id,
@@ -55,6 +59,8 @@
 			open = false;
 		} catch (error: any) {
 			status = error.message;
+		} finally {
+			isRegistering = false;
 		}
 	}
 </script>

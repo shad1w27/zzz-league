@@ -55,11 +55,16 @@
 		}
 	});
 
+	let startingTournament = false;
 	async function handleStartTournament() {
+		if (startingTournament) return;
+		startingTournament = true;
 		try {
 			await startChallongeTournament(tournament!.id);
 		} catch (error) {
 			alert(error);
+		} finally {
+			startingTournament = false;
 		}
 	}
 

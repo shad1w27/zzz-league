@@ -8,7 +8,10 @@ export const approveResult = onCall({
   ...defaultOptions,
   secrets: [CHALLONGE_API_KEY],
 }, async (request) => {
-  const {tournamentId, matchId, uid, resultP1, resultP2} = request.data;
+  const uid = request.auth?.uid;
+  if (!uid) throw new HttpsError("unauthenticated", "Not logged in");
+
+  const {tournamentId, matchId, resultP1, resultP2} = request.data;
 
   if (!tournamentId || !matchId || !uid ||
     resultP1 == null || resultP2 == null) {

@@ -29,23 +29,21 @@ export async function updateTournamentGames(tournamentId,
         `Challonge matches fetch error: ${JSON.stringify(matchesData)}`);
   }
 
-  const matches = Object.fromEntries(
-      matchesData.data.map((m) => {
-        const pp = m.attributes.points_by_participant ?? [];
-        const p1Id = pp[0]?.participant_id;
-        const p2Id = pp[1]?.participant_id;
-        return [
-          m.id,
-          {
-            id: m.id,
-            state: m.attributes.state,
-            winnerId: m.attributes.winner_id,
-            p1: challongeParticipants[p1Id] ?? "TBD",
-            p2: challongeParticipants[p2Id] ?? "TBD",
-          },
-        ];
-      }),
-  );
+  const updates = {};
+  matchesData.data.forEach((m) => {
+    const pp = m.attributes.points_by_participant ?? [];
+    const p1Id = pp[0]?.participant_id;
+    const p2Id = pp[1]?.participant_id;
 
-  await db.ref(`tournaments/${tournamentId}/matches`).set(matches);
+    updates[`${tournamentId}/matches/${m.id}/id`] = m.id;
+    updates[`${tournamentId}/matches/${m.id}/state`] = m.attributes.state;
+    updates[`${tournamentId}/matches/${m.id}/winnerId`] =
+      challongeParticipants[m.attributes.winner_id] ?? null;
+    updates[`${tournamentId}/matches/${m.id}/p1`] =
+      challongeParticipants[p1Id] ?? "TBD";
+    updates[`${tournamentId}/matches/${m.id}/p2`] =
+      challongeParticipants[p2Id] ?? "TBD";
+  });
+
+  await db.ref("tournaments").update(updates);
 }

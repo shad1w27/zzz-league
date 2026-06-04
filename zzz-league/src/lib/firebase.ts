@@ -127,9 +127,8 @@ export async function startChallongeTournament(tournamentId: string): Promise<vo
 	});
 }
 
-export async function approveResult(uid: string, tournamentId: string, matchId: string, resultP1: number, resultP2: number): Promise<void> {
+export async function approveResult(tournamentId: string, matchId: string, resultP1: number, resultP2: number): Promise<void> {
 	await httpsCallable(functions, 'approveResult')({
-		uid,
 		tournamentId,
 		matchId,
 		resultP1,

@@ -29,10 +29,12 @@
 		return player === winnerId ? "match-winner" : "match-loser";
 	}
 
+	let isApproving = false;
 	async function handleApproveResult() {
+		if (isApproving) return;
 		try {
-			approveResult(
-				$currentUser!.uid,
+			isApproving = true;
+			await approveResult(
 				tournament.id,
 				match.id,
 				matchResultP1,
@@ -40,6 +42,8 @@
 			);
 		} catch (error) {
 			alert(error);
+		} finally {
+			isApproving = false;
 		}
 	}
 </script>
