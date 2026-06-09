@@ -139,6 +139,6 @@ export async function approveResult(tournamentId: string, matchId: string,
 	if (resultScreenshot) {
 		body.resultScreenshot = await fileToBase64(resultScreenshot);
 	}	
-
+	
 	await httpsCallable(functions, 'approveResult')(body);
 }

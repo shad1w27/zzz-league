@@ -30,11 +30,12 @@ export const startChallongeTournament = onCall({
     throw new HttpsError("not-found", "No registrations found");
   }
 
-  /* const approved = Object.values(registrations).filter((r) => r.approved);
+  const approved = Object.values(registrations).filter((r) => r.approved);
   if (approved.length < 2) {
     throw new HttpsError("failed-precondition",
-      "Need at least 2 approved players");
-  } */
+        "Need at least 2 approved players");
+  }
+
   const headers = {
     "Content-Type": "application/vnd.api+json",
     "Accept": "application/json",
@@ -67,13 +68,13 @@ export const startChallongeTournament = onCall({
 
   const challongeTournamentId = createData.data.id;
 
-  const approved = [
+  /* const approved = [
     {uid: "mbev2I0iWhfJ1DDOIWlGDoYtyd33"},
     {uid: "Ui7oyEUwuZS5ydAXJnF21wz2nzc2"},
     {uid: "AirAN2QtX6SCRlVZ54aSXzI2za62"},
     {uid: "W8zGIX9SfZcE1NVJMNPTmfoepii2"},
     {uid: "4bVGeJSfk5Vey9NRzvr4Qv8lsPy1"},
-  ];
+  ]; */
 
   const participants = await Promise.all(
       approved.map(async (r) => {

@@ -32,7 +32,7 @@ export const applyForTournament = onCall(defaultOptions, async (request) => {
   const buffer = Buffer.from(base64Data, "base64");
 
   if (buffer.length > 1 * 1024 * 1024) {
-    throw new HttpsError("invalid-argument", "File too large, max 5MB");
+    throw new HttpsError("invalid-argument", "File too large, max 1MB");
   }
 
   const match = rosterScreenshot.match(/^data:(image\/\w+);base64,/);

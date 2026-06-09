@@ -11,7 +11,8 @@ export const approveResult = onCall({
   const uid = request.auth?.uid;
   if (!uid) throw new HttpsError("unauthenticated", "Not logged in");
 
-  const {tournamentId,
+  const {
+    tournamentId,
     matchId,
     resultP1,
     resultP2,
@@ -35,7 +36,7 @@ export const approveResult = onCall({
 
   const resetResult = String(resultP1).trim() !== String(match.resultP1) ||
     String(resultP2).trim() !== String(match.resultP2) ||
-    (match.resultScreenshot !== null && resultScreenshot !== null);
+    (match.resultScreenshot != null && resultScreenshot != null);
 
   if (resetResult) {
     updates.p1ApprovedResult = false;
@@ -50,7 +51,7 @@ export const approveResult = onCall({
     const buffer = Buffer.from(base64Data, "base64");
 
     if (buffer.length > 1 * 1024 * 1024) {
-      throw new HttpsError("invalid-argument", "File too large, max 5MB");
+      throw new HttpsError("invalid-argument", "File too large, max 1MB");
     }
 
     const extMatch = resultScreenshot.match(/^data:(image\/\w+);base64,/);
