@@ -15,7 +15,6 @@
 	);
 
 	let inputScreenshot = $state<FileList | null>(null);
-	let resultScreenshot = $state(match.resultScreenshot ?? "");
 	let matchResultP1 = $state(match.resultP1 ?? 0);
 	let matchResultP2 = $state(match.resultP2 ?? 0);
 
@@ -32,13 +31,16 @@
 	let isApproving = false;
 	async function handleApproveResult() {
 		if (isApproving) return;
+		if (!matchResultP1 || !matchResultP2) return;
 		try {
+			const resultScreenshot = inputScreenshot?.[0];
 			isApproving = true;
 			await approveResult(
 				tournament.id,
 				match.id,
 				matchResultP1,
 				matchResultP2,
+				resultScreenshot,
 			);
 		} catch (error) {
 			alert(error);
@@ -70,7 +72,7 @@
 				<span class="match-player-right">{match.resultP2}</span>
 			{/if}
 		</div>
-		{#if /* (!match.p1ApprovedResult || !match.p2ApprovedResult) && */ myGame}
+		{#if match.state !== "complete" && myGame}
 			<hr style="width: 100%" />
 			<div class="match-players">
 				<span class="match-player-left">Введите время игрока 1</span>
@@ -92,15 +94,6 @@
 					bind:value={matchResultP2}
 				/>
 			</div>
-
-			{#if inputScreenshot}
-				<button
-					class="img-btn"
-					onclick={() => openImagePopup(resultScreenshot)}
-				>
-					<img src={bustCache(resultScreenshot)} alt="" />
-				</button>
-			{/if}
 		{/if}
 
 		{#if match.resultScreenshot}
@@ -112,7 +105,7 @@
 				<img src={bustCache(match.resultScreenshot)} alt="" />
 			</button>
 		{/if}
-		{#if /* (!match.p1ApprovedResult || !match.p2ApprovedResult) && */ myGame}
+		{#if match.state !== "complete" && myGame}
 			<span>Загрузить скриншот результатов</span>
 			<input
 				class="input-screenshot"

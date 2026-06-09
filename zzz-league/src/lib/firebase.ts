@@ -127,11 +127,18 @@ export async function startChallongeTournament(tournamentId: string): Promise<vo
 	});
 }
 
-export async function approveResult(tournamentId: string, matchId: string, resultP1: number, resultP2: number): Promise<void> {
-	await httpsCallable(functions, 'approveResult')({
+export async function approveResult(tournamentId: string, matchId: string,
+	resultP1: number, resultP2: number, resultScreenshot: File | null = null): Promise<void> {
+	let body: any = {
 		tournamentId,
 		matchId,
 		resultP1,
-		resultP2
-	});
+		resultP2,
+	};
+
+	if (resultScreenshot) {
+		body.resultScreenshot = await fileToBase64(resultScreenshot);
+	}	
+
+	await httpsCallable(functions, 'approveResult')(body);
 }
