@@ -68,14 +68,6 @@ export const startChallongeTournament = onCall({
 
   const challongeTournamentId = createData.data.id;
 
-  /* const approved = [
-    {uid: "mbev2I0iWhfJ1DDOIWlGDoYtyd33"},
-    {uid: "Ui7oyEUwuZS5ydAXJnF21wz2nzc2"},
-    {uid: "AirAN2QtX6SCRlVZ54aSXzI2za62"},
-    {uid: "W8zGIX9SfZcE1NVJMNPTmfoepii2"},
-    {uid: "4bVGeJSfk5Vey9NRzvr4Qv8lsPy1"},
-  ]; */
-
   const participants = await Promise.all(
       approved.map(async (r) => {
         const snap = await db.ref("players/" + r.uid).once("value");
@@ -150,13 +142,11 @@ export const startChallongeTournament = onCall({
 
   const challongeTournamentUrl = createData.data.attributes.full_challonge_url;
 
-  await db.ref("tournaments/" + tournamentId).update({
-    challongeParticipants,
-  });
-
   await updateTournamentGames(tournamentId, challongeTournamentId);
 
   await db.ref("tournaments/" + tournamentId).update({
+    challongeParticipants,
+    state: "started",
     challongeTournamentId,
     challongeTournamentUrl,
   });

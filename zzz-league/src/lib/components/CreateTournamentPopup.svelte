@@ -88,6 +88,7 @@
 				challongeTournamentId: "",
 				challongeTournamentUrl: "",
 				matches: [],
+				state: ""
 			};
 			await createTournament(tournament);
 			close();

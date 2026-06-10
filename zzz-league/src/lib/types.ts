@@ -46,7 +46,8 @@ export interface Tournament {
 	maxTier: number,
 	challongeTournamentId: string,
 	challongeTournamentUrl: string,
-	matches: TournamentMatch[]
+	matches: TournamentMatch[],
+	state: string
 }
 
 export interface TournamentRegistration {

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from "$app/state";
 	import SidePanel from "$lib/components/SidePanel.svelte";
-	import TournamentGamePopup from "$lib/components/TournamentGamePopup.svelte";
+	import TournamentGamePopup from "$lib/components/TournamentMatchPopup.svelte";
 	import TournamentPlayerTable from "$lib/components/TournamentPlayerTable.svelte";
 	import TournamentRegisterPopup from "$lib/components/TournamentRegisterPopup.svelte";
 	import { db, startChallongeTournament } from "$lib/firebase";
@@ -27,7 +27,10 @@
 	let searchQuery = $state("");
 	let registrationOpen = $state(false);
 	let matchOpen = $state(false);
-	let currentMatch = $state<TournamentMatch>();
+	let currentMatchId = $state();
+	let currentMatch = $derived(
+		tournament?.matches.find((m: TournamentMatch) => m.id === currentMatchId),
+	);
 
 	let filteredMatches = $derived(
 		tournament?.matches.filter(
@@ -86,7 +89,7 @@
 	}
 
 	function openMatch(match: TournamentMatch) {
-		currentMatch = match;
+		currentMatchId = match.id;
 		matchOpen = true;
 	}
 
@@ -205,14 +208,14 @@
 				{#if now > tournament.registrationStartDate && now < tournament.registrationEndDate}
 					<p>Идёт регистрация</p>
 				{/if}
-				{#if now > tournament.tournamentStartDate && now < tournament.tournamentEndDate}
+				{#if tournament.state === "started" || (now > tournament.tournamentStartDate && now < tournament.tournamentEndDate)}
 					<p>Турнир идёт</p>
 				{/if}
-				{#if now > tournament.tournamentEndDate}
+				{#if tournament.state !== "finished" || now > tournament.tournamentEndDate}
 					<p>Турнир окончен</p>
 				{/if}
 
-				{#if now > tournament.registrationStartDate && now < tournament.registrationEndDate}
+				{#if tournament.state !== "started" && now > tournament.registrationStartDate && now < tournament.registrationEndDate}
 					<button class="btn-common btn-play" onclick={openMyRegistration}
 						>{#if userRegistration}Обновить регистрацию{:else}Зарегистрироваться{/if}</button
 					>

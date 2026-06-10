@@ -15,8 +15,8 @@
 	);
 
 	let inputScreenshot = $state<FileList | null>(null);
-	let matchResultP1 = $state(match.resultP1 ?? 0);
-	let matchResultP2 = $state(match.resultP2 ?? 0);
+	let matchResultP1 = $state(match.resultP1 ?? "00:00");
+	let matchResultP2 = $state(match.resultP2 ?? "00:00");
 
 	function getPlayerName(uid: string) {
 		return registeredPlayers.find((p) => p.player.uid === uid)?.player.name;
@@ -75,22 +75,26 @@
 		{#if match.state !== "complete" && myGame}
 			<hr style="width: 100%" />
 			<div class="match-players">
-				<span class="match-player-left">Введите время игрока 1</span>
+				<span class="match-player-left"
+					>Введите время {getPlayerName(match.p1)}</span
+				>
 				<span> </span>
-				<span class="match-player-right">Введите время игрока 2</span>
+				<span class="match-player-right"
+					>Введите время {getPlayerName(match.p2)}</span
+				>
 				<input
 					class="time-input match-player-left"
-					type="text"
-					placeholder="00:00"
-					maxlength="5"
+					type="time"
+					step="60"
+					lang="en-GB"
 					bind:value={matchResultP1}
 				/>
 				<span> </span>
 				<input
 					class="time-input match-player-right"
-					type="text"
-					placeholder="00:00"
-					maxlength="5"
+					type="time"
+					step="60"
+					lang="en-GB"
 					bind:value={matchResultP2}
 				/>
 			</div>
