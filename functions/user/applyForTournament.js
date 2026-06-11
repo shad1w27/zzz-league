@@ -1,6 +1,6 @@
-import {onCall, HttpsError} from "firebase-functions/https";
-import {db, storage} from "../config/firebase.js";
-import {defaultOptions} from "../config/options.js";
+import { onCall, HttpsError } from "firebase-functions/https";
+import { db, storage } from "../config/firebase.js";
+import { defaultOptions } from "../config/options.js";
 
 export const applyForTournament = onCall(defaultOptions, async (request) => {
   const callerUid = request.auth?.uid;
@@ -10,8 +10,7 @@ export const applyForTournament = onCall(defaultOptions, async (request) => {
   const player = snap.val();
   if (!player) throw new HttpsError("not-found", "Player not found");
   if (!player.discordId) {
-    // @ts-ignore
-    throw new HttpsError("discord-error", "Please link discord first");
+    throw new HttpsError("permission-denied", "Please link discord first");
   }
 
   const {
@@ -26,6 +25,24 @@ export const applyForTournament = onCall(defaultOptions, async (request) => {
   if (!tournamentId || !darteNickname || !darteAccount ||
     !dartePreset || !rosterScreenshot || !zzzUid) {
     throw new HttpsError("invalid-argument", "Missing required fields");
+  }
+
+  const tournamentSnap = await db.ref(`tournaments/${tournamentId}`).once("value");
+  if (!tournamentSnap.exists()) {
+    throw new HttpsError("not-found", "Tournament not found");
+  }
+
+  const tournament = tournamentSnap.val();
+  let playerTier = 0;
+  if (player.isHighConfirmed)
+    playerTier = 1000;
+  else if (player.isMidConfirmed)
+    playerTier = 100;
+
+  if (playerTier < tournament.minTier || playerTier > tournament.maxTier) {
+    if (!tournamentSnap.exists()) {
+      throw new HttpsError("permission-denied", "Player is out of tier group");
+    }
   }
 
   const base64Data = rosterScreenshot.replace(/^data:image\/\w+;base64,/, "");
@@ -43,7 +60,7 @@ export const applyForTournament = onCall(defaultOptions, async (request) => {
   const file = storage.bucket().file(filePath);
 
   await file.save(buffer, {
-    metadata: {contentType},
+    metadata: { contentType },
   });
 
   await file.makePublic();
@@ -60,5 +77,5 @@ export const applyForTournament = onCall(defaultOptions, async (request) => {
     approved: false,
   });
 
-  return {success: true};
+  return { success: true };
 });

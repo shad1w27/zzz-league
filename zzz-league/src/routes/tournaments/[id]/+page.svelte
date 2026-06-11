@@ -4,7 +4,7 @@
 	import TournamentGamePopup from "$lib/components/TournamentMatchPopup.svelte";
 	import TournamentPlayerTable from "$lib/components/TournamentPlayerTable.svelte";
 	import TournamentRegisterPopup from "$lib/components/TournamentRegisterPopup.svelte";
-	import { db, startChallongeTournament } from "$lib/firebase";
+	import { db, startChallongeTournament, updateTournamentGames } from "$lib/firebase";
 	import { currentUser, isAdmin } from "$lib/store";
 	import type {
 		Player,
@@ -68,6 +68,24 @@
 			alert(error);
 		} finally {
 			startingTournament = false;
+		}
+	}
+
+	let updatingGames = false;
+	async function handleUpdateTournamentGames() {
+		if (updatingGames) return;
+		updatingGames = true;
+		try {
+			if (tournament) {
+				await updateTournamentGames(
+					tournament.id,
+					tournament.challongeTournamentUrl,
+				);
+			}
+		} catch (error) {
+			alert(error);
+		} finally {
+			updatingGames = false;
 		}
 	}
 
@@ -205,27 +223,38 @@
 				{#if now > tournament.registrationEndDate && now < tournament.tournamentStartDate}
 					<p>Регистрация закрыта</p>
 				{/if}
-				{#if now > tournament.registrationStartDate && now < tournament.registrationEndDate}
+				{#if !tournament.state && now > tournament.registrationStartDate && now < tournament.registrationEndDate}
 					<p>Идёт регистрация</p>
 				{/if}
 				{#if tournament.state === "started" || (now > tournament.tournamentStartDate && now < tournament.tournamentEndDate)}
 					<p>Турнир идёт</p>
 				{/if}
-				{#if tournament.state !== "finished" || now > tournament.tournamentEndDate}
+				{#if tournament.state === "finished" || now > tournament.tournamentEndDate}
 					<p>Турнир окончен</p>
 				{/if}
 
-				{#if tournament.state !== "started" && now > tournament.registrationStartDate && now < tournament.registrationEndDate}
-					<button class="btn-common btn-play" onclick={openMyRegistration}
-						>{#if userRegistration}Обновить регистрацию{:else}Зарегистрироваться{/if}</button
-					>
-				{/if}
-				{#if $isAdmin && !tournament.challongeTournamentId}
-					<button
-						class="btn-common btn-play"
-						onclick={handleStartTournament}>Начать турнир</button
-					>
-				{/if}
+				<div class="tournament-button-container">
+					{#if !tournament.state && now > tournament.registrationStartDate && now < tournament.registrationEndDate}
+						<button
+							class="btn-common btn-play"
+							onclick={openMyRegistration}
+							>{#if userRegistration}Обновить регистрацию{:else}Зарегистрироваться{/if}</button
+						>
+					{/if}
+					{#if $isAdmin && !tournament.state && !tournament.challongeTournamentId}
+						<button
+							class="btn-common btn-play"
+							onclick={handleStartTournament}>Начать турнир</button
+						>
+					{/if}
+					{#if $isAdmin}
+						<button
+							class="btn-common btn-play"
+							onclick={handleUpdateTournamentGames}
+							>Принудительно обновить игры</button
+						>
+					{/if}
+				</div>
 			</div>
 
 			{#if tournament.challongeTournamentUrl}
@@ -386,11 +415,14 @@
 		padding-bottom: 16px;
 	}
 
-	.description-container button {
+	.tournament-button-container {
 		width: auto;
 		position: absolute;
 		bottom: 16px;
 		right: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
 	}
 
 	.description-container p {

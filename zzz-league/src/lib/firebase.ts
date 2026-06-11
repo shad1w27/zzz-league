@@ -138,7 +138,14 @@ export async function approveResult(tournamentId: string, matchId: string,
 
 	if (resultScreenshot) {
 		body.resultScreenshot = await fileToBase64(resultScreenshot);
-	}	
-	
+	}
+
 	await httpsCallable(functions, 'approveResult')(body);
+}
+
+export async function updateTournamentGames(tournamentId: string, challongeTournamentId: string): Promise<void> {
+	await httpsCallable(functions, 'updateTournamentGames')({
+		tournamentId,
+		challongeTournamentId
+	});
 }

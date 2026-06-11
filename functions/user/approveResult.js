@@ -27,25 +27,24 @@ export const approveResult = onCall({
 
   const matchRef = db.ref(`tournaments/${tournamentId}/matches/${matchId}`);
   const matchSnap = await matchRef.once("value");
-  const match = matchSnap.val();
+  let match = matchSnap.val();
   if (!match) {
     throw new HttpsError("not-found", "Match not found");
   }
-  
-  if (match.p1 !== uid && match.p2 !== uid)
-    throw new HttpsError("unauthenticated", "Not a participant");
 
-  const updates = {};
+  if (match.p1 !== uid && match.p2 !== uid) {
+    throw new HttpsError("permission-denied", "Not a participant");
+  }
 
   const resetResult = String(resultP1).trim() !== String(match.resultP1) ||
     String(resultP2).trim() !== String(match.resultP2) ||
     (match.resultScreenshot != null && resultScreenshot != null);
 
   if (resetResult) {
-    updates.p1ApprovedResult = false;
-    updates.p2ApprovedResult = false;
-    updates.resultP1 = String(resultP1).trim();
-    updates.resultP2 = String(resultP2).trim();
+    match.p1ApprovedResult = false;
+    match.p2ApprovedResult = false;
+    match.resultP1 = String(resultP1).trim();
+    match.resultP2 = String(resultP2).trim();
   }
 
   if (resultScreenshot) {
@@ -70,28 +69,23 @@ export const approveResult = onCall({
 
     await file.makePublic();
     const resultScreenshotUrl = `https://storage.googleapis.com/${storage.bucket().name}/${filePath}`;
-    updates.resultScreenshot = resultScreenshotUrl;
+    match.resultScreenshot = resultScreenshotUrl;
   }
 
   switch (uid) {
     case match.p1:
-      updates.p1ApprovedResult = resetResult ? true : !match.p1ApprovedResult;
+      match.p1ApprovedResult = resetResult ? true : !match.p1ApprovedResult;
       break;
     case match.p2:
-      updates.p2ApprovedResult = resetResult ? true : !match.p2ApprovedResult;
+      match.p2ApprovedResult = resetResult ? true : !match.p2ApprovedResult;
       break;
     default:
       throw new HttpsError("permission-denied",
         "User is not a participant of this match");
   }
 
-  await matchRef.update(updates);
-
-  const updatedSnap = await matchRef.once("value");
-  const updatedMatch = updatedSnap.val();
-
-  if (updatedMatch.p1ApprovedResult &&
-    updatedMatch.p2ApprovedResult) {
+  if (match.p1ApprovedResult &&
+    match.p2ApprovedResult) {
     const tournamentSnap =
       await db.ref(`tournaments/${tournamentId}`).once("value");
     const tournament = tournamentSnap.val();
@@ -101,8 +95,8 @@ export const approveResult = onCall({
       return h * 60 + m;
     };
 
-    const time1 = toSeconds(updatedMatch.resultP1);
-    const time2 = toSeconds(updatedMatch.resultP2);
+    const time1 = toSeconds(match.resultP1);
+    const time2 = toSeconds(match.resultP2);
     const winnerId = time1 < time2 ? match.p1 : match.p2;
 
     const headers = {
@@ -161,10 +155,10 @@ export const approveResult = onCall({
 
     await updateTournamentGames(tournamentId, tournament.challongeTournamentId);
 
-    await matchRef.update({
-      state: "complete",
-      winnerId,
-    });
+    match.state = "complete";
+    match.winnerId = winnerId;
+
+    await matchRef.update(match);
   }
 
   return { success: true };

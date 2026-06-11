@@ -13,7 +13,6 @@ export const deletePlayer = onCall(defaultOptions, async (request) => {
   }
 
   const snapshot = await db.ref("players/" + uid).once("value");
-
   if (!snapshot.exists()) {
     throw new HttpsError("not-found", "Player not found");
   }
