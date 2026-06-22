@@ -14,7 +14,7 @@
 	let tournamentStartDate = $state(toDateTimeLocal(now));
 	let tournamentEndDate = $state(toDateTimeLocal(now));
 	let tournamentType = $state("double elimination");
-	let baseElo = $state(-1);
+	let overrideEloChange = $state(-1);
 	let minCost = $state(2100);
 	let maxCost = $state(2200);
 	let minCharacters = $state(14);
@@ -93,7 +93,7 @@
 				matches: [],
 				state: "",
 				winnerId: undefined,
-				baseElo: baseElo,
+				overrideEloChange: overrideEloChange,
 				type: tournamentType,
 			};
 			await createTournament(tournament);
@@ -117,8 +117,8 @@
 			<option value="single elimination">Single elimination</option>
 			<option value="double elimination">Double elimination</option>
 		</select>
-		<p>Базовое эло (-1 для дефолт 20/50 от ранга)</p>
-		<input type="number" bind:value={baseElo} placeholder="Базовое эло (-1 для дефолт 20/50 от ранга)" />
+		<p>Фикс эло для турнира (-1 для стандартной системы)</p>
+		<input type="number" bind:value={overrideEloChange} placeholder="Фикс эло" />
 		<p>Мин. тир игроков</p>
 		<select bind:value={minTier}>
 			<option value="0">NEWBIE</option>

@@ -10,10 +10,7 @@
 	import { signOut } from "firebase/auth";
 	import AdminPanel from "./AdminPanel.svelte";
 	import { currentUser, isAdmin } from "$lib/store";
-	
-	function openHistory() {
-		
-	}
+	import { resolve } from "$app/paths";
 </script>
 
 <div class="side-panel">
@@ -38,7 +35,9 @@
 			<button class="btn-common" onclick={openSettingsPopup}
 				>Настройки</button
 			>
-			<button class="btn-common" onclick={openHistory}>История</button>
+			<a class="btn-common" href={resolve(`/history/${$currentUser.uid}`)}>
+				История
+			</a>
 			<button class="btn-common" onclick={() => signOut(auth)}>Выход</button>
 		</div>
 	{/if}

@@ -50,7 +50,7 @@ export interface Tournament {
 	state: string,
 	winnerId: any,
 	type: string,
-	baseElo: number,
+	overrideEloChange: number,
 }
 
 export interface TournamentRegistration {

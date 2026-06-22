@@ -45,8 +45,8 @@ export async function clearHistory(): Promise<void> {
 	await httpsCallable(functions, 'clearHistory')();
 }
 
-export async function registerMatch(p1: string, p2: string, p1Win: boolean, baseElo: number): Promise<void> {
-	await httpsCallable(functions, "registerMatch")({ p1, p2, p1Win, baseElo});
+export async function registerMatch(p1: string, p2: string, p1Win: boolean, overrideEloChange: number): Promise<void> {
+	await httpsCallable(functions, "registerMatch")({ p1, p2, p1Win, baseElo: overrideEloChange});
 }
 
 export async function setTimer(timer: number): Promise<void> {
@@ -140,7 +140,7 @@ export async function approveResult(tournamentId: string, matchId: string,
 }
 
 export async function updateTournamentGames(tournamentId: string, challongeTournamentId: string): Promise<void> {
-	await httpsCallable(functions, 'updateTournamentGames')({
+	await httpsCallable(functions, 'refreshTournamentGames')({
 		tournamentId,
 		challongeTournamentId
 	});

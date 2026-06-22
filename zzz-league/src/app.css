@@ -244,8 +244,8 @@ p {
 	border: 1px solid #444;
 	padding: 14px;
 	border-radius: 8px;
-	width: 100%;
 	transition: 0.2s;
+	text-align: center;
 }
 
 .btn-common:hover {

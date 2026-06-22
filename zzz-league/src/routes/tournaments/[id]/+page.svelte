@@ -84,7 +84,7 @@
 			if (tournament) {
 				await updateTournamentGames(
 					tournament.id,
-					tournament.challongeTournamentUrl,
+					tournament.challongeTournamentId,
 				);
 			}
 		} catch (error) {
@@ -216,6 +216,14 @@
 						<span class="tier-badge t-high">HIGH TIER</span>
 					{/if}
 				{/snippet}
+				<p>Турнир по системе {tournament.type}</p>
+				{#if tournament.overrideEloChange == -1}
+					<p>Стандартная система начислений эло</p>
+				{:else}
+					<p>
+						За победу поражение начисляется фиксированное эло {tournament.overrideEloChange}
+					</p>
+				{/if}
 				<p>
 					Ранги с {@render tierBadge(tournament.minTier)} по {@render tierBadge(
 						tournament.maxTier,
@@ -308,7 +316,7 @@
 				></iframe>
 			{/if}
 
-			{#if tournament.matches}
+			{#if tournament.matches && tournament.matches.length > 0}
 				<h2>Игры</h2>
 				<div class="match-list">
 					{#each filteredMatches as match}

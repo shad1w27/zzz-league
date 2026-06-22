@@ -18,14 +18,14 @@ export const createTournament = onCall(defaultOptions, async (request) => {
     minCharacters,
     minTier,
     maxTier,
-    baseElo,
+    overrideEloChange,
     type,
   } = request.data;
 
   if (!name || !registrationStartDate || !registrationEndDate ||
     !tournamentStartDate || !tournamentEndDate || minCost == null ||
     !maxCost == null || !minCharacters == null || minTier == null ||
-    maxTier == null || type == null || baseElo == null) {
+    maxTier == null || type == null || overrideEloChange == null) {
     throw new HttpsError("invalid-argument", "Missing required fields");
   }
 
@@ -45,7 +45,7 @@ export const createTournament = onCall(defaultOptions, async (request) => {
     minCharacters,
     minTier,
     maxTier,
-    baseElo,
+    overrideEloChange,
     type,
   });
 
