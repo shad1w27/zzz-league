@@ -188,7 +188,7 @@
 			</h2>
 			<div style="display:flex; align-items:center; gap:10px;">
 				{#if isViewingArchive}
-					<button class="btn-common btn-back" onclick={loadLive}
+					<button class="btn-common back-btn" onclick={loadLive}
 						>← ТЕКУЩАЯ ЛИГА</button
 					>
 				{/if}

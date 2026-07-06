@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from "$app/paths";
 	import type { Player } from "$lib/types";
 	import { closeProfilePopup } from "$lib/uiCommon";
 
@@ -57,6 +58,14 @@
 				</div>
 			</div>
 
+			<a
+				class="btn-common btn-history"
+				href={resolve(`/history/${player.uid}`)}
+				onclick={closeProfilePopup}
+			>
+				История матчей
+			</a>
+
 			<button class="btn-common back-btn" onclick={closeProfilePopup}
 				>← Закрыть</button
 			>
@@ -67,6 +76,10 @@
 <style>
 	.profile-card {
 		text-align: center;
+	}
+
+	.btn-history {
+		margin-top: 14px;
 	}
 
 	.stat-grid {
