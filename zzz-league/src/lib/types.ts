@@ -6,7 +6,9 @@ export interface Player {
 	elo: number,
 	tournamentPoints: number,
 	isMidConfirmed: boolean,
-	isHighConfirmed: boolean
+	isHighConfirmed: boolean,
+	wins: number,
+	losses: number
 }
 
 export interface MatchRecord {

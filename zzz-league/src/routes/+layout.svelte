@@ -24,6 +24,7 @@
 	import type { Player } from "$lib/types";
 	import ImageViwerPopup from "$lib/components/ImageViwerPopup.svelte";
 	import CreateTournamentPopup from "$lib/components/CreateTournamentPopup.svelte";
+	import SiteHeader from "$lib/components/Header.svelte";
 
 	let { children } = $props();
 
@@ -52,6 +53,8 @@
 							tournamentPoints: player.tournamentPoints,
 							isMidConfirmed: player.isMidConfirmed,
 							isHighConfirmed: player.isHighConfirmed,
+							wins: player.wins ?? 0,
+							losses: player.losses ?? 0,
 						};
 						$isAdmin = !!player.isAdmin;
 					}
@@ -76,6 +79,8 @@
 		};
 	});
 </script>
+
+<SiteHeader />
 
 {@render children()}
 

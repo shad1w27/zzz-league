@@ -133,6 +133,47 @@
 		}
 	}
 
+	let registeringTechLoss = false;
+	async function handleRegisterTechLoss() {
+		if (registeringTechLoss) return;
+		if (
+			!selectedPlayer1 ||
+			!selectedPlayer2 ||
+			selectedPlayer1.name === selectedPlayer2.name
+		) {
+			alert("Выберите разных игроков");
+			return;
+		}
+
+		const winner = parseInt(winningPlayer);
+		const loserName =
+			winner === 1 ? selectedPlayer2.name : selectedPlayer1.name;
+		if (
+			!confirm(
+				`${loserName} получает техлуз и теряет ELO, оппонент не получает ELO. Продолжить?`,
+			)
+		) {
+			return;
+		}
+
+		registeringTechLoss = true;
+		try {
+			await registerMatch(
+				selectedPlayer1.uid,
+				selectedPlayer2.uid,
+				winner === 1,
+				-1,
+				true,
+			);
+
+			showingForecast = false;
+		} catch (error) {
+			alert(error);
+		} finally {
+			registeringTechLoss = false;
+		}
+	}
+
 	async function handleResetSeason() {
 		const name = prompt("Название сезона для архива:");
 		if (!name) return;
@@ -222,13 +263,16 @@
 		class="btn-common btn-play"
 		onclick={handleRegisterMatch}>⚔️ Записать матч</button
 	>
+	<button type="button" class="btn-common" onclick={handleRegisterTechLoss}
+		>🚫 Техлуз</button
+	>
+	<hr style="width: 100%;" />
 	<button type="button" class="btn-common" onclick={handleFinalizeTournament}
 		>✅ Применить итоги</button
 	>
 	<button type="button" class="btn-common" onclick={handleResetSeason}
 		>📦 Сброс сезона</button
 	>
-
 	<hr style="width: 100%;" />
 	<button type="button" class="btn-common" onclick={createTournament}
 		>Создать турнир</button

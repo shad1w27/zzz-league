@@ -7,7 +7,7 @@ import {registerMatchResult} from "../utils/registerMatchResult.js";
 export const registerMatch = onCall(defaultOptions, async (request) => {
   await validateAdminRequest(request);
 
-  const {p1, p2, p1Win, overrideEloChange} = request.data;
+  const {p1, p2, p1Win, overrideEloChange, techLoss} = request.data;
 
   const p1Snap = await db.ref("players/" + p1).once("value");
   if (!p1Snap.exists()) {
@@ -20,7 +20,8 @@ export const registerMatch = onCall(defaultOptions, async (request) => {
   }
 
   await registerMatchResult(p1Snap.val(), p2Snap.val(),
-      p1Win, overrideEloChange, null, null);
+      p1Win, overrideEloChange, null, null,
+      null, null, null, !!techLoss);
 
   return {success: true};
 });

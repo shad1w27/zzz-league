@@ -29,7 +29,6 @@
 	);
 
 	let archives = $state<Archives>({});
-	let matchHistory = $state<MatchRecord[]>([]);
 
 	let searchQuery = $state("");
 
@@ -72,24 +71,6 @@
 
 		const threeDaysAgo = Date.now() - 3 * 24 * 60 * 60 * 1000;
 
-		const unsubHistory = onValue(
-			query(
-				ref(db, "history"),
-				orderByChild("timestamp"),
-				startAt(threeDaysAgo),
-			),
-			(snap) => {
-				const val = snap.val();
-				if (!val) {
-					matchHistory = [];
-					return;
-				}
-				matchHistory = Object.entries(val)
-					.map(([key, m]: [string, any]) => ({ key, ...m }))
-					.reverse();
-			},
-		);
-
 		const unsubTournaments = onValue(ref(db, "tournaments"), (snap) => {
 			const val = snap.val();
 			allTournaments = val ? (Object.values(val) as Tournament[]) : [];
@@ -102,7 +83,6 @@
 		return () => {
 			unsubTimer();
 			unsubArchives();
-			unsubHistory();
 			unsubTournaments();
 			if (timerInterval) clearInterval(timerInterval);
 			clearInterval(interval);
@@ -132,16 +112,6 @@
 
 		try {
 			await deleteHistoryEntry(key);
-		} catch (error) {
-			alert(error);
-		}
-	}
-
-	async function handleClearHistory() {
-		if (!confirm("УАДЛИТЬ ИСТОРИЮ?")) return;
-
-		try {
-			await clearHistory();
 		} catch (error) {
 			alert(error);
 		}
@@ -257,35 +227,6 @@
 						</div>
 					{/each}
 				</div>
-			</div>
-		{/if}
-
-		{#if matchHistory.length > 0}
-			<div class="history-header">
-				<h3 class="section-label">Недавние матчи</h3>
-				{#if isAdmin}
-					<button
-						class="btn-common btn-clear-history"
-						onclick={() => handleClearHistory()}>ОЧИСТИТЬ</button
-					>
-				{/if}
-			</div>
-			<div class="log-items">
-				{#each matchHistory as m}
-					<div class="log-item">
-						<b>{m.p1}</b> vs <b>{m.p2}</b>:
-						<span class={m.change >= 0 ? "gain" : "loss"}>
-							{m.change >= 0 ? "+" : ""}{m.change} ELO
-						</span>
-						{#if isAdmin}
-							<button
-								class="icon-btn danger"
-								onclick={() => handleDeleteHistoryEntry(m.key)}
-								>✕</button
-							>
-						{/if}
-					</div>
-				{/each}
 			</div>
 		{/if}
 	</div>

@@ -32,6 +32,8 @@ export const register = onCall(defaultOptions, async (request) => {
         tournamentPoints: prevUserData.tournamentPoints ?? 0,
         isMidConfirmed: prevUserData.isMidConfirmed ?? false,
         isHighConfirmed: prevUserData.isHighConfirmed ?? false,
+        wins: prevUserData.wins ?? 0,
+        losses: prevUserData.losses ?? 0,
       };
     } else {
       playerData = {
@@ -41,6 +43,8 @@ export const register = onCall(defaultOptions, async (request) => {
         tournamentPoints: 0,
         isMidConfirmed: false,
         isHighConfirmed: false,
+        wins: 0,
+        losses: 0,
       };
     }
 

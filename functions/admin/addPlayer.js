@@ -27,6 +27,8 @@ export const addPlayer = onCall(defaultOptions, async (request) => {
     isMidConfirmed: false,
     isHighConfirmed: false,
     discord: "",
+    wins: 0,
+    losses: 0,
   };
 
   await db.ref("players/" + trimmedName).set(player);

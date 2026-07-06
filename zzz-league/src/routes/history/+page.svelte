@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { resolve } from "$app/paths";
-	import { page } from "$app/state";
 	import SidePanel from "$lib/components/SidePanel.svelte";
 	import { db, deleteHistoryEntry } from "$lib/firebase";
 	import { isAdmin, playersByUid } from "$lib/store";
@@ -11,8 +10,6 @@
 		openProfilePopup,
 	} from "$lib/uiCommon";
 	import { onValue, orderByChild, query, ref } from "firebase/database";
-
-	const id = $derived(page.params.id);
 
 	type HistoryEntry = {
 		id: string;
@@ -34,8 +31,7 @@
 		entries
 			.filter(
 				(e) =>
-					e.tournamentMatch === "legacy" ||
-					e.tournamentMatch === "adjustment",
+					e.tournamentMatch === "legacy" || e.tournamentMatch === "adjustment",
 			)
 			.reduce((max, e) => Math.max(max, e.timestamp), 0),
 	);
@@ -44,7 +40,7 @@
 		return $playersByUid.get(uid)?.name ?? uid;
 	}
 
-	function openOpponent(uid: string) {
+	function openPlayer(uid: string) {
 		const player = $playersByUid.get(uid);
 		if (player) openProfilePopup(player);
 	}
@@ -59,11 +55,11 @@
 		return "neutral";
 	}
 
-	async function handleDelete(entryId: string) {
+	async function handleDelete(id: string) {
 		if (!confirm("Удалить запись? ELO/очки и победы/поражения будут отменены."))
 			return;
 		try {
-			await deleteHistoryEntry(entryId);
+			await deleteHistoryEntry(id);
 		} catch (error) {
 			alert(error);
 		}
@@ -75,8 +71,7 @@
 		const unsubscribe = onValue(historyRef, (snapshot) => {
 			const result: HistoryEntry[] = [];
 			snapshot.forEach((child) => {
-				const entry = child.val() as HistoryEntry;
-				if (entry.p1 === id || entry.p2 === id) result.push(entry);
+				result.push(child.val() as HistoryEntry);
 			});
 			entries = result.reverse();
 		});
@@ -89,38 +84,39 @@
 	<SidePanel></SidePanel>
 
 	<div class="card main-content">
-		<h2>Игры</h2>
+		<h2>Вся история</h2>
 		<div class="match-list">
 			{#each entries as entry (entry.id)}
 				{#if entry.timestamp === legacyCutoffTimestamp}
-					<div class="legacy-divider">
-						Легаси история (возможны ошибки)
-					</div>
+					<div class="legacy-divider">Легаси история (возможны ошибки)</div>
 				{/if}
-				{@const isP1 = entry.p1 === id}
-				{@const opponent = isP1 ? entry.p2 : entry.p1}
-				{@const change = isP1 ? entry.p1Change : entry.p2Change}
-				{@const opponentChange = isP1 ? entry.p2Change : entry.p1Change}
 
-				<div class="match-item border-{changeClass(change!)}">
+				<div class="match-item">
 					<div class="match-row">
 						<div class="match-players">
-							<span class={changeClass(change!)}>
-								({change! > 0 ? "+" : ""}{change})
+							<span class={changeClass(entry.p1Change)}>
+								({entry.p1Change > 0 ? "+" : ""}{entry.p1Change})
 							</span>
-							{#if opponent}
-								<span class="match-player-name">{getPlayerName(id!)}</span>
+							<!-- svelte-ignore a11y_click_events_have_key_events -->
+							<!-- svelte-ignore a11y_no_static_element_interactions -->
+							<span
+								class="match-player-name match-opponent"
+								onclick={() => openPlayer(entry.p1)}
+							>
+								{getPlayerName(entry.p1)}
+							</span>
+							{#if entry.p2}
 								<span class="match-player-name">vs</span>
 								<!-- svelte-ignore a11y_click_events_have_key_events -->
 								<!-- svelte-ignore a11y_no_static_element_interactions -->
 								<span
 									class="match-player-name match-opponent"
-									onclick={() => openOpponent(opponent)}
+									onclick={() => openPlayer(entry.p2!)}
 								>
-									{getPlayerName(opponent)}
+									{getPlayerName(entry.p2)}
 								</span>
-								<span class={changeClass(opponentChange!)}>
-									({opponentChange! > 0 ? "+" : ""}{opponentChange})
+								<span class={changeClass(entry.p2Change!)}>
+									({entry.p2Change! > 0 ? "+" : ""}{entry.p2Change})
 								</span>
 							{:else}
 								<span class="match-player-name match-adjustment"
@@ -160,13 +156,9 @@
 							{#if entry.resultScreenshot}
 								<button
 									class="img-btn"
-									onclick={() =>
-										openImagePopup(entry.resultScreenshot!)}
+									onclick={() => openImagePopup(entry.resultScreenshot!)}
 								>
-									<img
-										src={bustCache(entry.resultScreenshot)}
-										alt=""
-									/>
+									<img src={bustCache(entry.resultScreenshot)} alt="" />
 								</button>
 							{/if}
 						</div>
@@ -193,19 +185,8 @@
 		padding: 10px 14px;
 		border-radius: 8px;
 		border-left: 8px solid transparent;
-		background: rgba(255, 255, 255, 0.03);
-	}
-
-	.match-item.border-gain {
-		border-color: var(--green);
-	}
-
-	.match-item.border-loss {
-		border-color: var(--loss);
-	}
-
-	.match-item.border-neutral {
 		border-color: #555;
+		background: rgba(255, 255, 255, 0.03);
 	}
 
 	.match-row {

@@ -1,54 +1,20 @@
 <script lang="ts">
-	import { db } from "$lib/firebase";
-	import { ref, get } from "firebase/database";
 	import type { Player } from "$lib/types";
 	import { closeProfilePopup } from "$lib/uiCommon";
 
-	interface Stats {
-		wins: number;
-		losses: number;
-		total: number;
-		winRate: number;
-	}
-
 	let { player = $bindable<Player | null>(null) } = $props();
 
-	let stats = $state<Stats>({ wins: 0, losses: 0, total: 0, winRate: 0 });
-	let loading = $state(false);
-
-	$effect(() => {
-		if (player) loadStats(player.name);
-	});
-
-	async function loadStats(name: string) {
-		loading = true;
-
-		const historySnap = await get(ref(db, "history"));
-		const matches = historySnap.val()
-			? (Object.values(historySnap.val()) as any[])
-			: [];
-
-		let wins = 0,
-			losses = 0;
-		matches.forEach((m: any) => {
-			if (m.p1 === name) {
-				if (m.change > 0) wins++;
-				else losses++;
-			} else if (m.p2 === name) {
-				if (m.change < 0) wins++;
-				else losses++;
-			}
-		});
-
+	let stats = $derived.by(() => {
+		const wins = player?.wins ?? 0;
+		const losses = player?.losses ?? 0;
 		const total = wins + losses;
-		stats = {
+		return {
 			wins,
 			losses,
 			total,
 			winRate: total > 0 ? Math.round((wins / total) * 100) : 0,
 		};
-		loading = false;
-	}
+	});
 
 	function getTier(p: Player) {
 		if (p.isHighConfirmed) return { name: "HIGH TIER", cls: "t-high" };
@@ -59,9 +25,7 @@
 
 <div class="popup">
 	<div class="card profile-card">
-		{#if loading}
-			<h1>Загрузка...</h1>
-		{:else if !player}
+		{#if !player}
 			<h1>Игрок не найден</h1>
 		{:else}
 			{@const tier = getTier(player)}

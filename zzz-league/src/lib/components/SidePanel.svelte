@@ -36,8 +36,9 @@
 				>Настройки</button
 			>
 			<a class="btn-common" href={resolve(`/history/${$currentUser.uid}`)}>
-				История
+				Моя история
 			</a>
+			<a class="btn-common" href={resolve("/history")}> Вся история </a>
 			<button class="btn-common" onclick={() => signOut(auth)}>Выход</button>
 		</div>
 	{/if}
