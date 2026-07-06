@@ -38,6 +38,23 @@
 			<div id="discordTag">Discord: {player.discord ?? "-"}</div>
 
 			<div class="stat-grid">
+				<div class="stat-item elo-item">
+					<div class="stat-label">ELO</div>
+					<div id="elo" class="stat-value gold">
+						{player.elo ?? 1000}
+						{#if player.tournamentPoints}
+							<span
+								class="points {player.tournamentPoints > 0
+									? 'gain'
+									: 'loss'}"
+							>
+								({player.tournamentPoints > 0
+									? "+"
+									: ""}{player.tournamentPoints})
+							</span>
+						{/if}
+					</div>
+				</div>
 				<div class="stat-item">
 					<div class="stat-label">Всего игр</div>
 					<div id="totalGames" class="stat-value">{stats.total}</div>
@@ -110,5 +127,17 @@
 
 	.winrate {
 		color: #2eb82e;
+	}
+
+	.elo-item {
+		grid-column: span 2;
+	}
+
+	.gold {
+		color: var(--gold);
+	}
+
+	.points {
+		font-size: 0.6em;
 	}
 </style>
