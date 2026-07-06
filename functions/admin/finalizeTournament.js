@@ -42,7 +42,7 @@ export const finalizeTournament = onCall({
     updates["players/" + p.uid + "/isHighConfirmed"] = high;
     updates["players/" + p.uid + "/lastEloUpdateTimestamp"] = Date.now();
 
-    if (p.discordId && mid != p.isMidConfirmed || high != p.isHighConfirmed) {
+    if (p.discordId && (mid != p.isMidConfirmed || high != p.isHighConfirmed)) {
       uidsToUpdate.push(p.uid);
     }
   });

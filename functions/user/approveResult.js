@@ -167,7 +167,8 @@ export const approveResult = onCall({
     await updateTournamentGames(tournamentId, tournament.challongeTournamentId);
 
     const historyKey = await registerMatchResult(p1Snap.val(), p2Snap.val(),
-        time1 < time2, tournament.overrideEloChange, tournament.id, match.id);
+        time1 < time2, tournament.overrideEloChange, tournament.id, match.id,
+        match.resultP1, match.resultP2, match.resultScreenshot);
 
     match.historyKey = historyKey;
     match.state = "complete";

@@ -46,11 +46,11 @@ export async function clearHistory(): Promise<void> {
 }
 
 export async function registerMatch(p1: string, p2: string, p1Win: boolean, overrideEloChange: number): Promise<void> {
-	await httpsCallable(functions, "registerMatch")({ p1, p2, p1Win, baseElo: overrideEloChange});
+	await httpsCallable(functions, "registerMatch")({ p1, p2, p1Win, overrideEloChange });
 }
 
 export async function setTimer(timer: number): Promise<void> {
-	await httpsCallable(functions, "updateMatchData")({ timer });
+	await httpsCallable(functions, "setTimer")({ timer });
 }
 
 export async function resetSeason(name: string): Promise<void> {

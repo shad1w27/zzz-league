@@ -6,7 +6,10 @@ export async function registerMatchResult(
     p1Win,
     overrideEloChange,
     tournamentId,
-    tournamentMatch) {
+    tournamentMatch,
+    resultP1 = null,
+    resultP2 = null,
+    resultScreenshot = null) {
   const p1Change = overrideEloChange != -1 ?
     (p1Win ? overrideEloChange : -overrideEloChange) :
     calculateEloChange(p1, p2, p1Win);
@@ -16,14 +19,14 @@ export async function registerMatchResult(
 
   if (!tournamentId) tournamentMatch = "custom";
 
-  const historyKey = db.ref(`historyV3/tournaments/${tournamentId}`).push().key;
+  const historyKey = db.ref("historyV3").push().key;
 
   await db.ref().update({
     [`players/${p1.uid}/tournamentPoints`]:
       (p1.tournamentPoints || 0) + p1Change,
     [`players/${p2.uid}/tournamentPoints`]:
       (p2.tournamentPoints || 0) + p2Change,
-    [`historyV3/tournaments/${tournamentId}/${historyKey}`]: {
+    [`historyV3/${historyKey}`]: {
       id: historyKey,
       p1: p1.uid,
       p1Change,
@@ -31,6 +34,9 @@ export async function registerMatchResult(
       p2Change,
       tournamentId,
       tournamentMatch: tournamentMatch ?? null,
+      resultP1,
+      resultP2,
+      resultScreenshot,
       timestamp: Date.now(),
     },
   });

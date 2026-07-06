@@ -13,7 +13,6 @@ export async function assignDiscordRole(uid) {
   const player = playerSnap.val();
   if (!player?.discordId) return;
 
-  const elo = player.elo || 1000;
   const guildId = DISCORD_GUILD_ID.value();
   const token = DISCORD_BOT_TOKEN.value();
 
@@ -21,8 +20,8 @@ export async function assignDiscordRole(uid) {
   const midRole = DISCORD_MID_ROLE.value();
   const highRole = DISCORD_HIGH_ROLE.value();
 
-  const newRoleId = elo >= 1400 ? highRole :
-    elo >= 1200 ? midRole :
+  const newRoleId = player.isHighConfirmed ? highRole :
+    player.isMidConfirmed ? midRole :
       newbieRole;
 
   const allRoles = [newbieRole, midRole, highRole];

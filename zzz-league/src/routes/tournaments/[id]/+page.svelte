@@ -266,7 +266,7 @@
 				{/if}
 
 				<div class="tournament-button-container">
-					{#if !tournament.state && now > tournament.registrationStartDate && now < tournament.registrationEndDate}
+					{#if $currentUser && !tournament.state && now > tournament.registrationStartDate && now < tournament.registrationEndDate}
 						<button
 							class="btn-common btn-play"
 							onclick={openMyRegistration}
