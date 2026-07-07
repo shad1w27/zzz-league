@@ -43,6 +43,15 @@
 		),
 	);
 
+	let currentUserTier = $derived(
+		$currentUser?.isHighConfirmed ? 1000 : $currentUser?.isMidConfirmed ? 100 : 0,
+	);
+	let tierEligible = $derived(
+		!!tournament &&
+			currentUserTier >= tournament.minTier &&
+			currentUserTier <= tournament.maxTier,
+	);
+
 	let unsubRegistration: (() => void) | null = null;
 
 	$effect(() => {
@@ -266,7 +275,7 @@
 				{/if}
 
 				<div class="tournament-button-container">
-					{#if $currentUser && !tournament.state && now > tournament.registrationStartDate && now < tournament.registrationEndDate}
+					{#if $currentUser && tierEligible && !tournament.state && now > tournament.registrationStartDate && now < tournament.registrationEndDate}
 						<button
 							class="btn-common btn-play"
 							onclick={openMyRegistration}

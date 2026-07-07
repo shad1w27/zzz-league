@@ -152,3 +152,21 @@ export async function finishTournament(tournamentId: string, challongeTournament
 		challongeTournamentId
 	});
 }
+
+export async function adminSetMatchResult(tournamentId: string, matchId: string,
+	resultP1: string | null, resultP2: string | null, resultScreenshot: File | null = null,
+	techLossUid: string | null = null): Promise<void> {
+	let body: any = {
+		tournamentId,
+		matchId,
+		resultP1,
+		resultP2,
+		techLossUid,
+	};
+
+	if (resultScreenshot) {
+		body.resultScreenshot = await fileToBase64(resultScreenshot);
+	}
+
+	await httpsCallable(functions, 'adminSetMatchResult')(body);
+}

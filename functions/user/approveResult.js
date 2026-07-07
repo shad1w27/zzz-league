@@ -37,6 +37,11 @@ export const approveResult = onCall({
     throw new HttpsError("permission-denied", "Not a participant");
   }
 
+  if (match.state === "complete") {
+    throw new HttpsError("failed-precondition",
+        "Match result is already finalized");
+  }
+
   const p1Snap = await db.ref("players/" + match.p1).once("value");
   if (!p1Snap.exists()) {
     throw new HttpsError("not-found", `Player ${match.p1} not found`);

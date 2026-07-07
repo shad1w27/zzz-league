@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { approveResult } from "$lib/firebase";
-	import { currentUser } from "$lib/store";
+	import { adminSetMatchResult, approveResult } from "$lib/firebase";
+	import { currentUser, isAdmin } from "$lib/store";
 	import { bustCache, openImagePopup } from "$lib/uiCommon";
 
 	let {
@@ -51,6 +51,55 @@
 			alert(error);
 		} finally {
 			isApproving = false;
+		}
+	}
+
+	let adminInputScreenshot = $state<FileList | null>(null);
+	let isAdminSubmitting = false;
+
+	async function handleAdminSetResult() {
+		if (isAdminSubmitting) return;
+		if (!matchResultP1 || !matchResultP2) return;
+		if (!confirm("Записать результат от имени администратора?")) return;
+		try {
+			isAdminSubmitting = true;
+			await adminSetMatchResult(
+				tournament.id,
+				match.id,
+				matchResultP1,
+				matchResultP2,
+				adminInputScreenshot?.[0] ?? null,
+			);
+		} catch (error) {
+			alert(error);
+		} finally {
+			isAdminSubmitting = false;
+		}
+	}
+
+	async function handleAdminTechLoss(uid: string) {
+		if (isAdminSubmitting) return;
+		const loserName = getPlayerName(uid);
+		if (
+			!confirm(
+				`${loserName} получает техлуз, оппонент побеждает без ELO. Продолжить?`,
+			)
+		)
+			return;
+		try {
+			isAdminSubmitting = true;
+			await adminSetMatchResult(
+				tournament.id,
+				match.id,
+				null,
+				null,
+				null,
+				uid,
+			);
+		} catch (error) {
+			alert(error);
+		} finally {
+			isAdminSubmitting = false;
 		}
 	}
 </script>
@@ -128,6 +177,54 @@
 			>
 		{/if}
 
+		{#if $isAdmin}
+			<hr style="width: 100%" />
+			<span class="admin-label">Админ: изменить результат</span>
+			<div class="match-players">
+				<span class="match-player-left">{getPlayerName(match.p1)}</span>
+				<span> </span>
+				<span class="match-player-right">{getPlayerName(match.p2)}</span>
+				<input
+					class="time-input match-player-left"
+					type="time"
+					step="60"
+					lang="en-GB"
+					bind:value={matchResultP1}
+				/>
+				<span> </span>
+				<input
+					class="time-input match-player-right"
+					type="time"
+					step="60"
+					lang="en-GB"
+					bind:value={matchResultP2}
+				/>
+			</div>
+			<input
+				class="input-screenshot"
+				type="file"
+				accept="image/*"
+				bind:files={adminInputScreenshot}
+			/>
+			<button class="btn-common" onclick={handleAdminSetResult}>
+				Записать результат
+			</button>
+			<div class="admin-techloss-row">
+				<button
+					class="btn-common danger"
+					onclick={() => handleAdminTechLoss(match.p1)}
+				>
+					Техлуз {getPlayerName(match.p1)}
+				</button>
+				<button
+					class="btn-common danger"
+					onclick={() => handleAdminTechLoss(match.p2)}
+				>
+					Техлуз {getPlayerName(match.p2)}
+				</button>
+			</div>
+		{/if}
+
 		<button class="btn-common back-btn" onclick={() => (open = false)}
 			>← Закрыть</button
 		>
@@ -184,6 +281,22 @@
 
 	.back-btn {
 		margin-top: 0px;
+	}
+
+	.admin-label {
+		color: #888;
+		font-size: 0.8em;
+		text-transform: uppercase;
+	}
+
+	.admin-techloss-row {
+		display: flex;
+		gap: 8px;
+		width: 100%;
+	}
+
+	.admin-techloss-row .btn-common {
+		flex: 1;
 	}
 
 	.img-btn {

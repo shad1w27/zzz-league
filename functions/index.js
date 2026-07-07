@@ -10,6 +10,8 @@ export {refreshTournamentGames}
   from "./admin/tournament/refreshTournamentGames.js";
 export {finishTournament}
   from "./admin/tournament/finishTournament.js";
+export {adminSetMatchResult}
+  from "./admin/tournament/adminSetMatchResult.js";
 export {addPlayer} from "./admin/addPlayer.js";
 export {deletePlayer} from "./admin/deletePlayer.js";
 export {finalizeTournament} from "./admin/finalizeTournament.js";
