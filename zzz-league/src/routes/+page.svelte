@@ -1,19 +1,8 @@
 <script lang="ts">
 	import { onMount } from "svelte";
-	import {
-		clearHistory,
-		db,
-		deleteArchive,
-		deleteHistoryEntry,
-	} from "$lib/firebase";
-	import {
-		ref,
-		onValue,
-		query,
-		orderByChild,
-		startAt,
-	} from "firebase/database";
-	import type { Archives, MatchRecord, Tournament } from "$lib/types";
+	import { db, deleteArchive, deleteHistoryEntry } from "$lib/firebase";
+	import { ref, onValue } from "firebase/database";
+	import type { Archives, Tournament } from "$lib/types";
 	import Leaderboard from "$lib/components/Leaderboard.svelte";
 	import { resolve } from "$app/paths";
 	import SidePanel from "$lib/components/SidePanel.svelte";
@@ -126,59 +115,61 @@
 			<div class="timer-value">{timerText}</div>
 		</div>
 
-		<div>
-			<h2>Турниры:</h2>
-			{#if filteredTournaments && filteredTournaments.length > 0}
-				<div class="tournament-container">
-					{#each filteredTournaments as tournament}
-						{@const status =
-							tournament.state === "complete"
-								? "ended"
-								: tournament.state === "complete" ||
-									  tournament.state == "awaiting_review"
-									? "ongoing"
-									: now > tournament.registrationStartDate &&
-										  now < tournament.registrationEndDate
-										? "registration"
-										: "upcoming"}
-						<a
-							class="btn-common tournament status-{status}"
-							href={resolve(`/tournaments/${tournament.id}`)}
-						>
-							<p>{tournament.name}</p>
-							<p>
-								{new Date(
-									tournament.tournamentStartDate,
-								).toLocaleString("ru", dateDisplayOptions)}
-								- {new Date(
-									tournament.tournamentEndDate,
-								).toLocaleString("ru", dateDisplayOptions)}
-							</p>
-							{#if !tournament.state && now > tournament.registrationStartDate && now < tournament.registrationEndDate}
-								<p class="tournament-status">
-									Регистрация до {new Date(
-										tournament.registrationEndDate,
-									).toLocaleString("ru", dateDisplayOptions)}
-								</p>
-							{/if}
-							{#if !tournament.state && now > tournament.registrationEndDate && now < tournament.tournamentStartDate}
-								<p class="tournament-status">
-									Начало {new Date(
+		{#if false}
+			<div>
+				<h2>Турниры:</h2>
+				{#if filteredTournaments && filteredTournaments.length > 0}
+					<div class="tournament-container">
+						{#each filteredTournaments as tournament}
+							{@const status =
+								tournament.state === "complete"
+									? "ended"
+									: tournament.state === "complete" ||
+										  tournament.state == "awaiting_review"
+										? "ongoing"
+										: now > tournament.registrationStartDate &&
+											  now < tournament.registrationEndDate
+											? "registration"
+											: "upcoming"}
+							<a
+								class="btn-common tournament status-{status}"
+								href={resolve(`/tournaments/${tournament.id}`)}
+							>
+								<p>{tournament.name}</p>
+								<p>
+									{new Date(
 										tournament.tournamentStartDate,
 									).toLocaleString("ru", dateDisplayOptions)}
+									- {new Date(
+										tournament.tournamentEndDate,
+									).toLocaleString("ru", dateDisplayOptions)}
 								</p>
-							{/if}
-							{#if tournament.state === "started" || tournament.state == "awaiting_review"}
-								<p class="tournament-status">Турнир идёт</p>
-							{/if}
-							{#if tournament.state === "complete"}
-								<p class="tournament-status">Турнир окончен</p>
-							{/if}
-						</a>
-					{/each}
-				</div>
-			{/if}
-		</div>
+								{#if !tournament.state && now > tournament.registrationStartDate && now < tournament.registrationEndDate}
+									<p class="tournament-status">
+										Регистрация до {new Date(
+											tournament.registrationEndDate,
+										).toLocaleString("ru", dateDisplayOptions)}
+									</p>
+								{/if}
+								{#if !tournament.state && now > tournament.registrationEndDate && now < tournament.tournamentStartDate}
+									<p class="tournament-status">
+										Начало {new Date(
+											tournament.tournamentStartDate,
+										).toLocaleString("ru", dateDisplayOptions)}
+									</p>
+								{/if}
+								{#if tournament.state === "started" || tournament.state == "awaiting_review"}
+									<p class="tournament-status">Турнир идёт</p>
+								{/if}
+								{#if tournament.state === "complete"}
+									<p class="tournament-status">Турнир окончен</p>
+								{/if}
+							</a>
+						{/each}
+					</div>
+				{/if}
+			</div>
+		{/if}
 
 		<div class="search-container">
 			<h2>
