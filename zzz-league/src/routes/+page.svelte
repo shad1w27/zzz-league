@@ -115,61 +115,59 @@
 			<div class="timer-value">{timerText}</div>
 		</div>
 
-		{#if false}
-			<div>
-				<h2>Турниры:</h2>
-				{#if filteredTournaments && filteredTournaments.length > 0}
-					<div class="tournament-container">
-						{#each filteredTournaments as tournament}
-							{@const status =
-								tournament.state === "complete"
-									? "ended"
-									: tournament.state === "complete" ||
-										  tournament.state == "awaiting_review"
-										? "ongoing"
-										: now > tournament.registrationStartDate &&
-											  now < tournament.registrationEndDate
-											? "registration"
-											: "upcoming"}
-							<a
-								class="btn-common tournament status-{status}"
-								href={resolve(`/tournaments/${tournament.id}`)}
-							>
-								<p>{tournament.name}</p>
-								<p>
-									{new Date(
-										tournament.tournamentStartDate,
-									).toLocaleString("ru", dateDisplayOptions)}
-									- {new Date(
-										tournament.tournamentEndDate,
+		<div>
+			<h2>Турниры:</h2>
+			{#if filteredTournaments && filteredTournaments.length > 0}
+				<div class="tournament-container">
+					{#each filteredTournaments as tournament}
+						{@const status =
+							tournament.state === "complete"
+								? "ended"
+								: tournament.state === "complete" ||
+									  tournament.state == "awaiting_review"
+									? "ongoing"
+									: now > tournament.registrationStartDate &&
+										  now < tournament.registrationEndDate
+										? "registration"
+										: "upcoming"}
+						<a
+							class="btn-common tournament status-{status}"
+							href={resolve(`/tournaments/${tournament.id}`)}
+						>
+							<p>{tournament.name}</p>
+							<p>
+								{new Date(
+									tournament.tournamentStartDate,
+								).toLocaleString("ru", dateDisplayOptions)}
+								- {new Date(
+									tournament.tournamentEndDate,
+								).toLocaleString("ru", dateDisplayOptions)}
+							</p>
+							{#if !tournament.state && now > tournament.registrationStartDate && now < tournament.registrationEndDate}
+								<p class="tournament-status">
+									Регистрация до {new Date(
+										tournament.registrationEndDate,
 									).toLocaleString("ru", dateDisplayOptions)}
 								</p>
-								{#if !tournament.state && now > tournament.registrationStartDate && now < tournament.registrationEndDate}
-									<p class="tournament-status">
-										Регистрация до {new Date(
-											tournament.registrationEndDate,
-										).toLocaleString("ru", dateDisplayOptions)}
-									</p>
-								{/if}
-								{#if !tournament.state && now > tournament.registrationEndDate && now < tournament.tournamentStartDate}
-									<p class="tournament-status">
-										Начало {new Date(
-											tournament.tournamentStartDate,
-										).toLocaleString("ru", dateDisplayOptions)}
-									</p>
-								{/if}
-								{#if tournament.state === "started" || tournament.state == "awaiting_review"}
-									<p class="tournament-status">Турнир идёт</p>
-								{/if}
-								{#if tournament.state === "complete"}
-									<p class="tournament-status">Турнир окончен</p>
-								{/if}
-							</a>
-						{/each}
-					</div>
-				{/if}
-			</div>
-		{/if}
+							{/if}
+							{#if !tournament.state && now > tournament.registrationEndDate && now < tournament.tournamentStartDate}
+								<p class="tournament-status">
+									Начало {new Date(
+										tournament.tournamentStartDate,
+									).toLocaleString("ru", dateDisplayOptions)}
+								</p>
+							{/if}
+							{#if tournament.state === "started" || tournament.state == "awaiting_review"}
+								<p class="tournament-status">Турнир идёт</p>
+							{/if}
+							{#if tournament.state === "complete"}
+								<p class="tournament-status">Турнир окончен</p>
+							{/if}
+						</a>
+					{/each}
+				</div>
+			{/if}
+		</div>
 
 		<div class="search-container">
 			<h2>
