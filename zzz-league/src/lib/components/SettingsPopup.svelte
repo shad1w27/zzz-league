@@ -1,19 +1,15 @@
 <script lang="ts">
 	import { openDiscordOAuth } from "$lib/discord";
-	import {
-		auth,
-		linkDiscord,
-		unlinkDiscord,
-		updateProfile,
-	} from "$lib/firebase";
-	import type { Player } from "$lib/types";
+	import { auth, unlinkDiscord, updateProfile } from "$lib/firebase";
+	import { currentUser } from "$lib/store";
+	import { closeSettingsPopup } from "$lib/uiCommon";
 	import {
 		EmailAuthProvider,
 		reauthenticateWithCredential,
 		updatePassword,
 	} from "firebase/auth";
 
-	let { open = $bindable(false), user = $bindable<Player>() } = $props();
+	const user = $currentUser!;
 
 	let username = $state("");
 	let email = $state("");
@@ -37,7 +33,7 @@
 		newPassword = "";
 		confirmPass = "";
 		status = "";
-		open = false;
+		closeSettingsPopup();
 	}
 
 	async function handleLinkDiscord() {
@@ -102,59 +98,57 @@
 	}
 </script>
 
-{#if open}
-	<div class="popup">
-		<div class="card">
-			<h2>Настройки аккаунта</h2>
-			<input
-				class="input-disabled"
-				type="email"
-				bind:value={email}
-				placeholder="Email"
-				disabled
-			/>
-			<input type="text" bind:value={username} placeholder="Ник" />
-			<input
-				type="text"
-				class="input-disabled"
-				bind:value={discord}
-				placeholder="Discord"
-				disabled
-			/>
-			{#if user.discordId}
-				<button class="btn-common" onclick={() => handleUnlinkDiscord()}
-					>Отвязать Discord</button
-				>
-			{:else}
-				<button class="btn-common" onclick={() => handleLinkDiscord()}
-					>Привязать Discord</button
-				>
-			{/if}
-			<br />
-			<input
-				type="password"
-				bind:value={currentPassword}
-				placeholder="Текущий пароль"
-			/>
-			<input
-				type="password"
-				bind:value={newPassword}
-				placeholder="Новый пароль"
-			/>
-			<input
-				type="password"
-				bind:value={confirmPass}
-				placeholder="Подтвердите пароль"
-			/>
-			<br />
-			{#if status}<p class="status error">{status}</p>{/if}
-			<div class="btn-row">
-				<button
-					class="btn-common btn-play"
-					onclick={() => handleSaveSettings()}>Сохранить</button
-				>
-				<button class="btn-common" onclick={() => close()}>Закрыть</button>
-			</div>
+<div class="popup">
+	<div class="card">
+		<h2>Настройки аккаунта</h2>
+		<input
+			class="input-disabled"
+			type="email"
+			bind:value={email}
+			placeholder="Email"
+			disabled
+		/>
+		<input type="text" bind:value={username} placeholder="Ник" />
+		<input
+			type="text"
+			class="input-disabled"
+			bind:value={discord}
+			placeholder="Discord"
+			disabled
+		/>
+		{#if user.discordId}
+			<button class="btn-common" onclick={() => handleUnlinkDiscord()}
+				>Отвязать Discord</button
+			>
+		{:else}
+			<button class="btn-common" onclick={() => handleLinkDiscord()}
+				>Привязать Discord</button
+			>
+		{/if}
+		<br />
+		<input
+			type="password"
+			bind:value={currentPassword}
+			placeholder="Текущий пароль"
+		/>
+		<input
+			type="password"
+			bind:value={newPassword}
+			placeholder="Новый пароль"
+		/>
+		<input
+			type="password"
+			bind:value={confirmPass}
+			placeholder="Подтвердите пароль"
+		/>
+		<br />
+		{#if status}<p class="status error">{status}</p>{/if}
+		<div class="btn-row">
+			<button
+				class="btn-common btn-play"
+				onclick={() => handleSaveSettings()}>Сохранить</button
+			>
+			<button class="btn-common" onclick={() => close()}>Закрыть</button>
 		</div>
 	</div>
-{/if}
+</div>

@@ -1,25 +1,19 @@
 <script lang="ts">
 	import {
-		addHistoryEntry,
 		addPlayer,
-		clearHistory,
 		finalizeTournament,
+		registerMatch,
 		resetSeason,
 		setTimer,
-		updateMatchData,
 	} from "$lib/firebase";
+	import { players } from "$lib/store";
 	import type { Player } from "$lib/types";
-
-	interface Props {
-		players?: Player[];
-	}
-
-	let { players = [] }: Props = $props();
+	import { openCreateTournamentPopup } from "$lib/uiCommon";
 
 	let searchQueryP1 = $state("");
 	let selectedPlayer1: Player | null = $state(null);
 	let filteredPlayers1 = $derived(
-		players.filter((p: Player) =>
+		$players.filter((p: Player) =>
 			p.name.toLowerCase().includes(searchQueryP1.toLowerCase()),
 		),
 	);
@@ -27,7 +21,7 @@
 	let searchQueryP2 = $state("");
 	let selectedPlayer2: Player | null = $state(null);
 	let filteredPlayers2 = $derived(
-		players.filter((p: Player) =>
+		$players.filter((p: Player) =>
 			p.name.toLowerCase().includes(searchQueryP2.toLowerCase()),
 		),
 	);
@@ -49,7 +43,7 @@
 	let showingForecast = $state(false);
 	let forecast = $state<Forecast | null>(null);
 
-	let winningPlayer = $state("0");
+	let winningPlayer = $state("1");
 
 	async function handleSetTimer() {
 		const hours = prompt("Через сколько часов закончить?");
@@ -73,10 +67,10 @@
 		}
 	}
 
-	function calculateEloChange(pA: Player, pB: Player, outcome: number) {
-		const k = pA.isMidConfirmed || false ? 20 : 50;
+	function calculateEloChange(p1: Player, p2: Player, outcome: number) {
+		const k = p1.isMidConfirmed || false ? 20 : 50;
 		const expected =
-			1 / (1 + Math.pow(10, ((pB.elo || 1000) - (pA.elo || 1000)) / 400));
+			1 / (1 + Math.pow(10, ((p2.elo || 1000) - (p1.elo || 1000)) / 400));
 		let change = Math.round(k * (outcome - expected));
 		if (outcome === 1 && change <= 0) change = 1;
 		if (outcome === 0 && change >= 0) change = -1;
@@ -108,7 +102,40 @@
 		showingForecast = true;
 	}
 
-	async function playMatch() {
+	let registeringMatch = false;
+	async function handleRegisterMatch() {
+		if (registeringMatch) return;
+		if (
+			!selectedPlayer1 ||
+			!selectedPlayer2 ||
+			selectedPlayer1.name === selectedPlayer2.name
+		) {
+			alert("Выберите разных игроков");
+			return;
+		}
+
+		registeringMatch = true;
+		try {
+			const winner = parseInt(winningPlayer);
+
+			await registerMatch(
+				selectedPlayer1.uid,
+				selectedPlayer2.uid,
+				winner === 1,
+				-1,
+			);
+
+			showingForecast = false;
+		} catch (error) {
+			alert(error);
+		} finally {
+			registeringMatch = false;
+		}
+	}
+
+	let registeringTechLoss = false;
+	async function handleRegisterTechLoss() {
+		if (registeringTechLoss) return;
 		if (
 			!selectedPlayer1 ||
 			!selectedPlayer2 ||
@@ -119,32 +146,32 @@
 		}
 
 		const winner = parseInt(winningPlayer);
-
-		const change1 = calculateEloChange(
-			selectedPlayer1,
-			selectedPlayer2,
-			winner,
-		);
-		const change2 = calculateEloChange(
-			selectedPlayer2,
-			selectedPlayer1,
-			winner === 1 ? 0 : 1,
-		);
-
-		handleUpdateMatchData(selectedPlayer1, change1, winner === 1);
-		handleUpdateMatchData(selectedPlayer2, change2, winner === 0);
-
-		try {
-			await addHistoryEntry(
-				selectedPlayer1.name,
-				selectedPlayer2.name,
-				change1,
-			);
-		} catch (error) {
-			alert(error);
+		const loserName =
+			winner === 1 ? selectedPlayer2.name : selectedPlayer1.name;
+		if (
+			!confirm(
+				`${loserName} получает техлуз и теряет ELO, оппонент не получает ELO. Продолжить?`,
+			)
+		) {
+			return;
 		}
 
-		showingForecast = false;
+		registeringTechLoss = true;
+		try {
+			await registerMatch(
+				selectedPlayer1.uid,
+				selectedPlayer2.uid,
+				winner === 1,
+				-1,
+				true,
+			);
+
+			showingForecast = false;
+		} catch (error) {
+			alert(error);
+		} finally {
+			registeringTechLoss = false;
+		}
 	}
 
 	async function handleResetSeason() {
@@ -152,18 +179,6 @@
 		if (!name) return;
 		try {
 			await resetSeason(name);
-		} catch (error) {
-			alert(error);
-		}
-	}
-
-	function handleUpdateMatchData(
-		player: Player,
-		change: number,
-		isWin: boolean,
-	) {
-		try {
-			updateMatchData(player.uid, change, isWin);
 		} catch (error) {
 			alert(error);
 		}
@@ -178,14 +193,18 @@
 			alert(error);
 		}
 	}
+
+	function createTournament() {
+		openCreateTournamentPopup();
+	}
 </script>
 
 <div class="card admin-card">
 	<h2>Control Panel</h2>
-	<button class="btn-common" onclick={() => handleSetTimer()}
+	<button class="btn-common" onclick={handleSetTimer}
 		>⏳ Установить таймер</button
 	>
-	<button class="btn-common" onclick={() => handleAddPlayer()}
+	<button class="btn-common" onclick={handleAddPlayer}
 		>Добавить игрока
 	</button>
 
@@ -215,7 +234,7 @@
 		{/each}
 	</select>
 
-	<button class="btn-common btn-forecast" onclick={() => showForecast()}
+	<button class="btn-common btn-forecast" onclick={showForecast}
 		>📈 Прогноз ELO</button
 	>
 	{#if showingForecast}
@@ -239,15 +258,67 @@
 		<option value="1">Победа Игрока 1</option>
 		<option value="0">Победа Игрока 2</option>
 	</select>
-	<button type="button" class="btn-common btn-play" onclick={() => playMatch()}
-		>⚔️ Записать матч</button
-	>
 	<button
 		type="button"
-		class="btn-common"
-		onclick={() => handleFinalizeTournament()}>✅ Применить итоги</button
+		class="btn-common btn-play"
+		onclick={handleRegisterMatch}>⚔️ Записать матч</button
 	>
-	<button type="button" class="btn-common" onclick={() => handleResetSeason()}
+	<button type="button" class="btn-common" onclick={handleRegisterTechLoss}
+		>🚫 Техлуз</button
+	>
+	<hr style="width: 100%;" />
+	<button type="button" class="btn-common" onclick={handleFinalizeTournament}
+		>✅ Применить итоги</button
+	>
+	<button type="button" class="btn-common" onclick={handleResetSeason}
 		>📦 Сброс сезона</button
 	>
+	<hr style="width: 100%;" />
+	<button type="button" class="btn-common" onclick={createTournament}
+		>Создать турнир</button
+	>
 </div>
+
+<style>
+	.admin-card {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	.forecast-box {
+		background: #000;
+		padding: 15px;
+		border-radius: 8px;
+		border: 1px dashed #444;
+		margin: 15px 0;
+		line-height: 1.6;
+	}
+
+	.btn-forecast {
+		background: var(--gold);
+		color: #000;
+		border: none;
+		padding: 14px;
+		border-radius: 8px;
+		font-weight: bold;
+		cursor: pointer;
+		width: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 8px;
+		transition: 0.2s;
+		box-shadow: 0 4px 15px rgba(255, 204, 0, 0.2);
+	}
+
+	.btn-forecast:hover {
+		background: #ffdb4d;
+	}
+
+	.select-filter {
+		padding: 6px 10px;
+		font-size: 0.8em;
+		border-color: #444;
+	}
+</style>

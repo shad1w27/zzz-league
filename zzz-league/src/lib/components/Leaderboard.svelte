@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { deletePlayer, updatePlayerElo } from "$lib/firebase";
-	import { profilePlayer } from "$lib/store";
+	import { isAdmin } from "$lib/store";
 	import type { Player } from "$lib/types";
-	import PlayerProfile from "./PlayerProfile.svelte";
+	import { openProfilePopup } from "$lib/uiCommon";
 
 	interface Props {
 		players?: Player[];
@@ -14,7 +14,6 @@
 	let {
 		players = [],
 		hideOptions = false,
-		isAdmin = false,
 		searchQuery = "",
 	}: Props = $props();
 
@@ -31,10 +30,6 @@
 				p.name.toLowerCase().includes(searchQuery.toLowerCase()),
 		),
 	);
-
-	function openProfile(player: Player) {
-		$profilePlayer = player;
-	}
 
 	async function handleUpdatePlayerElo(uid: string, currentElo: number) {
 		const val = prompt("Новое ELO:", String(currentElo));
@@ -80,7 +75,7 @@
 			<th>Игрок</th>
 			<th>ELO</th>
 			<th>LVL</th>
-			{#if isAdmin && !hideOptions}<th>Опции</th>{/if}
+			{#if $isAdmin && !hideOptions}<th>Опции</th>{/if}
 		</tr>
 	</thead>
 	<tbody>
@@ -93,7 +88,8 @@
 				<td>{index + 1}</td>
 				<td><span class="tier-badge {tier.cls}">{tier.name}</span></td>
 				<td class="player-name">
-					<button onclick={() => openProfile(player)}>{player.name}</button
+					<button onclick={() => openProfilePopup(player)}
+						>{player.name}</button
 					>
 				</td>
 				<td>
@@ -107,7 +103,7 @@
 					{/if}
 				</td>
 				<td><span class="lvl-badge">L{getLvl(elo)}</span></td>
-				{#if isAdmin && !hideOptions}
+				{#if $isAdmin && !hideOptions}
 					<td class="options-cell">
 						<button
 							class="icon-btn"

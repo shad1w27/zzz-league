@@ -1,73 +1,38 @@
 <script lang="ts">
 	import { onMount } from "svelte";
-	import { auth, clearHistory, db, deleteArchive, deleteHistoryEntry } from "$lib/firebase";
-	import { onAuthStateChanged, signOut } from "firebase/auth";
+	import { db, deleteArchive, deleteHistoryEntry } from "$lib/firebase";
 	import { ref, onValue } from "firebase/database";
-	import type { Archives, MatchRecord, Player } from "$lib/types";
+	import type { Archives, Tournament } from "$lib/types";
 	import Leaderboard from "$lib/components/Leaderboard.svelte";
-	import LoginPopup from "$lib/components/LoginPopup.svelte";
-	import RegisterPopup from "$lib/components/RegisterPopup.svelte";
-	import AdminPanel from "$lib/components/AdminPanel.svelte";
-	import PlayerProfile from "$lib/components/PlayerProfile.svelte";
-	import { profilePlayer } from "$lib/store";
-	import SettingsPopup from "$lib/components/SettingsPopup.svelte";
+	import { resolve } from "$app/paths";
+	import SidePanel from "$lib/components/SidePanel.svelte";
+	import { isAdmin, players } from "$lib/store";
+	import { dateDisplayOptions } from "$lib/uiCommon";
 
-	let currentUser = $state<Player | null>(null);
-	let isAdmin = $state(false);
-	let players = $state<Player[]>([]);
+	let allTournaments = $state<Tournament[]>([]);
+	let filteredTournaments = $derived(
+		allTournaments.filter((t) => {
+			const expiration = 3 * 24 * 60 * 60 * 1000;
+			return Date.now() - t.tournamentEndDate < expiration;
+		}),
+	);
+
 	let archives = $state<Archives>({});
-	let matchHistory = $state<MatchRecord[]>([]);
-	let timerText = $state("0д 00:00:00");
+
 	let searchQuery = $state("");
+
 	let isViewingArchive = $state(false);
 	let archiveKey = $state("");
-
-	let loginOpen = $state(false);
-	let registerOpen = $state(false);
-	let settingsOpen = $state(false);
-
-	let profileOpen = $derived($profilePlayer !== null);
-
+	let timerText = $state("0д 00:00:00");
 	let timerInterval: ReturnType<typeof setInterval> | null = null;
 
 	let displayPlayers = $derived(
-		isViewingArchive ? (archives[archiveKey] ?? []) : players,
+		isViewingArchive ? (archives[archiveKey] ?? []) : $players,
 	);
 
+	let now = $state(Date.now());
+
 	onMount(() => {
-		let unsubPlayer: (() => void) | null = null;
-
-		const unsubAuth = onAuthStateChanged(auth, async (user) => {
-			if (user) {
-				unsubPlayer = onValue(ref(db, "players/" + user.uid), (snap) => {
-					if (snap.exists()) {
-						const player = snap.val();
-						currentUser = {
-							uid: player.uid,
-							name: player.name,
-							discord: player.discord,
-							discordId: player.discordId,
-							elo: player.elo,
-							tournamentPoints: player.tournamentPoints,
-							isMidConfirmed: player.isMidConfirmed,
-							isHighConfirmed: player.isHighConfirmed,
-						};
-						isAdmin = !!player.isAdmin;
-					}
-				});
-			} else {
-				currentUser = null;
-				isAdmin = false;
-			}
-		});
-
-		const unsubPlayers = onValue(ref(db, "players"), (snap) => {
-			const val = snap.val();
-			players = val
-				? (Object.values(val).filter((p: any) => p?.name) as Player[])
-				: [];
-		});
-
 		const unsubTimer = onValue(ref(db, "timer"), (snap) => {
 			const endTime = snap.val();
 			if (!endTime) return;
@@ -93,25 +58,23 @@
 			archives = snap.val() ?? {};
 		});
 
-		const unsubHistory = onValue(ref(db, "history"), (snap) => {
+		const threeDaysAgo = Date.now() - 3 * 24 * 60 * 60 * 1000;
+
+		const unsubTournaments = onValue(ref(db, "tournaments"), (snap) => {
 			const val = snap.val();
-			if (!val) {
-				matchHistory = [];
-				return;
-			}
-			matchHistory = Object.entries(val)
-				.map(([key, m]: [string, any]) => ({ key, ...m }))
-				.reverse();
+			allTournaments = val ? (Object.values(val) as Tournament[]) : [];
 		});
 
+		const interval = setInterval(() => {
+			now = Date.now();
+		}, 1000);
+
 		return () => {
-			unsubAuth();
-			unsubPlayer?.();
-			unsubPlayers();
 			unsubTimer();
 			unsubArchives();
-			unsubHistory();
+			unsubTournaments();
 			if (timerInterval) clearInterval(timerInterval);
+			clearInterval(interval);
 		};
 	});
 
@@ -125,7 +88,7 @@
 		archiveKey = "";
 	}
 
-	async function handleDeleteArcive(key: string) {
+	async function handleDeleteArchive(key: string) {
 		try {
 			await deleteArchive(key);
 		} catch (error) {
@@ -135,132 +98,78 @@
 
 	async function handleDeleteHistoryEntry(key: string) {
 		if (!confirm("Удалить запись?")) return;
-		
+
 		try {
 			await deleteHistoryEntry(key);
 		} catch (error) {
 			alert(error);
 		}
 	}
-
-	async function handleClearHistory() {
-		if (!confirm("УАДЛИТЬ ИСТОРИЮ?")) return;
-
-		try {
-			await clearHistory();
-		} catch (error) {
-			alert(error);
-		}
-	}
-
-	function openProfile(player: Player) {
-		$profilePlayer = player;
-	}
-
-	function openSettings() {
-		settingsOpen = true;
-	}
 </script>
 
-<div class="layout" class:no-admin={!isAdmin}>
-	<div class="side-panel">
-		{#if !currentUser}
-			<div class="card">
-				<div class="btn-row">
-					<button
-						class="btn-common btn-play"
-						onclick={() => (loginOpen = true)}>Вход</button
-					>
-					<button class="btn-common" onclick={() => (registerOpen = true)}
-						>Регистрация</button
-					>
-				</div>
-			</div>
-		{:else}
-			<div class="card">
-				<button class="user-label" onclick={() => openProfile(currentUser!)}
-					>{currentUser.name}</button
-				>
-				<button class="btn-common" onclick={() => openSettings()}
-					>Настройки</button
-				>
-				<button class="btn-common" onclick={() => signOut(auth)}
-					>Выход</button
-				>
-			</div>
-		{/if}
-
-		{#if !isAdmin}
-			<div class="card">
-				<h2>🏆 Кодекс Лиги</h2>
-				<ul class="rules-list">
-					<li>
-						<b>Ранги:</b> <span class="tier-badge t-newbie">NEWBIE</span>
-						<b>1000+</b>, <span class="tier-badge t-mid">MID</span>
-						<b>1200+</b>, <span class="tier-badge t-high">HIGH</span>
-						<b>1400+</b>.
-					</li>
-					<li>
-						<b>Квалификация:</b> Для входа в
-						<span class="tier-badge t-mid">MID TIER</span>
-						нужно
-						<b>1200</b> ELO. Для
-						<span class="tier-badge t-high">HIGH TIER</span>
-						достаточно достичь отметки <b>1400</b> ELO.
-					</li>
-					<li>
-						<b>Уровни (LVL):</b> Каждые <b>40</b> единиц ELO повышают ваш
-						уровень. Максимальный уровень —
-						<b>L10</b> (начинается с <b>1360</b> ELO).
-					</li>
-					<li>
-						<b>Турнирный бонус:</b> За победу на <b>любом</b> турнире
-						игрок получает фиксированную награду
-						<b>+40 ELO</b>.
-					</li>
-					<li>
-						<b>Финальный турнир:</b> На последней неделе сезона проводится
-						масштабный турнир для
-						<b>ТОП-16</b> игроков рейтинга.
-					</li>
-					<li>
-						<b>Сброс лиги:</b> По завершении таймера прогресс уходит в архив.
-						ELO сбрасывается до стартового значения текущего подтвержденного
-						тира.
-					</li>
-					<li>
-						<b>Сезоны:</b> Новый сезон — это возможность занять топы с чистого
-						листа.
-					</li>
-					<li>
-						<b>Вылет:</b> При падении ELO на <b>50</b> пунктов ниже границы
-						тира, вы переходите в предыдущую лигу.
-					</li>
-					<li>
-						<b>ELO-очки:</b> Начисляются сразу, но фиксируются в основном балансе
-						игрока только после завершения турнирного дня.
-					</li>
-					<li>
-						<b>Техлузы:</b> Если игрок получает техлуз по
-						<b>уважительной причине</b>, <b>ELO</b> с него не снимается, а
-						его оппонент не получает <b>ELO за победу.</b>
-						Если техлуз происходит <b>во время игры</b>, игрок, получивший
-						техлуз, получает <b>двойную потерю ELO</b>
-					</li>
-				</ul>
-			</div>
-		{/if}
-
-		{#if isAdmin}
-			<AdminPanel {players} />
-		{/if}
-	</div>
-
+<div class="layout">
+	<SidePanel></SidePanel>
 	<div class="card main-content">
 		<div class="main-timer">
 			<div class="timer-label">ДО КОНЦА ЛИГИ:</div>
 			<div class="timer-value">{timerText}</div>
 		</div>
+
+		{#if false}
+			<div>
+				<h2>Турниры:</h2>
+				{#if filteredTournaments && filteredTournaments.length > 0}
+					<div class="tournament-container">
+						{#each filteredTournaments as tournament}
+							{@const status =
+								tournament.state === "complete"
+									? "ended"
+									: tournament.state === "complete" ||
+										  tournament.state == "awaiting_review"
+										? "ongoing"
+										: now > tournament.registrationStartDate &&
+											  now < tournament.registrationEndDate
+											? "registration"
+											: "upcoming"}
+							<a
+								class="btn-common tournament status-{status}"
+								href={resolve(`/tournaments/${tournament.id}`)}
+							>
+								<p>{tournament.name}</p>
+								<p>
+									{new Date(
+										tournament.tournamentStartDate,
+									).toLocaleString("ru", dateDisplayOptions)}
+									- {new Date(
+										tournament.tournamentEndDate,
+									).toLocaleString("ru", dateDisplayOptions)}
+								</p>
+								{#if !tournament.state && now > tournament.registrationStartDate && now < tournament.registrationEndDate}
+									<p class="tournament-status">
+										Регистрация до {new Date(
+											tournament.registrationEndDate,
+										).toLocaleString("ru", dateDisplayOptions)}
+									</p>
+								{/if}
+								{#if !tournament.state && now > tournament.registrationEndDate && now < tournament.tournamentStartDate}
+									<p class="tournament-status">
+										Начало {new Date(
+											tournament.tournamentStartDate,
+										).toLocaleString("ru", dateDisplayOptions)}
+									</p>
+								{/if}
+								{#if tournament.state === "started" || tournament.state == "awaiting_review"}
+									<p class="tournament-status">Турнир идёт</p>
+								{/if}
+								{#if tournament.state === "complete"}
+									<p class="tournament-status">Турнир окончен</p>
+								{/if}
+							</a>
+						{/each}
+					</div>
+				{/if}
+			</div>
+		{/if}
 
 		<div class="search-container">
 			<h2>
@@ -270,7 +179,7 @@
 			</h2>
 			<div style="display:flex; align-items:center; gap:10px;">
 				{#if isViewingArchive}
-					<button class="btn-common btn-back" onclick={loadLive}
+					<button class="btn-common back-btn" onclick={loadLive}
 						>← ТЕКУЩАЯ ЛИГА</button
 					>
 				{/if}
@@ -285,7 +194,6 @@
 		<div class="table-wrapper">
 			<Leaderboard
 				players={displayPlayers}
-				{isAdmin}
 				{searchQuery}
 				hideOptions={isViewingArchive}
 			/>
@@ -304,7 +212,7 @@
 							{#if isAdmin}
 								<button
 									class="btn-common archive-del"
-									onclick={() => handleDeleteArcive(key)}>✕</button
+									onclick={() => handleDeleteArchive(key)}>✕</button
 								>
 							{/if}
 						</div>
@@ -312,41 +220,150 @@
 				</div>
 			</div>
 		{/if}
-
-		{#if matchHistory.length > 0}
-			<div class="history-header">
-				<h3 class="section-label">ИСТОРИЯ МАТЧЕЙ</h3>
-				{#if isAdmin}
-					<button
-						class="btn-common btn-clear-history"
-						onclick={() => handleClearHistory()}>ОЧИСТИТЬ</button
-					>
-				{/if}
-			</div>
-			<div class="log-items">
-				{#each matchHistory as m}
-					<div class="log-item">
-						<b>{m.p1}</b> vs <b>{m.p2}</b>:
-						<span class={m.change >= 0 ? "gain" : "loss"}>
-							{m.change >= 0 ? "+" : ""}{m.change} ELO
-						</span>
-						{#if isAdmin}
-							<button
-								class="icon-btn danger"
-								onclick={() => handleDeleteHistoryEntry(m.key)}
-								>✕</button
-							>
-						{/if}
-					</div>
-				{/each}
-			</div>
-		{/if}
 	</div>
 </div>
 
-<PlayerProfile bind:open={profileOpen} player={$profilePlayer} />
+<style>
+	.tournament-container {
+		display: flex;
+		flex-direction: row;
+		gap: 8px;
+		flex-wrap: wrap;
+	}
 
-<SettingsPopup bind:open={settingsOpen} user={currentUser} />
+	.tournament {
+		font-size: 14px;
+		flex-direction: column;
+		width: fit-content;
+		padding: 8px;
+		align-content: center;
+		text-align: center;
+	}
 
-<LoginPopup bind:open={loginOpen} />
-<RegisterPopup bind:open={registerOpen} />
+	.tournament-status {
+		font-weight: bold;
+	}
+
+	.tournament.status-upcoming {
+		background-color: var(--blue);
+	}
+
+	.tournament.status-registration {
+		background-color: var(--green);
+	}
+
+	.tournament.status-ongoing {
+		background-color: var(--gold);
+		color: black;
+	}
+
+	.tournament.status-ended {
+		background-color: #444;
+		opacity: 0.6;
+	}
+
+	.history-header {
+		border-top: 1px solid #333;
+		padding-top: 25px;
+		margin-top: 30px;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding-bottom: 10px;
+		border-bottom: 1px solid #333;
+	}
+
+	.main-timer {
+		background: #222;
+		border: 1px solid #444;
+		border-radius: 8px;
+		padding: 15px;
+		margin-bottom: 20px;
+		text-align: center;
+	}
+
+	.timer-label {
+		color: #888;
+	}
+
+	.timer-value {
+		color: var(--gold);
+		font-size: 18px;
+		font-weight: bold;
+		text-shadow: 0 0 10px rgba(255, 204, 0, 0.3);
+		margin-top: 4px;
+	}
+
+	.archive-section {
+		margin-top: 25px;
+		border-top: 1px solid #333;
+		padding-top: 20px;
+		display: flex;
+		gap: 10px;
+		flex-wrap: wrap;
+	}
+
+	.archive-buttons {
+		display: flex;
+		flex-direction: row;
+		gap: 8px;
+	}
+
+	.archive-item {
+		display: flex;
+		align-items: center;
+		background: #222;
+		box-sizing: border-box;
+		border-radius: 6px;
+		outline: 1px solid #333;
+		gap: 10px;
+		overflow: hidden;
+	}
+
+	.section-label {
+		width: 100%;
+		color: #555;
+	}
+
+	.archive-btn {
+		background: transparent;
+		border: 1px solid #333;
+		color: #fff;
+		width: 44px;
+		height: 44px;
+		transition: 0.2s;
+		margin: 0;
+		border-radius: 6px;
+	}
+
+	.archive-btn:hover {
+		background: #333;
+	}
+
+	.archive-del {
+		background: #441111;
+		color: #ff4444;
+		border: 1px solid #333;
+		width: 44px;
+		height: 44px;
+		margin: 0;
+		border-radius: 6px;
+	}
+
+	.archive-del:hover {
+		background: #662222;
+	}
+
+	.log-items {
+		display: flex;
+		flex-direction: column;
+		max-height: 250px;
+		overflow-y: auto;
+	}
+
+	.log-item {
+		padding: 8px 24px;
+		border-bottom: 1px solid #222;
+		color: #c0c0c0;
+	}
+</style>

@@ -1,0 +1,99 @@
+{
+	"data": [
+		 {
+			  "id": "457715750",
+			  "type": "match",
+			  "attributes": {
+					"state": "open",
+					"round": 1,
+					"identifier": "A",
+					"scores": "0 - 0",
+					"suggested_play_order": 1,
+					"location": null,
+					"score_in_sets": [],
+					"points_by_participant": [
+						 {
+							  "participant_id": 294464131,
+							  "scores": []
+						 },
+						 {
+							  "participant_id": 294464132,
+							  "scores": []
+						 }
+					],
+					"timestamps": {
+						 "started_at": "2026-05-22T21:15:51.896Z",
+						 "created_at": "2026-05-22T21:15:51.851Z",
+						 "updated_at": "2026-05-22T21:15:51.896Z",
+						 "underway_at": null
+					},
+					"winner_id": null,
+					"tie": false,
+					"scheduled_time": null
+			  },
+			  "relationships": {
+					"attachments": {
+						 "data": [],
+						 "links": {
+							  "related": "https://api.challonge.com/v2.1/tournaments/17976762/matches/457715750/attachments.json",
+							  "meta": {
+									"count": 0
+							  }
+						 }
+					}
+			  }
+		 },
+		 {
+			  "id": "457715751",
+			  "type": "match",
+			  "attributes": {
+					"state": "pending",
+					"round": 2,
+					"identifier": "B",
+					"scores": "0 - 0",
+					"suggested_play_order": 2,
+					"location": null,
+					"score_in_sets": [],
+					"points_by_participant": [
+						 {
+							  "participant_id": 294464130,
+							  "scores": []
+						 },
+						 {
+							  "participant_id": null,
+							  "scores": []
+						 }
+					],
+					"timestamps": {
+						 "started_at": null,
+						 "created_at": "2026-05-22T21:15:51.855Z",
+						 "updated_at": "2026-05-22T21:15:51.855Z",
+						 "underway_at": null
+					},
+					"winner_id": null,
+					"tie": false,
+					"scheduled_time": null
+			  },
+			  "relationships": {
+					"attachments": {
+						 "data": [],
+						 "links": {
+							  "related": "https://api.challonge.com/v2.1/tournaments/17976762/matches/457715751/attachments.json",
+							  "meta": {
+									"count": 0
+							  }
+						 }
+					}
+			  }
+		 }
+	],
+	"included": [],
+	"meta": {
+		 "count": 2
+	},
+	"links": {
+		 "self": "https://api.challonge.com/v2.1/tournaments/17976762/matches.json",
+		 "next": "https://api.challonge.com/v2.1/tournaments/17976762/matches.json?page=2&per_page=20",
+		 "prev": "https://api.challonge.com/v2.1/tournaments/17976762/matches.json?page=0&per_page=20"
+	}
+}

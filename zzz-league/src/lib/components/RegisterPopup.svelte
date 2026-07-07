@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { registerUser } from "$lib/firebase";
-
-	let { open = $bindable(false) } = $props();
+	import { closeRegistrationPopup } from "$lib/uiCommon";
 
 	let username = $state("");
 	let email = $state("");
@@ -19,7 +18,7 @@
 			status = "Username от 3 до 32 символов";
 			return;
 		}
-		
+
 		if (password !== confirmPass) {
 			status = "Пароли не совпадают";
 			return;
@@ -29,37 +28,41 @@
 
 		try {
 			await registerUser(username, email, password);
-			open = false;
+			close();
 		} catch (e: any) {
 			status = e.message;
 		} finally {
 			isLoading = false;
 		}
 	}
+
+	function close() {
+		status = "";
+		username = "";
+		password = "";
+		confirmPass = "";
+		closeRegistrationPopup();
+	}
 </script>
 
-{#if open}
-	<div class="popup">
-		<div class="card">
-			<h2>Регистрация</h2>
-			<input type="text" bind:value={username} placeholder="Ник" />
-			<input type="email" bind:value={email} placeholder="Email" />
-			<input type="password" bind:value={password} placeholder="Пароль" />
-			<input
-				type="password"
-				bind:value={confirmPass}
-				placeholder="Подтвердите пароль"
-				onkeydown={(e) => e.key === "Enter" && handleRegister()}
-			/>
-			{#if status}<p class="status error">{status}</p>{/if}
-			<div class="btn-row">
-				<button class="btn-common btn-play" onclick={handleRegister}
-					>Зарегистрироваться</button
-				>
-				<button class="btn-common" onclick={() => (open = false)}
-					>Закрыть</button
-				>
-			</div>
+<div class="popup">
+	<div class="card">
+		<h2>Регистрация</h2>
+		<input type="text" bind:value={username} placeholder="Ник" />
+		<input type="email" bind:value={email} placeholder="Email" />
+		<input type="password" bind:value={password} placeholder="Пароль" />
+		<input
+			type="password"
+			bind:value={confirmPass}
+			placeholder="Подтвердите пароль"
+			onkeydown={(e) => e.key === "Enter" && handleRegister()}
+		/>
+		{#if status}<p class="status error">{status}</p>{/if}
+		<div class="btn-row">
+			<button class="btn-common btn-play" onclick={handleRegister}
+				>Зарегистрироваться</button
+			>
+			<button class="btn-common" onclick={close}>Закрыть</button>
 		</div>
 	</div>
-{/if}
+</div>
