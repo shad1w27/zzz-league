@@ -188,6 +188,7 @@ export const adminSetMatchResult = onCall({
     p2ApprovedResult: true,
     state: "complete",
     winnerId: p1Win ? match.p1 : match.p2,
+    techLossUid: techLoss ? techLossUid : null,
     historyKey,
   });
 

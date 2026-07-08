@@ -126,7 +126,8 @@
 		return registeredPlayers.find((p) => p.player.uid === uid)?.player.name;
 	}
 
-	function getPlayerClass(player: string, winnerId: string) {
+	function getPlayerClass(player: string, winnerId: string, techLossUid?: string | null) {
+		if (player === techLossUid) return "match-techloss";
 		if (!winnerId) return "";
 
 		return player === winnerId ? "match-winner" : "match-loser";
@@ -215,7 +216,12 @@
 			<h2>{tournament.name}</h2>
 			<div class="description-container">
 				<p>{tournament.description}</p>
-				<p>Рамки коста {tournament.minCost}-{tournament.maxCost}</p>
+				<p>
+					Рамки коста
+					<span class="value-highlight"
+						>{tournament.minCost}-{tournament.maxCost}</span
+					>
+				</p>
 				{#snippet tierBadge(tier: number)}
 					{#if tier === 0}
 						<span class="tier-badge t-newbie">NEWBIE</span>
@@ -225,12 +231,19 @@
 						<span class="tier-badge t-high">HIGH TIER</span>
 					{/if}
 				{/snippet}
-				<p>Турнир по системе {tournament.type}</p>
+				<p>
+					Турнир по системе <span class="value-highlight"
+						>{tournament.type}</span
+					>
+				</p>
 				{#if tournament.overrideEloChange == -1}
 					<p>Стандартная система начислений эло</p>
 				{:else}
 					<p>
-						За победу поражение начисляется фиксированное эло {tournament.overrideEloChange}
+						За победу поражение начисляется фиксированное эло
+						<span class="value-highlight"
+							>{tournament.overrideEloChange}</span
+						>
 					</p>
 				{/if}
 				<p>
@@ -240,25 +253,35 @@
 				</p>
 				<p>
 					Регистрация на турнир с
-					{new Date(tournament.registrationStartDate).toLocaleString(
-						"ru",
-						dateDisplayOptions,
-					)}
-					по {new Date(tournament.registrationEndDate).toLocaleString(
-						"ru",
-						dateDisplayOptions,
-					)}
+					<span class="value-highlight"
+						>{new Date(tournament.registrationStartDate).toLocaleString(
+							"ru",
+							dateDisplayOptions,
+						)}</span
+					>
+					по
+					<span class="value-highlight"
+						>{new Date(tournament.registrationEndDate).toLocaleString(
+							"ru",
+							dateDisplayOptions,
+						)}</span
+					>
 				</p>
 				<p>
 					Турнир проходит с
-					{new Date(tournament.tournamentStartDate).toLocaleString(
-						"ru",
-						dateDisplayOptions,
-					)}
-					по {new Date(tournament.tournamentEndDate).toLocaleString(
-						"ru",
-						dateDisplayOptions,
-					)}
+					<span class="value-highlight"
+						>{new Date(tournament.tournamentStartDate).toLocaleString(
+							"ru",
+							dateDisplayOptions,
+						)}</span
+					>
+					по
+					<span class="value-highlight"
+						>{new Date(tournament.tournamentEndDate).toLocaleString(
+							"ru",
+							dateDisplayOptions,
+						)}</span
+					>
 				</p>
 
 				{#if now > tournament.registrationEndDate && now < tournament.tournamentStartDate}
@@ -330,28 +353,37 @@
 				<div class="match-list">
 					{#each filteredMatches as match}
 						<div class="match-item">
-							<div class="match-players">
-								<!-- svelte-ignore a11y_click_events_have_key_events -->
-								<!-- svelte-ignore a11y_no_static_element_interactions -->
-								<span
-									class="match-player-name match-player-left {getPlayerClass(
-										match.p1,
-										match.winnerId,
-									)}"
-									onclick={() => openRegistration(match.p1)}
-									>{getPlayerName(match.p1)}</span
-								>
-								<span class="match-vs">vs</span>
-								<!-- svelte-ignore a11y_click_events_have_key_events -->
-								<!-- svelte-ignore a11y_no_static_element_interactions -->
-								<span
-									class="match-player-name match-player-right {getPlayerClass(
-										match.p2,
-										match.winnerId,
-									)}"
-									onclick={() => openRegistration(match.p2)}
-									>{getPlayerName(match.p2)}</span
-								>
+							<div class="match-item-content">
+								<div class="match-players">
+									<!-- svelte-ignore a11y_click_events_have_key_events -->
+									<!-- svelte-ignore a11y_no_static_element_interactions -->
+									<span
+										class="match-player-name match-player-left {getPlayerClass(
+											match.p1,
+											match.winnerId,
+											match.techLossUid,
+										)}"
+										onclick={() => openRegistration(match.p1)}
+										>{getPlayerName(match.p1)}</span
+									>
+									<span class="match-vs">vs</span>
+									<!-- svelte-ignore a11y_click_events_have_key_events -->
+									<!-- svelte-ignore a11y_no_static_element_interactions -->
+									<span
+										class="match-player-name match-player-right {getPlayerClass(
+											match.p2,
+											match.winnerId,
+											match.techLossUid,
+										)}"
+										onclick={() => openRegistration(match.p2)}
+										>{getPlayerName(match.p2)}</span
+									>
+								</div>
+								{#if match.techLossUid}
+									<span class="techloss-label"
+										>{getPlayerName(match.techLossUid)} тех. луз</span
+									>
+								{/if}
 							</div>
 
 							<button
@@ -452,6 +484,21 @@
 		color: var(--loss);
 	}
 
+	.match-techloss {
+		color: #888;
+	}
+
+	.match-item-content {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+	}
+
+	.techloss-label {
+		color: #888;
+		text-align: center;
+	}
+
 	.btn-match {
 		width: 72px;
 		height: 28px;
@@ -483,6 +530,12 @@
 
 	.description-container p {
 		margin: 0;
+		line-height: 21px;
+	}
+
+	.value-highlight {
+		color: var(--gold);
+		font-weight: bold;
 	}
 
 	.winner-label {

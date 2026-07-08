@@ -20,6 +20,7 @@ export const createTournament = onCall(defaultOptions, async (request) => {
     maxTier,
     overrideEloChange,
     type,
+    consolationMatchesTargetRank,
   } = request.data;
 
   if (!name || !registrationStartDate || !registrationEndDate ||
@@ -47,6 +48,7 @@ export const createTournament = onCall(defaultOptions, async (request) => {
     maxTier,
     overrideEloChange,
     type,
+    consolationMatchesTargetRank: consolationMatchesTargetRank ?? null,
   });
 
   return {success: true, id};

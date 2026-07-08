@@ -38,7 +38,6 @@
 			<a class="btn-common" href={resolve(`/history/${$currentUser.uid}`)}>
 				Моя история
 			</a>
-			<a class="btn-common" href={resolve("/history")}> Вся история </a>
 			<button class="btn-common" onclick={() => signOut(auth)}>Выход</button>
 		</div>
 	{/if}
@@ -112,7 +111,6 @@
 	.rules-list {
 		padding-left: 18px;
 		margin: 0;
-		font-size: 0.85em;
 		line-height: 1.6;
 		color: #bbb;
 	}

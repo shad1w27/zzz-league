@@ -10,7 +10,6 @@
 		isAdmin,
 		players,
 		viewingImage,
-		createTournamentOpen,
 	} from "$lib/store";
 
 	import LoginPopup from "$lib/components/LoginPopup.svelte";
@@ -23,7 +22,6 @@
 	import { auth, db } from "$lib/firebase";
 	import type { Player } from "$lib/types";
 	import ImageViwerPopup from "$lib/components/ImageViwerPopup.svelte";
-	import CreateTournamentPopup from "$lib/components/CreateTournamentPopup.svelte";
 	import SiteHeader from "$lib/components/Header.svelte";
 
 	let { children } = $props();
@@ -87,8 +85,5 @@
 {#if $loginOpen}<LoginPopup />{/if}
 {#if $registerOpen}<RegisterPopup />{/if}
 {#if $settingsOpen}<SettingsPopup />{/if}
-{#if $createTournamentOpen}
-	<CreateTournamentPopup />
-{/if}
 {#if profileOpen}<PlayerProfilePopup player={$profileUser} />{/if}
 {#if imageViewerOpen}<ImageViwerPopup src={$viewingImage} />{/if}

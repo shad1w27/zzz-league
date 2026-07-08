@@ -19,15 +19,22 @@
 	let matchResultP2 = $state(match.resultP2 ?? "00:00");
 
 	$effect(() => {
+		match;
 		matchResultP1 = match.resultP1 ?? "00:00";
 		matchResultP2 = match.resultP2 ?? "00:00";
+		inputScreenshot = null;
 	});
 
 	function getPlayerName(uid: string) {
 		return registeredPlayers.find((p) => p.player.uid === uid)?.player.name;
 	}
 
-	function getPlayerClass(player: string, winnerId: string) {
+	function getPlayerClass(
+		player: string,
+		winnerId: string,
+		techLossUid?: string | null,
+	) {
+		if (player === techLossUid) return "match-techloss";
 		if (!winnerId) return "";
 
 		return player === winnerId ? "match-winner" : "match-loser";
@@ -37,8 +44,12 @@
 	async function handleApproveResult() {
 		if (isApproving) return;
 		if (!matchResultP1 || !matchResultP2) return;
+		const resultScreenshot = inputScreenshot?.[0];
+		if (!resultScreenshot && !match.resultScreenshot) {
+			alert("Необходимо загрузить скриншот результата");
+			return;
+		}
 		try {
-			const resultScreenshot = inputScreenshot?.[0];
 			isApproving = true;
 			await approveResult(
 				tournament.id,
@@ -111,6 +122,7 @@
 				class="match-player-name match-player-left {getPlayerClass(
 					match.p1,
 					match.winnerId,
+					match.techLossUid,
 				)}">{getPlayerName(match.p1)}</span
 			>
 			<span class="match-vs">vs</span>
@@ -118,6 +130,7 @@
 				class="match-player-name match-player-right {getPlayerClass(
 					match.p2,
 					match.winnerId,
+					match.techLossUid,
 				)}">{getPlayerName(match.p2)}</span
 			>
 			{#if match.resultP1 && match.resultP2}
@@ -126,6 +139,11 @@
 				<span class="match-player-right">{match.resultP2}</span>
 			{/if}
 		</div>
+		{#if match.techLossUid}
+			<span class="techloss-label"
+				>{getPlayerName(match.techLossUid)} тех. луз</span
+			>
+		{/if}
 		{#if match.state !== "complete" && myGame}
 			<hr style="width: 100%" />
 			<div class="match-players">
@@ -177,7 +195,7 @@
 			>
 		{/if}
 
-		{#if $isAdmin}
+		{#if $isAdmin && tournament.state !== "complete"}
 			<hr style="width: 100%" />
 			<span class="admin-label">Админ: изменить результат</span>
 			<div class="match-players">
@@ -279,13 +297,21 @@
 		color: var(--loss);
 	}
 
+	.match-techloss {
+		color: #888;
+	}
+
+	.techloss-label {
+		color: #888;
+		text-align: center;
+	}
+
 	.back-btn {
 		margin-top: 0px;
 	}
 
 	.admin-label {
 		color: #888;
-		font-size: 0.8em;
 		text-transform: uppercase;
 	}
 

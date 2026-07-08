@@ -15,6 +15,5 @@ export const playersByUid = derived(players, ($players) => {
 export const loginOpen = writable(false);
 export const registerOpen = writable(false);
 export const settingsOpen = writable(false);
-export const createTournamentOpen = writable(false);
 export const profileUser = writable<Player | null>(null);
 export const viewingImage = writable<string>("");
