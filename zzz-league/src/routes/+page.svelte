@@ -114,15 +114,17 @@
 			<div class="timer-value">{timerText}</div>
 		</div>
 
-		{#if filteredTournaments && filteredTournaments.length > 0}
-			<div>
-				<h2>Турниры:</h2>
-				<div class="tournament-container">
-					{#each filteredTournaments as tournament}
-						<TournamentCard {tournament} {now} />
-					{/each}
+		{#if false}
+			{#if filteredTournaments && filteredTournaments.length > 0}
+				<div>
+					<h2>Турниры:</h2>
+					<div class="tournament-container">
+						{#each filteredTournaments as tournament}
+							<TournamentCard {tournament} {now} />
+						{/each}
+					</div>
 				</div>
-			</div>
+			{/if}
 		{/if}
 
 		<div class="search-container">
