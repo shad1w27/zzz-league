@@ -28,13 +28,10 @@
 
 	let entries = $state<HistoryEntry[]>([]);
 
-	const legacyCutoffTimestamp = $derived(
-		entries
-			.filter(
-				(e) =>
-					e.tournamentMatch === "legacy" || e.tournamentMatch === "adjustment",
-			)
-			.reduce((max, e) => Math.max(max, e.timestamp), 0),
+	const LEGACY_CUTOFF_TIMESTAMP = 1783017803637;
+
+	const legacyDividerEntryId = $derived(
+		entries.find((e) => e.timestamp <= LEGACY_CUTOFF_TIMESTAMP)?.id,
 	);
 
 	function getPlayerName(uid: string) {
@@ -88,7 +85,7 @@
 
 <div class="match-list">
 	{#each entries as entry (entry.id)}
-		{#if entry.timestamp === legacyCutoffTimestamp}
+		{#if entry.id === legacyDividerEntryId}
 			<div class="legacy-divider">Легаси история (возможны ошибки)</div>
 		{/if}
 
