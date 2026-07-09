@@ -123,6 +123,20 @@ export async function startChallongeTournament(tournamentId: string): Promise<vo
 	});
 }
 
+export async function splitTournament(tournamentId: string, divisionSizes: number[]): Promise<string[]> {
+	const fn = httpsCallable(functions, 'splitTournament');
+	const result = await fn({ tournamentId, divisionSizes }) as any;
+	return result.data.divisionTournamentIds;
+}
+
+export async function adminAddTournamentRegistration(tournamentId: string, uid: string): Promise<void> {
+	await httpsCallable(functions, 'adminAddTournamentRegistration')({ tournamentId, uid });
+}
+
+export async function deleteTournament(tournamentId: string): Promise<void> {
+	await httpsCallable(functions, 'deleteTournament')({ tournamentId });
+}
+
 export async function approveResult(tournamentId: string, matchId: string,
 	resultP1: number, resultP2: number, resultScreenshot: File | null = null): Promise<void> {
 	let body: any = {

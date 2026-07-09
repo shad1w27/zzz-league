@@ -51,7 +51,13 @@
 	<div class="card">
 		{#if resettingPassword}
 			<h2>Сброс пароля</h2>
-			<input type="text" bind:value={email} placeholder="Email" />
+			<label for="login-reset-email">Email</label>
+			<input
+				id="login-reset-email"
+				type="text"
+				bind:value={email}
+				placeholder="Email"
+			/>
 
 			{#if status}<p class="status error">{status}</p>{/if}
 			<div class="btn-row">
@@ -65,8 +71,16 @@
 			</div>
 		{:else}
 			<h2>Вход</h2>
-			<input type="text" bind:value={email} placeholder="Email" />
+			<label for="login-email">Email</label>
 			<input
+				id="login-email"
+				type="text"
+				bind:value={email}
+				placeholder="Email"
+			/>
+			<label for="login-password">Пароль</label>
+			<input
+				id="login-password"
 				type="password"
 				bind:value={password}
 				placeholder="Пароль"

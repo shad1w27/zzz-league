@@ -101,15 +101,25 @@
 <div class="popup">
 	<div class="card">
 		<h2>Настройки аккаунта</h2>
+		<label for="settings-email">Email</label>
 		<input
+			id="settings-email"
 			class="input-disabled"
 			type="email"
 			bind:value={email}
 			placeholder="Email"
 			disabled
 		/>
-		<input type="text" bind:value={username} placeholder="Ник" />
+		<label for="settings-username">Ник</label>
 		<input
+			id="settings-username"
+			type="text"
+			bind:value={username}
+			placeholder="Ник"
+		/>
+		<label for="settings-discord">Discord</label>
+		<input
+			id="settings-discord"
 			type="text"
 			class="input-disabled"
 			bind:value={discord}
@@ -126,17 +136,23 @@
 			>
 		{/if}
 		<br />
+		<label for="settings-current-password">Текущий пароль</label>
 		<input
+			id="settings-current-password"
 			type="password"
 			bind:value={currentPassword}
 			placeholder="Текущий пароль"
 		/>
+		<label for="settings-new-password">Новый пароль</label>
 		<input
+			id="settings-new-password"
 			type="password"
 			bind:value={newPassword}
 			placeholder="Новый пароль"
 		/>
+		<label for="settings-confirm-password">Подтвердите пароль</label>
 		<input
+			id="settings-confirm-password"
 			type="password"
 			bind:value={confirmPass}
 			placeholder="Подтвердите пароль"

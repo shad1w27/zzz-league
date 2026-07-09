@@ -58,7 +58,7 @@ p {
 
 .card {
 	background: var(--bg-card);
-	padding: 25px;
+	padding: 20px;
 	border-radius: 16px;
 	border: 1px solid #333;
 	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
@@ -225,7 +225,8 @@ td {
 }
 
 input,
-select {
+select,
+textarea {
 	background: #252525;
 	border: 1px solid #333;
 	color: #fff;
@@ -239,7 +240,8 @@ button,
 a,
 p,
 select,
-input {
+input,
+textarea {
 	font-family: inherit;
 	color: inherit;
 }

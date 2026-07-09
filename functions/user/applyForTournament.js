@@ -40,6 +40,11 @@ export const applyForTournament = onCall(defaultOptions, async (request) => {
         "Tournament has already been started");
   }
 
+  if (Date.now() > tournament.registrationEndDate) {
+    throw new HttpsError("permission-denied",
+        "Registration is closed");
+  }
+
   let playerTier = 0;
   if (player.isHighConfirmed) {
     playerTier = 1000;

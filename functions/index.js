@@ -6,6 +6,12 @@ export {approveRegistration} from "./admin/tournament/approveRegistration.js";
 export {createTournament} from "./admin/tournament/createTournament.js";
 export {startChallongeTournament}
   from "./admin/tournament/startChallongeTournament.js";
+export {splitTournament}
+  from "./admin/tournament/splitTournament.js";
+export {adminAddTournamentRegistration}
+  from "./admin/tournament/adminAddTournamentRegistration.js";
+export {deleteTournament}
+  from "./admin/tournament/deleteTournament.js";
 export {refreshTournamentGames}
   from "./admin/tournament/refreshTournamentGames.js";
 export {finishTournament}

@@ -55,6 +55,8 @@ export interface Tournament {
 	type: string,
 	overrideEloChange: number,
 	consolationMatchesTargetRank: number | null,
+	divisionGroupId?: string,
+	divisionIndex?: number,
 }
 
 export interface TournamentRegistration {

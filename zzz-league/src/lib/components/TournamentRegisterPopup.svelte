@@ -8,6 +8,7 @@
 
 	let {
 		open = $bindable(false),
+		player = $bindable(),
 		tournament = $bindable(),
 		reg = $bindable(),
 		editable = $bindable(false),
@@ -69,28 +70,37 @@
 	<div class="popup">
 		<div class="card">
 			<h2>Регистрация</h2>
+			<p>Discord: {player?.discord ?? "-"}</p>
+			<label for="reg-zzz-uid">Игровой UID</label>
 			<input
+				id="reg-zzz-uid"
 				type="text"
 				class={editable ? "" : "input-disabled"}
 				bind:value={zzzUid}
 				placeholder="Игровой UID"
 				disabled={!editable}
 			/>
+			<label for="reg-darte-nickname">Ник на Darte</label>
 			<input
+				id="reg-darte-nickname"
 				class={editable ? "" : "input-disabled"}
 				type="text"
 				bind:value={darteNickname}
 				placeholder="Ник на Darte"
 				disabled={!editable}
 			/>
+			<label for="reg-darte-account">Название аккаунта на Darte</label>
 			<input
+				id="reg-darte-account"
 				class={editable ? "" : "input-disabled"}
 				type="text"
 				bind:value={darteAccount}
 				placeholder="Название аккаунта на Darte"
 				disabled={!editable}
 			/>
+			<label for="reg-darte-preset">Название пресета</label>
 			<input
+				id="reg-darte-preset"
 				class={editable ? "" : "input-disabled"}
 				type="text"
 				bind:value={dartePreset}
@@ -121,14 +131,22 @@
 						onclick={(e) => e.stopPropagation()}
 					/>
 					<span
-						>{`Я осознаю, что турнир проходит с ${new Date(
-							tournament.tournamentStartDate,
-						).toLocaleString("ru", dateDisplayOptions)} по ${new Date(
-							tournament.tournamentEndDate,
-						).toLocaleString(
-							"ru",
-							dateDisplayOptions,
-						)} по моему локальному времени.`}</span
+						>Конечно я полностью прочитал регламент, и осознаю, что турнир
+						проходит с <span class="value-highlight"
+							>{new Date(tournament.tournamentStartDate).toLocaleString(
+								"ru",
+								dateDisplayOptions,
+							)}</span
+						>
+						по
+						<span class="value-highlight"
+							>{new Date(tournament.tournamentEndDate).toLocaleString(
+								"ru",
+								dateDisplayOptions,
+							)}</span
+						>
+						по моему локальному времени. Также я осознаю что НЕ регнул Лайтера,
+						которого нет у меня на аккаунте.</span
 					>
 				</div>
 			{/if}
@@ -178,8 +196,12 @@
 		cursor: pointer;
 		accent-color: var(--gold);
 	}
-
+	
 	.awareness span {
 		color: #aaa;
+	}
+	
+	.value-highlight {
+		color: var(--gold) !important;
 	}
 </style>

@@ -113,7 +113,8 @@
 			</div>
 			<div class="form-row">
 				<label for="f-description">Описание</label>
-				<input id="f-description" type="text" bind:value={description} />
+				<textarea id="f-description" rows="4" bind:value={description}
+				></textarea>
 			</div>
 			<div class="form-row">
 				<label for="f-type">Тип турнира</label>
@@ -262,8 +263,13 @@
 	}
 
 	.form-row input,
-	.form-row select {
+	.form-row select,
+	.form-row textarea {
 		width: 240px;
+	}
+
+	.form-row textarea {
+		resize: vertical;
 	}
 
 	.form-row input[type="checkbox"] {
