@@ -30,7 +30,8 @@ export interface TournamentMatch {
 	resultP1: number,
 	resultP2: number,
 	p1ApprovedResult: boolean,
-	p2ApprovedResult: boolean
+	p2ApprovedResult: boolean,
+	techLossUid: string | null
 }
 
 export interface Tournament {
@@ -53,6 +54,7 @@ export interface Tournament {
 	winnerId: any,
 	type: string,
 	overrideEloChange: number,
+	consolationMatchesTargetRank: number | null,
 }
 
 export interface TournamentRegistration {

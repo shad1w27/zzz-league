@@ -1,4 +1,4 @@
-import { createTournamentOpen, loginOpen, profileUser, registerOpen, settingsOpen, viewingImage } from "./store";
+import { loginOpen, profileUser, registerOpen, settingsOpen, viewingImage } from "./store";
 import type { Player } from "./types";
 
 export const dateDisplayOptions: Intl.DateTimeFormatOptions = {
@@ -40,14 +40,6 @@ export function openSettingsPopup() {
 
 export function closeSettingsPopup() {
 	settingsOpen.set(false);
-}
-
-export function openCreateTournamentPopup() {
-	createTournamentOpen.set(true);
-}
-
-export function closeCreateTournamentPopup() {
-	createTournamentOpen.set(false);
 }
 
 export function openImagePopup(src: string) {

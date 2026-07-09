@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolve } from "$app/paths";
+	import { isAdmin } from "$lib/store";
 	import type { Player } from "$lib/types";
 	import { closeProfilePopup } from "$lib/uiCommon";
 
@@ -36,6 +37,9 @@
 				<span class="tier-badge {tier.cls}">{tier.name}</span>
 			</div>
 			<div id="discordTag">Discord: {player.discord ?? "-"}</div>
+			{#if $isAdmin}
+				<div id="discordTag">UID: {player.uid}</div>
+			{/if}
 
 			<div class="stat-grid">
 				<div class="stat-item elo-item">
@@ -114,15 +118,14 @@
 	}
 
 	.stat-label {
-		font-size: 0.8em;
 		color: #888;
 		text-transform: uppercase;
 		margin-bottom: 5px;
 	}
 
 	.stat-value {
-		font-size: 1.5em;
 		font-weight: bold;
+		font-size: 18px;
 	}
 
 	.winrate {
@@ -135,9 +138,5 @@
 
 	.gold {
 		color: var(--gold);
-	}
-
-	.points {
-		font-size: 0.6em;
 	}
 </style>

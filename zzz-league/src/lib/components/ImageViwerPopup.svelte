@@ -81,7 +81,6 @@
 		background: none;
 		border: none;
 		color: #fff;
-		font-size: 1.2em;
 		cursor: pointer;
 		width: auto;
 		padding: 5px;

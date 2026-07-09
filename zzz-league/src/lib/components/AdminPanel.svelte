@@ -8,7 +8,7 @@
 	} from "$lib/firebase";
 	import { players } from "$lib/store";
 	import type { Player } from "$lib/types";
-	import { openCreateTournamentPopup } from "$lib/uiCommon";
+	import { resolve } from "$app/paths";
 
 	let searchQueryP1 = $state("");
 	let selectedPlayer1: Player | null = $state(null);
@@ -193,10 +193,6 @@
 			alert(error);
 		}
 	}
-
-	function createTournament() {
-		openCreateTournamentPopup();
-	}
 </script>
 
 <div class="card admin-card">
@@ -212,7 +208,7 @@
 
 	<input
 		type="text"
-		class="select-filter"
+		class="search-input"
 		placeholder="Поиск Игрока 1..."
 		bind:value={searchQueryP1}
 	/>
@@ -224,7 +220,7 @@
 
 	<input
 		type="text"
-		class="select-filter"
+		class="search-input"
 		placeholder="Поиск Игрока 2..."
 		bind:value={searchQueryP2}
 	/>
@@ -274,8 +270,7 @@
 		>📦 Сброс сезона</button
 	>
 	<hr style="width: 100%;" />
-	<button type="button" class="btn-common" onclick={createTournament}
-		>Создать турнир</button
+	<a class="btn-common" href={resolve("/tournaments/create")}>Создать турнир</a
 	>
 </div>
 
@@ -314,11 +309,5 @@
 
 	.btn-forecast:hover {
 		background: #ffdb4d;
-	}
-
-	.select-filter {
-		padding: 6px 10px;
-		font-size: 0.8em;
-		border-color: #444;
 	}
 </style>

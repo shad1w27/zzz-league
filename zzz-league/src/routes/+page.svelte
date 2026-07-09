@@ -4,10 +4,9 @@
 	import { ref, onValue } from "firebase/database";
 	import type { Archives, Tournament } from "$lib/types";
 	import Leaderboard from "$lib/components/Leaderboard.svelte";
-	import { resolve } from "$app/paths";
 	import SidePanel from "$lib/components/SidePanel.svelte";
+	import TournamentCard from "$lib/components/TournamentCard.svelte";
 	import { isAdmin, players } from "$lib/store";
-	import { dateDisplayOptions } from "$lib/uiCommon";
 
 	let allTournaments = $state<Tournament[]>([]);
 	let filteredTournaments = $derived(
@@ -23,7 +22,7 @@
 
 	let isViewingArchive = $state(false);
 	let archiveKey = $state("");
-	let timerText = $state("0д 00:00:00");
+	let timerText = $state("0D 00:00:00");
 	let timerInterval: ReturnType<typeof setInterval> | null = null;
 
 	let displayPlayers = $derived(
@@ -48,7 +47,7 @@
 				const h = Math.floor((diff % 86400000) / 3600000);
 				const m = Math.floor((diff % 3600000) / 60000);
 				const s = Math.floor((diff % 60000) / 1000);
-				timerText = `${d}д ${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+				timerText = `${d}d ${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 			};
 			timerInterval = setInterval(tick, 1000);
 			tick();
@@ -115,59 +114,14 @@
 			<div class="timer-value">{timerText}</div>
 		</div>
 
-		{#if false}
+		{#if filteredTournaments && filteredTournaments.length > 0}
 			<div>
 				<h2>Турниры:</h2>
-				{#if filteredTournaments && filteredTournaments.length > 0}
-					<div class="tournament-container">
-						{#each filteredTournaments as tournament}
-							{@const status =
-								tournament.state === "complete"
-									? "ended"
-									: tournament.state === "complete" ||
-										  tournament.state == "awaiting_review"
-										? "ongoing"
-										: now > tournament.registrationStartDate &&
-											  now < tournament.registrationEndDate
-											? "registration"
-											: "upcoming"}
-							<a
-								class="btn-common tournament status-{status}"
-								href={resolve(`/tournaments/${tournament.id}`)}
-							>
-								<p>{tournament.name}</p>
-								<p>
-									{new Date(
-										tournament.tournamentStartDate,
-									).toLocaleString("ru", dateDisplayOptions)}
-									- {new Date(
-										tournament.tournamentEndDate,
-									).toLocaleString("ru", dateDisplayOptions)}
-								</p>
-								{#if !tournament.state && now > tournament.registrationStartDate && now < tournament.registrationEndDate}
-									<p class="tournament-status">
-										Регистрация до {new Date(
-											tournament.registrationEndDate,
-										).toLocaleString("ru", dateDisplayOptions)}
-									</p>
-								{/if}
-								{#if !tournament.state && now > tournament.registrationEndDate && now < tournament.tournamentStartDate}
-									<p class="tournament-status">
-										Начало {new Date(
-											tournament.tournamentStartDate,
-										).toLocaleString("ru", dateDisplayOptions)}
-									</p>
-								{/if}
-								{#if tournament.state === "started" || tournament.state == "awaiting_review"}
-									<p class="tournament-status">Турнир идёт</p>
-								{/if}
-								{#if tournament.state === "complete"}
-									<p class="tournament-status">Турнир окончен</p>
-								{/if}
-							</a>
-						{/each}
-					</div>
-				{/if}
+				<div class="tournament-container">
+					{#each filteredTournaments as tournament}
+						<TournamentCard {tournament} {now} />
+					{/each}
+				</div>
 			</div>
 		{/if}
 
@@ -227,50 +181,8 @@
 	.tournament-container {
 		display: flex;
 		flex-direction: row;
-		gap: 8px;
+		gap: 12px;
 		flex-wrap: wrap;
-	}
-
-	.tournament {
-		font-size: 14px;
-		flex-direction: column;
-		width: fit-content;
-		padding: 8px;
-		align-content: center;
-		text-align: center;
-	}
-
-	.tournament-status {
-		font-weight: bold;
-	}
-
-	.tournament.status-upcoming {
-		background-color: var(--blue);
-	}
-
-	.tournament.status-registration {
-		background-color: var(--green);
-	}
-
-	.tournament.status-ongoing {
-		background-color: var(--gold);
-		color: black;
-	}
-
-	.tournament.status-ended {
-		background-color: #444;
-		opacity: 0.6;
-	}
-
-	.history-header {
-		border-top: 1px solid #333;
-		padding-top: 25px;
-		margin-top: 30px;
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		padding-bottom: 10px;
-		border-bottom: 1px solid #333;
 	}
 
 	.main-timer {
@@ -279,6 +191,7 @@
 		border-radius: 8px;
 		padding: 15px;
 		margin-bottom: 20px;
+		font-size: 16px;
 		text-align: center;
 	}
 
@@ -352,18 +265,5 @@
 
 	.archive-del:hover {
 		background: #662222;
-	}
-
-	.log-items {
-		display: flex;
-		flex-direction: column;
-		max-height: 250px;
-		overflow-y: auto;
-	}
-
-	.log-item {
-		padding: 8px 24px;
-		border-bottom: 1px solid #222;
-		color: #c0c0c0;
 	}
 </style>

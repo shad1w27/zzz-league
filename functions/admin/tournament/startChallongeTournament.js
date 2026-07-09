@@ -43,6 +43,8 @@ export const startChallongeTournament = onCall({
     "Authorization": CHALLONGE_API_KEY.value(),
   };
 
+  const tournamentType = tournament.type ?? "single elimination";
+
   const createRes = await fetch("https://api.challonge.com/v2.1/tournaments.json", {
     method: "POST",
     headers,
@@ -51,10 +53,17 @@ export const startChallongeTournament = onCall({
         type: "tournament",
         attributes: {
           name: tournament.name,
-          tournament_type: tournament.type ?? "single elimination",
+          tournament_type: tournamentType,
           description: tournament.description ?? "",
           private: false,
           starts_at: new Date(tournament.tournamentStartDate).toISOString(),
+          ...(tournamentType === "double elimination" &&
+            {grand_finals_modifier: "single match"}),
+          ...(tournament.consolationMatchesTargetRank != null &&
+            {match_options: {
+              consolation_matches_target_rank:
+                tournament.consolationMatchesTargetRank,
+            }}),
         },
       },
     }),
@@ -68,17 +77,19 @@ export const startChallongeTournament = onCall({
 
   const challongeTournamentId = createData.data.id;
 
-  // TODO: Fix
-  const participants = await Promise.all(
-      approved.map(async (r) => {
-        const snap = await db.ref("players/" + r.uid).once("value");
-        const player = snap.val();
-        return {
-          name: player.name,
-          misc: player.uid,
-        };
-      }),
-  );
+  const playersSnap = await db.ref("players").once("value");
+  const playersObj = playersSnap.val() ?? {};
+
+  const participants = approved.map((r) => {
+    const player = playersObj[r.uid];
+    if (!player) {
+      throw new HttpsError("not-found", `Player ${r.uid} not found`);
+    }
+    return {
+      name: player.name,
+      misc: player.uid,
+    };
+  });
 
   const addRes = await fetch(`https://api.challonge.com/v2.1/tournaments/${challongeTournamentId}/participants/bulk_add.json`, {
     method: "POST",

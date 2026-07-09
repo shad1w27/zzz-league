@@ -21,7 +21,11 @@
 </script>
 
 <header class="site-header card">
-	<a class="site-logo" href={resolve("/")}>ZZZ League</a>
+	<a class="site-logo" href={resolve("/")}>NESC</a>
+	<nav class="nav-links">
+		<a class="nav-link" href={resolve("/tournaments")}>Архив турниров</a>
+		<a class="nav-link" href={resolve("/history")}>История матчей</a>
+	</nav>
 	<div class="social-links">
 		{#each links as link (link.label)}
 			<a
@@ -55,6 +59,22 @@
 		font-weight: bold;
 		color: var(--gold);
 		text-shadow: 0 0 15px rgba(255, 204, 0, 0.3);
+	}
+
+	.nav-links {
+		display: flex;
+		align-items: center;
+		gap: 24px;
+	}
+
+	.nav-link {
+		font-size: 16px;
+		font-weight: 600;
+		transition: 0.2s;
+	}
+
+	.nav-link:hover {
+		color: var(--gold);
 	}
 
 	.social-links {
