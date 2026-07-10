@@ -1,7 +1,12 @@
 <script lang="ts">
 	import { adminSetMatchResult, approveResult } from "$lib/firebase";
 	import { currentUser, isAdmin } from "$lib/store";
-	import { bustCache, openImagePopup } from "$lib/uiCommon";
+	import {
+		bustCache,
+		isImageTooLarge,
+		MAX_IMAGE_SIZE_MB,
+		openImagePopup,
+	} from "$lib/uiCommon";
 
 	let {
 		open = $bindable(false),
@@ -49,6 +54,10 @@
 			alert("Необходимо загрузить скриншот результата");
 			return;
 		}
+		if (resultScreenshot && isImageTooLarge(resultScreenshot)) {
+			alert(`Файл слишком большой, максимум ${MAX_IMAGE_SIZE_MB}МБ`);
+			return;
+		}
 		try {
 			isApproving = true;
 			await approveResult(
@@ -71,6 +80,11 @@
 	async function handleAdminSetResult() {
 		if (isAdminSubmitting) return;
 		if (!matchResultP1 || !matchResultP2) return;
+		const adminScreenshot = adminInputScreenshot?.[0] ?? null;
+		if (adminScreenshot && isImageTooLarge(adminScreenshot)) {
+			alert(`Файл слишком большой, максимум ${MAX_IMAGE_SIZE_MB}МБ`);
+			return;
+		}
 		if (!confirm("Записать результат от имени администратора?")) return;
 		try {
 			isAdminSubmitting = true;
@@ -79,7 +93,7 @@
 				match.id,
 				matchResultP1,
 				matchResultP2,
-				adminInputScreenshot?.[0] ?? null,
+				adminScreenshot,
 			);
 		} catch (error) {
 			alert(error);
@@ -190,8 +204,7 @@
 				bind:files={inputScreenshot}
 			/>
 			<button class="btn-common" onclick={handleApproveResult}
-				>Подтвердить результат {match.p1ApprovedResult ? "✅" : "❌"}
-				{match.p2ApprovedResult ? "✅" : "❌"}</button
+				>Подтвердить результат {match.p1ApprovedResult ? "✅" : "❌"} {match.p2ApprovedResult ? "✅" : "❌"}</button
 			>
 		{/if}
 
@@ -261,49 +274,8 @@
 		width: 240px;
 	}
 
-	.match-players {
-		display: grid;
-		grid-template-columns: 1fr auto 1fr;
-		align-items: center;
-		gap: 16px;
-	}
-
-	.match-player-name {
-		font-weight: bold;
-		color: white;
-		font-size: 22px;
-	}
-
 	.match-player-left {
-		text-align: right;
 		align-items: flex-end;
-	}
-
-	.match-player-right {
-		text-align: left;
-	}
-
-	.match-vs {
-		text-align: center;
-		color: #666;
-		white-space: nowrap;
-	}
-
-	.match-winner {
-		color: var(--green);
-	}
-
-	.match-loser {
-		color: var(--loss);
-	}
-
-	.match-techloss {
-		color: #888;
-	}
-
-	.techloss-label {
-		color: #888;
-		text-align: center;
 	}
 
 	.back-btn {
@@ -324,19 +296,8 @@
 	.admin-techloss-row .btn-common {
 		flex: 1;
 	}
-
-	.img-btn {
-		background: none;
-		border: none;
-		padding: 0;
-		width: 100%;
-	}
-
-	.img-btn img {
-		width: 100%;
-		height: auto;
-		object-fit: contain;
-		border-radius: 8px;
-		cursor: pointer;
+	
+	.card .btn-common {
+		padding: 14px;
 	}
 </style>

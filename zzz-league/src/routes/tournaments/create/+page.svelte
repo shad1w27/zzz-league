@@ -107,22 +107,23 @@
 		{#if $isAdmin}
 			<h2>Создать турнир</h2>
 
-			<div class="form-row">
+			<div class="form-row-wide">
 				<label for="f-name">Название</label>
 				<input id="f-name" type="text" bind:value={name} />
 			</div>
-			<div class="form-row">
+			<div class="form-row-wide">
 				<label for="f-description">Описание</label>
-				<input id="f-description" type="text" bind:value={description} />
+				<textarea id="f-description" rows="4" bind:value={description}
+				></textarea>
 			</div>
-			<div class="form-row">
+			<div class="form-row-wide">
 				<label for="f-type">Тип турнира</label>
 				<select id="f-type" bind:value={tournamentType}>
 					<option value="single elimination">Single elimination</option>
 					<option value="double elimination">Double elimination</option>
 				</select>
 			</div>
-			<div class="form-row">
+			<div class="form-row-wide">
 				<label for="f-break-ties"> Break ties with placement matches </label>
 				<input
 					id="f-break-ties"
@@ -131,7 +132,7 @@
 				/>
 			</div>
 			{#if breakTiesEnabled}
-				<div class="form-row">
+				<div class="form-row-wide">
 					<label for="f-break-ties-place">Break ties through this place</label>
 					<input
 						id="f-break-ties-place"
@@ -141,13 +142,13 @@
 					/>
 				</div>
 			{/if}
-			<div class="form-row">
+			<div class="form-row-wide">
 				<label for="f-elo"
 					>Фикс эло для турнира (-1 для стандартной системы)</label
 				>
 				<input id="f-elo" type="number" bind:value={overrideEloChange} />
 			</div>
-			<div class="form-row">
+			<div class="form-row-wide">
 				<label for="f-min-tier">Мин. тир игроков</label>
 				<select id="f-min-tier" bind:value={minTier}>
 					<option value="0">NEWBIE</option>
@@ -155,7 +156,7 @@
 					<option value="1000">HIGH TIER</option>
 				</select>
 			</div>
-			<div class="form-row">
+			<div class="form-row-wide">
 				<label for="f-max-tier">Макс. тир игроков</label>
 				<select id="f-max-tier" bind:value={maxTier}>
 					<option value="0">NEWBIE</option>
@@ -163,15 +164,15 @@
 					<option value="1000">HIGH TIER</option>
 				</select>
 			</div>
-			<div class="form-row">
+			<div class="form-row-wide">
 				<label for="f-min-cost">Мин. кост</label>
 				<input id="f-min-cost" type="number" bind:value={minCost} />
 			</div>
-			<div class="form-row">
+			<div class="form-row-wide">
 				<label for="f-max-cost">Макс. кост</label>
 				<input id="f-max-cost" type="number" bind:value={maxCost} />
 			</div>
-			<div class="form-row">
+			<div class="form-row-wide">
 				<label for="f-min-characters">Мин. персонажей</label>
 				<input
 					id="f-min-characters"
@@ -182,7 +183,7 @@
 
 			<hr style="width: 100%" />
 
-			<div class="form-row">
+			<div class="form-row-wide">
 				<label for="f-reg-start">Начало регистрации</label>
 				<input
 					id="f-reg-start"
@@ -190,7 +191,7 @@
 					bind:value={registrationStartDate}
 				/>
 			</div>
-			<div class="form-row">
+			<div class="form-row-wide">
 				<label for="f-reg-end">Конец регистрации</label>
 				<input
 					id="f-reg-end"
@@ -201,7 +202,7 @@
 
 			<hr style="width: 100%" />
 
-			<div class="form-row">
+			<div class="form-row-wide">
 				<label for="f-tour-start">Начало турнира</label>
 				<input
 					id="f-tour-start"
@@ -209,7 +210,7 @@
 					bind:value={tournamentStartDate}
 				/>
 			</div>
-			<div class="form-row">
+			<div class="form-row-wide">
 				<label for="f-tour-end">Конец турнира</label>
 				<input
 					id="f-tour-end"
@@ -226,47 +227,7 @@
 				>
 			</div>
 		{:else}
-			<p>Недостаточно прав для просмотра этой страницы.</p>
+			<p class="notice">Недостаточно прав для просмотра этой страницы.</p>
 		{/if}
 	</div>
 </div>
-
-<style>
-	p {
-		color: #888;
-		margin: 0 2px;
-	}
-
-	.btn-col {
-		margin-top: 14px;
-		display: flex;
-		flex-direction: column;
-		gap: 14px;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.btn-col .btn-common {
-		width: 240px;
-	}
-
-	.form-row {
-		display: flex;
-		align-items: center;
-		gap: 16px;
-	}
-
-	.form-row label {
-		flex: 0 0 200px;
-		color: #888;
-	}
-
-	.form-row input,
-	.form-row select {
-		width: 240px;
-	}
-
-	.form-row input[type="checkbox"] {
-		width: auto;
-	}
-</style>

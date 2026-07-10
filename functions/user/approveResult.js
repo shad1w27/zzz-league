@@ -1,9 +1,10 @@
 import {onCall, HttpsError} from "firebase-functions/https";
-import {db, storage} from "../config/firebase.js";
+import {db} from "../config/firebase.js";
 import {CHALLONGE_API_KEY} from "../config/secrets.js";
 import {updateTournamentGames} from "../utils/updateTournamentGames.js";
 import {defaultOptions} from "../config/options.js";
 import {registerMatchResult} from "../utils/registerMatchResult.js";
+import {uploadImage} from "../utils/uploadImage.js";
 
 export const approveResult = onCall({
   ...defaultOptions,
@@ -67,28 +68,9 @@ export const approveResult = onCall({
   if (!match.p2ApprovedResult) match.p2ApprovedResult = false;
 
   if (resultScreenshot) {
-    const base64Data =
-      resultScreenshot.replace(/^data:image\/\w+;base64,/, "");
-    const buffer = Buffer.from(base64Data, "base64");
-
-    if (buffer.length > 1 * 1024 * 1024) {
-      throw new HttpsError("invalid-argument", "File too large, max 1MB");
-    }
-
-    const extMatch = resultScreenshot.match(/^data:(image\/\w+);base64,/);
-    const contentType = extMatch ? extMatch[1] : "image/jpeg";
-    const ext = contentType.split("/")[1];
-
-    const filePath = `tournaments/${tournamentId}/matches/${matchId}.${ext}`;
-    const file = storage.bucket().file(filePath);
-
-    await file.save(buffer, {
-      metadata: {contentType},
-    });
-
-    await file.makePublic();
-    const resultScreenshotUrl = `https://storage.googleapis.com/${storage.bucket().name}/${filePath}`;
-    match.resultScreenshot = resultScreenshotUrl;
+    match.resultScreenshot = await uploadImage(
+        resultScreenshot, `tournaments/${tournamentId}/matches/${matchId}`,
+    );
   }
 
   switch (uid) {

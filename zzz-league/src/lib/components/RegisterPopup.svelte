@@ -48,15 +48,43 @@
 <div class="popup">
 	<div class="card">
 		<h2>Регистрация</h2>
-		<input type="text" bind:value={username} placeholder="Ник" />
-		<input type="email" bind:value={email} placeholder="Email" />
-		<input type="password" bind:value={password} placeholder="Пароль" />
-		<input
-			type="password"
-			bind:value={confirmPass}
-			placeholder="Подтвердите пароль"
-			onkeydown={(e) => e.key === "Enter" && handleRegister()}
-		/>
+		<div class="form-row">
+			<label for="register-username">Ник</label>
+			<input
+				id="register-username"
+				type="text"
+				bind:value={username}
+				placeholder="Ник"
+			/>
+		</div>
+		<div class="form-row">
+			<label for="register-email">Email</label>
+			<input
+				id="register-email"
+				type="email"
+				bind:value={email}
+				placeholder="Email"
+			/>
+		</div>
+		<div class="form-row">
+			<label for="register-password">Пароль</label>
+			<input
+				id="register-password"
+				type="password"
+				bind:value={password}
+				placeholder="Пароль"
+			/>
+		</div>
+		<div class="form-row">
+			<label for="register-confirm-password">Подтвердите пароль</label>
+			<input
+				id="register-confirm-password"
+				type="password"
+				bind:value={confirmPass}
+				placeholder="Подтвердите пароль"
+				onkeydown={(e) => e.key === "Enter" && handleRegister()}
+			/>
+		</div>
 		{#if status}<p class="status error">{status}</p>{/if}
 		<div class="btn-row">
 			<button class="btn-common btn-play" onclick={handleRegister}

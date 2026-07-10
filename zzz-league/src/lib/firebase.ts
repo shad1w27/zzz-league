@@ -97,7 +97,7 @@ function fileToBase64(file: File): Promise<string> {
 }
 
 export async function applyForTournament(tournamentId: string, zzzUid: string, darteNickname: string,
-	darteAccount: string, dartePreset: string, rosterScreenshot: File): Promise<void> {
+	darteAccount: string, dartePreset: string, rosterScreenshot: File | null, hoyolabScreenshot: File | null): Promise<void> {
 
 	await httpsCallable(functions, 'applyForTournament')({
 		tournamentId,
@@ -105,7 +105,8 @@ export async function applyForTournament(tournamentId: string, zzzUid: string, d
 		darteNickname,
 		darteAccount,
 		dartePreset,
-		rosterScreenshot: await fileToBase64(rosterScreenshot),
+		rosterScreenshot: rosterScreenshot ? await fileToBase64(rosterScreenshot) : null,
+		hoyolabScreenshot: hoyolabScreenshot ? await fileToBase64(hoyolabScreenshot) : null,
 	});
 }
 
@@ -121,6 +122,20 @@ export async function startChallongeTournament(tournamentId: string): Promise<vo
 	await httpsCallable(functions, 'startChallongeTournament')({
 		tournamentId,
 	});
+}
+
+export async function splitTournament(tournamentId: string, divisionSizes: number[]): Promise<string[]> {
+	const fn = httpsCallable(functions, 'splitTournament');
+	const result = await fn({ tournamentId, divisionSizes }) as any;
+	return result.data.divisionTournamentIds;
+}
+
+export async function adminAddTournamentRegistration(tournamentId: string, uid: string): Promise<void> {
+	await httpsCallable(functions, 'adminAddTournamentRegistration')({ tournamentId, uid });
+}
+
+export async function deleteTournament(tournamentId: string): Promise<void> {
+	await httpsCallable(functions, 'deleteTournament')({ tournamentId });
 }
 
 export async function approveResult(tournamentId: string, matchId: string,

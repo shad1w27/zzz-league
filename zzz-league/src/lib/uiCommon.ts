@@ -10,6 +10,13 @@ export const dateDisplayOptions: Intl.DateTimeFormatOptions = {
 
 export const bustCache = (url: string) => `${url}?t=${Date.now()}`;
 
+export const MAX_IMAGE_SIZE_MB = 3;
+const MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024;
+
+export function isImageTooLarge(file: File): boolean {
+	return file.size > MAX_IMAGE_SIZE_BYTES;
+}
+
 export function openProfilePopup(player: Player) {
 	profileUser.set(player);
 }

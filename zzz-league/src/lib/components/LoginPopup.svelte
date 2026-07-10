@@ -51,7 +51,15 @@
 	<div class="card">
 		{#if resettingPassword}
 			<h2>Сброс пароля</h2>
-			<input type="text" bind:value={email} placeholder="Email" />
+			<div class="form-row">
+				<label for="login-reset-email">Email</label>
+				<input
+					id="login-reset-email"
+					type="text"
+					bind:value={email}
+					placeholder="Email"
+				/>
+			</div>
 
 			{#if status}<p class="status error">{status}</p>{/if}
 			<div class="btn-row">
@@ -65,13 +73,25 @@
 			</div>
 		{:else}
 			<h2>Вход</h2>
-			<input type="text" bind:value={email} placeholder="Email" />
-			<input
-				type="password"
-				bind:value={password}
-				placeholder="Пароль"
-				onkeydown={(e) => e.key === "Enter" && handleLogin()}
-			/>
+			<div class="form-row">
+				<label for="login-email">Email</label>
+				<input
+					id="login-email"
+					type="text"
+					bind:value={email}
+					placeholder="Email"
+				/>
+			</div>
+			<div class="form-row">
+				<label for="login-password">Пароль</label>
+				<input
+					id="login-password"
+					type="password"
+					bind:value={password}
+					placeholder="Пароль"
+					onkeydown={(e) => e.key === "Enter" && handleLogin()}
+				/>
+			</div>
 			{#if status}<p class="status error">{status}</p>{/if}
 			<div class="btn-row">
 				<button class="btn-common btn-play" onclick={handleLogin}

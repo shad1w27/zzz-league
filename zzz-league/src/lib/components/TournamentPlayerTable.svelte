@@ -2,13 +2,14 @@
 	import { approveRegistration } from "$lib/firebase";
 	import { isAdmin } from "$lib/store";
 	import type { Player, RegisteredPlayer, Tournament } from "$lib/types";
-	import { openImagePopup, openProfilePopup } from "$lib/uiCommon";
+	import { openProfilePopup } from "$lib/uiCommon";
 
 	interface Props {
 		registrations: RegisteredPlayer[];
 		tournament?: Tournament;
 		hideOptions: boolean;
 		searchQuery: string;
+		onViewRegistration?: (uid: string) => void;
 	}
 
 	let {
@@ -16,12 +17,17 @@
 		hideOptions = false,
 		searchQuery = "",
 		tournament = undefined,
+		onViewRegistration = undefined,
 	}: Props = $props();
 
 	let sortedRegs = $derived(
 		[...registrations]
 			.filter((p) => p.player.name)
-			.sort((a, b) => (b.player.elo || 1000) - (a.player.elo || 1000)),
+			.sort(
+				(a, b) =>
+					a.registration.registrationTimestamp -
+					b.registration.registrationTimestamp,
+			),
 	);
 
 	let filteredRegs = $derived(
@@ -36,11 +42,7 @@
 		approveRegistration(tournament!.id, uid, !approved);
 	}
 
-	async function openRosterScreenshot(link: string) {
-		openImagePopup(link);
-	}
-
-	function getTier(p: Player) {
+function getTier(p: Player) {
 		if (p.isHighConfirmed) return { cls: "t-high", name: "HIGH TIER" };
 		if (p.isMidConfirmed) return { cls: "t-mid", name: "MID TIER" };
 		return { cls: "t-newbie", name: "NEWBIE" };
@@ -60,7 +62,7 @@
 			<th>ELO</th>
 			<th>LVL</th>
 			<th>Подтвержден</th>
-			<th>Ростер</th>
+			<th>Рега</th>
 			{#if $isAdmin && !hideOptions}<th>Опции</th>{/if}
 		</tr>
 	</thead>
@@ -92,9 +94,8 @@
 				<td>
 					<button
 						class="icon-btn"
-						onclick={() =>
-							openRosterScreenshot(reg.registration.rosterScreenshot)}
-						>🖼️</button
+						onclick={() => onViewRegistration?.(reg.player.uid)}
+						>Смотреть</button
 					>
 				</td>
 				{#if $isAdmin && !hideOptions}

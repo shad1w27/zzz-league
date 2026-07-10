@@ -1,11 +1,16 @@
 <script lang="ts">
+	import { goto } from "$app/navigation";
+	import { resolve } from "$app/paths";
 	import { page } from "$app/state";
 	import SidePanel from "$lib/components/SidePanel.svelte";
 	import TournamentGamePopup from "$lib/components/TournamentMatchPopup.svelte";
 	import TournamentPlayerTable from "$lib/components/TournamentPlayerTable.svelte";
-	import TournamentRegisterPopup from "$lib/components/TournamentRegisterPopup.svelte";
+	import TournamentRegisterPopup from "$lib/components/TournamentRegistrationPopup.svelte";
+	import TournamentSplitPopup from "$lib/components/TournamentSplitPopup.svelte";
+	import TournamentAddPlayerPopup from "$lib/components/TournamentAddPlayerPopup.svelte";
 	import {
 		db,
+		deleteTournament,
 		finishTournament,
 		startChallongeTournament,
 		updateTournamentGames,
@@ -27,11 +32,14 @@
 	let now = $state(Date.now());
 	let tournament = $state<Tournament>();
 	let userRegistration = $state<TournamentRegistration | null>();
+	let userPlayer = $state<Player | null>();
 	let myRegistration = $state<TournamentRegistration | null>();
 	let registeredPlayers = $state<RegisteredPlayer[]>([]);
 	let searchQuery = $state("");
 	let registrationOpen = $state(false);
 	let matchOpen = $state(false);
+	let splitPopupOpen = $state(false);
+	let addPlayerPopupOpen = $state(false);
 	let currentMatchId = $state();
 	let currentMatch = $derived(
 		tournament?.matches.find((m: TournamentMatch) => m.id === currentMatchId),
@@ -44,12 +52,19 @@
 	);
 
 	let currentUserTier = $derived(
-		$currentUser?.isHighConfirmed ? 1000 : $currentUser?.isMidConfirmed ? 100 : 0,
+		$currentUser?.isHighConfirmed
+			? 1000
+			: $currentUser?.isMidConfirmed
+				? 100
+				: 0,
 	);
 	let tierEligible = $derived(
 		!!tournament &&
 			currentUserTier >= tournament.minTier &&
 			currentUserTier <= tournament.maxTier,
+	);
+	let approvedCount = $derived(
+		registeredPlayers.filter((p) => p.registration.approved).length,
 	);
 
 	let unsubRegistration: (() => void) | null = null;
@@ -122,11 +137,34 @@
 		}
 	}
 
+	let deletingTournament = false;
+	async function handleDeleteTournament() {
+		if (deletingTournament || !tournament) return;
+		if (
+			!confirm(
+				`Удалить турнир "${tournament.name}"? Это действие необратимо.`,
+			)
+		)
+			return;
+		deletingTournament = true;
+		try {
+			await deleteTournament(tournament.id);
+			await goto(resolve("/tournaments"));
+		} catch (error) {
+			alert(error);
+			deletingTournament = false;
+		}
+	}
+
 	function getPlayerName(uid: string) {
 		return registeredPlayers.find((p) => p.player.uid === uid)?.player.name;
 	}
 
-	function getPlayerClass(player: string, winnerId: string, techLossUid?: string | null) {
+	function getPlayerClass(
+		player: string,
+		winnerId: string,
+		techLossUid?: string | null,
+	) {
 		if (player === techLossUid) return "match-techloss";
 		if (!winnerId) return "";
 
@@ -134,20 +172,15 @@
 	}
 
 	function openRegistration(uid: string) {
-		userRegistration = registeredPlayers.find(
-			(p) => p.player.uid === uid,
-		)?.registration;
+		const found = registeredPlayers.find((p) => p.player.uid === uid);
+		userRegistration = found?.registration;
+		userPlayer = found?.player;
 		if (userRegistration) registrationOpen = true;
 	}
 
 	function openMatch(match: TournamentMatch) {
 		currentMatchId = match.id;
 		matchOpen = true;
-	}
-
-	function openMyRegistration() {
-		userRegistration = myRegistration;
-		registrationOpen = true;
 	}
 
 	onMount(() => {
@@ -215,6 +248,9 @@
 		{#if tournament}
 			<h2>{tournament.name}</h2>
 			<div class="description-container">
+				{#if tournament.divisionIndex}
+					<p>Сетка {tournament.divisionIndex}</p>
+				{/if}
 				<p>{tournament.description}</p>
 				<p>
 					Рамки коста
@@ -298,15 +334,24 @@
 				{/if}
 
 				<div class="tournament-button-container">
-					{#if $currentUser && tierEligible && !tournament.state && now > tournament.registrationStartDate && now < tournament.registrationEndDate}
-						<button
-							class="btn-common btn-play"
-							onclick={openMyRegistration}
-							>{#if myRegistration}Обновить регистрацию{:else}Зарегистрироваться{/if}</button
-						>
-					{/if}
 					{#if $isAdmin}
+						<button
+							class="btn-common danger"
+							onclick={handleDeleteTournament}>Удалить турнир</button
+						>
 						{#if !tournament.state && !tournament.challongeTournamentId}
+							<button
+								class="btn-common"
+								onclick={() => (addPlayerPopupOpen = true)}
+								>Добавить игрока</button
+							>
+							{#if !tournament.divisionGroupId}
+								<button
+									class="btn-common"
+									onclick={() => (splitPopupOpen = true)}
+									>Разделить на сетки</button
+								>
+							{/if}
 							<button
 								class="btn-common btn-play"
 								onclick={handleStartTournament}>Начать турнир</button
@@ -326,6 +371,13 @@
 								>Закончить турнир</button
 							>
 						{/if}
+					{/if}
+					{#if $currentUser && tierEligible && !tournament.state && now > tournament.registrationStartDate && now < tournament.registrationEndDate}
+						<a
+							class="btn-common btn-play"
+							href={resolve(`/tournaments/${tournament.id}/register`)}
+							>{#if myRegistration}Обновить регистрацию{:else}Зарегистрироваться{/if}</a
+						>
 					{/if}
 				</div>
 			</div>
@@ -379,11 +431,6 @@
 										>{getPlayerName(match.p2)}</span
 									>
 								</div>
-								{#if match.techLossUid}
-									<span class="techloss-label"
-										>{getPlayerName(match.techLossUid)} тех. луз</span
-									>
-								{/if}
 							</div>
 
 							<button
@@ -410,6 +457,7 @@
 				{searchQuery}
 				registrations={registeredPlayers}
 				hideOptions={false}
+				onViewRegistration={openRegistration}
 			/>
 		</div>
 	</div>
@@ -419,9 +467,8 @@
 	<TournamentRegisterPopup
 		bind:open={registrationOpen}
 		{tournament}
+		player={userPlayer}
 		reg={userRegistration}
-		editable={userRegistration?.uid === myRegistration?.uid &&
-			now < tournament!.registrationEndDate}
 	></TournamentRegisterPopup>
 {/if}
 {#if matchOpen}
@@ -432,14 +479,19 @@
 		{registeredPlayers}
 	></TournamentGamePopup>
 {/if}
+{#if splitPopupOpen}
+	<TournamentSplitPopup bind:open={splitPopupOpen} {tournament} {approvedCount}
+	></TournamentSplitPopup>
+{/if}
+{#if addPlayerPopupOpen}
+	<TournamentAddPlayerPopup
+		bind:open={addPlayerPopupOpen}
+		{tournament}
+		registeredUids={registeredPlayers.map((p) => p.player.uid)}
+	></TournamentAddPlayerPopup>
+{/if}
 
 <style>
-	.match-list {
-		display: flex;
-		flex-direction: column;
-		gap: 8px;
-	}
-
 	.match-item {
 		display: flex;
 		align-items: center;
@@ -448,55 +500,17 @@
 	}
 
 	.match-players {
-		display: grid;
-		grid-template-columns: 1fr auto 1fr;
-		align-items: center;
-		gap: 16px;
 		width: 400px;
 	}
 
 	.match-player-name {
 		cursor: pointer;
-		font-weight: bold;
-		color: white;
-		font-size: 22px;
-	}
-
-	.match-player-left {
-		text-align: right;
-	}
-
-	.match-player-right {
-		text-align: left;
-	}
-
-	.match-vs {
-		text-align: center;
-		color: #666;
-		white-space: nowrap;
-	}
-
-	.match-winner {
-		color: var(--green);
-	}
-
-	.match-loser {
-		color: var(--loss);
-	}
-
-	.match-techloss {
-		color: #888;
 	}
 
 	.match-item-content {
 		display: flex;
 		flex-direction: column;
 		gap: 4px;
-	}
-
-	.techloss-label {
-		color: #888;
-		text-align: center;
 	}
 
 	.btn-match {
@@ -525,17 +539,17 @@
 		right: 0;
 		display: flex;
 		flex-direction: column;
-		gap: 10px;
+		gap: 6px;
+	}
+
+	.tournament-button-container .btn-common {
+		text-align: center;
+		padding: 8px 14px;
 	}
 
 	.description-container p {
 		margin: 0;
 		line-height: 21px;
-	}
-
-	.value-highlight {
-		color: var(--gold);
-		font-weight: bold;
 	}
 
 	.winner-label {

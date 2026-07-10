@@ -55,13 +55,18 @@ export interface Tournament {
 	type: string,
 	overrideEloChange: number,
 	consolationMatchesTargetRank: number | null,
+	divisionGroupId?: string,
+	divisionIndex?: number,
 }
 
 export interface TournamentRegistration {
 	uid: string,
+	zzzUid: string,
+	darteNickname: string,
 	darteAccount: string,
 	dartePreset: string,
 	rosterScreenshot: string,
+	hoyolabScreenshot: string,
 	approved: boolean,
 	registrationTimestamp: number
 }

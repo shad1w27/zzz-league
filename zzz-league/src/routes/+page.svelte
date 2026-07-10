@@ -114,17 +114,15 @@
 			<div class="timer-value">{timerText}</div>
 		</div>
 
-		{#if false}
-			{#if filteredTournaments && filteredTournaments.length > 0}
-				<div>
-					<h2>Турниры:</h2>
-					<div class="tournament-container">
-						{#each filteredTournaments as tournament}
-							<TournamentCard {tournament} {now} />
-						{/each}
-					</div>
+		{#if filteredTournaments && filteredTournaments.length > 0}
+			<div>
+				<h2>Турниры:</h2>
+				<div class="tournament-container">
+					{#each filteredTournaments as tournament}
+						<TournamentCard {tournament} {now} />
+					{/each}
 				</div>
-			{/if}
+			</div>
 		{/if}
 
 		<div class="search-container">
@@ -180,13 +178,6 @@
 </div>
 
 <style>
-	.tournament-container {
-		display: flex;
-		flex-direction: row;
-		gap: 12px;
-		flex-wrap: wrap;
-	}
-
 	.main-timer {
 		background: #222;
 		border: 1px solid #444;

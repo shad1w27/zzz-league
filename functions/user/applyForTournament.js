@@ -1,6 +1,7 @@
 import {onCall, HttpsError} from "firebase-functions/https";
-import {db, storage} from "../config/firebase.js";
+import {db} from "../config/firebase.js";
 import {defaultOptions} from "../config/options.js";
+import {uploadImage} from "../utils/uploadImage.js";
 
 export const applyForTournament = onCall(defaultOptions, async (request) => {
   const callerUid = request.auth?.uid;
@@ -19,11 +20,24 @@ export const applyForTournament = onCall(defaultOptions, async (request) => {
     darteAccount,
     dartePreset,
     rosterScreenshot,
+    hoyolabScreenshot,
     zzzUid,
   } = request.data;
 
   if (!tournamentId || !darteNickname || !darteAccount ||
-    !dartePreset || !rosterScreenshot || !zzzUid) {
+    !dartePreset || !zzzUid) {
+    throw new HttpsError("invalid-argument", "Missing required fields");
+  }
+
+  const existingRegSnap = await db
+      .ref(`tournaments/${tournamentId}/registrations/${callerUid}`)
+      .once("value");
+  const existingReg = existingRegSnap.val();
+
+  if (!rosterScreenshot && !existingReg?.rosterScreenshot) {
+    throw new HttpsError("invalid-argument", "Missing required fields");
+  }
+  if (!hoyolabScreenshot && !existingReg?.hoyolabScreenshot) {
     throw new HttpsError("invalid-argument", "Missing required fields");
   }
 
@@ -40,6 +54,11 @@ export const applyForTournament = onCall(defaultOptions, async (request) => {
         "Tournament has already been started");
   }
 
+  if (Date.now() > tournament.registrationEndDate) {
+    throw new HttpsError("permission-denied",
+        "Registration is closed");
+  }
+
   let playerTier = 0;
   if (player.isHighConfirmed) {
     playerTier = 1000;
@@ -51,26 +70,13 @@ export const applyForTournament = onCall(defaultOptions, async (request) => {
     throw new HttpsError("permission-denied", "Player is out of tier group");
   }
 
-  const base64Data = rosterScreenshot.replace(/^data:image\/\w+;base64,/, "");
-  const buffer = Buffer.from(base64Data, "base64");
+  const rosterScreenshotUrl = rosterScreenshot ? await uploadImage(
+      rosterScreenshot, `tournaments/${tournamentId}/${callerUid}-roster`,
+  ) : existingReg.rosterScreenshot;
 
-  if (buffer.length > 1 * 1024 * 1024) {
-    throw new HttpsError("invalid-argument", "File too large, max 1MB");
-  }
-
-  const match = rosterScreenshot.match(/^data:(image\/\w+);base64,/);
-  const contentType = match ? match[1] : "image/jpeg";
-  const ext = contentType.split("/")[1];
-
-  const filePath = `tournaments/${tournamentId}/${callerUid}-roster.${ext}`;
-  const file = storage.bucket().file(filePath);
-
-  await file.save(buffer, {
-    metadata: {contentType},
-  });
-
-  await file.makePublic();
-  const rosterScreenshotUrl = `https://storage.googleapis.com/${storage.bucket().name}/${filePath}`;
+  const hoyolabScreenshotUrl = hoyolabScreenshot ? await uploadImage(
+      hoyolabScreenshot, `tournaments/${tournamentId}/${callerUid}-hoyolab`,
+  ) : existingReg.hoyolabScreenshot;
 
   await db.ref(`tournaments/${tournamentId}/registrations/${callerUid}`).set({
     uid: callerUid,
@@ -79,7 +85,8 @@ export const applyForTournament = onCall(defaultOptions, async (request) => {
     darteAccount,
     dartePreset,
     rosterScreenshot: rosterScreenshotUrl,
-    registrationTimestamp: Date.now(),
+    hoyolabScreenshot: hoyolabScreenshotUrl,
+    registrationTimestamp: existingReg?.registrationTimestamp ?? Date.now(),
     approved: false,
   });
 
