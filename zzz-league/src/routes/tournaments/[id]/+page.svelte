@@ -15,7 +15,7 @@
 		startChallongeTournament,
 		updateTournamentGames,
 	} from "$lib/firebase";
-	import { currentUser, isAdmin } from "$lib/store";
+	import { currentUser, isAdmin, playersByUid } from "$lib/store";
 	import type {
 		Player,
 		RegisteredPlayer,
@@ -24,7 +24,7 @@
 		TournamentRegistration,
 	} from "$lib/types";
 	import { dateDisplayOptions, renderMarkdown } from "$lib/uiCommon";
-	import { get, onValue, ref } from "firebase/database";
+	import { onValue, ref } from "firebase/database";
 	import { onMount } from "svelte";
 
 	const id = $derived(page.params.id);
@@ -34,7 +34,15 @@
 	let userRegistration = $state<TournamentRegistration | null>();
 	let userPlayer = $state<Player | null>();
 	let myRegistration = $state<TournamentRegistration | null>();
-	let registeredPlayers = $state<RegisteredPlayer[]>([]);
+	let registrations = $state<TournamentRegistration[]>([]);
+	let registeredPlayers = $derived(
+		registrations
+			.map((registration) => {
+				const player = $playersByUid.get(registration.uid);
+				return player ? { player, registration } : null;
+			})
+			.filter(Boolean) as RegisteredPlayer[],
+	);
 	let searchQuery = $state("");
 	let registrationOpen = $state(false);
 	let matchOpen = $state(false);
@@ -201,31 +209,11 @@
 
 		const unsubRegistrations = onValue(
 			ref(db, `tournaments/${id}/registrations/`),
-			async (snap) => {
+			(snap) => {
 				const data = snap.val();
-
-				if (!data) return;
-
-				const registrations = Object.values(
-					data,
-				) as TournamentRegistration[];
-
-				const result = await Promise.all(
-					registrations.map(async (registration) => {
-						const playerSnap = await get(
-							ref(db, "players/" + registration.uid),
-						);
-
-						if (!playerSnap.exists()) return null;
-
-						return {
-							player: playerSnap.val() as Player,
-							registration,
-						};
-					}),
-				);
-
-				registeredPlayers = result.filter(Boolean) as RegisteredPlayer[];
+				registrations = data
+					? (Object.values(data) as TournamentRegistration[])
+					: [];
 			},
 		);
 
@@ -256,6 +244,12 @@
 					Рамки коста
 					<span class="value-highlight"
 						>{tournament.minCost}-{tournament.maxCost}</span
+					>
+				</p>
+				<p>
+					Мин. персонажей
+					<span class="value-highlight"
+						>{tournament.minCharacters}</span
 					>
 				</p>
 				{#snippet tierBadge(tier: number)}
