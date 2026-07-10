@@ -23,7 +23,7 @@
 		TournamentMatch,
 		TournamentRegistration,
 	} from "$lib/types";
-	import { dateDisplayOptions } from "$lib/uiCommon";
+	import { dateDisplayOptions, renderMarkdown } from "$lib/uiCommon";
 	import { get, onValue, ref } from "firebase/database";
 	import { onMount } from "svelte";
 
@@ -251,7 +251,7 @@
 				{#if tournament.divisionIndex}
 					<p>Сетка {tournament.divisionIndex}</p>
 				{/if}
-				<p>{tournament.description}</p>
+				<div class="description-text">{@html renderMarkdown(tournament.description)}</div>
 				<p>
 					Рамки коста
 					<span class="value-highlight"
@@ -548,6 +548,16 @@
 	}
 
 	.description-container p {
+		margin: 0;
+		line-height: 21px;
+	}
+
+	.description-text :global(a) {
+		color: var(--gold);
+		text-decoration: underline;
+	}
+
+	.description-text :global(p) {
 		margin: 0;
 		line-height: 21px;
 	}
