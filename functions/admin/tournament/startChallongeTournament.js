@@ -58,7 +58,9 @@ export const startChallongeTournament = onCall({
           private: false,
           starts_at: new Date(tournament.tournamentStartDate).toISOString(),
           ...(tournamentType === "double elimination" &&
-            {grand_finals_modifier: "single match"}),
+            {double_elimination_options: {
+              grand_finals_modifier: "single match",
+            }}),
           ...(tournament.consolationMatchesTargetRank != null &&
             {match_options: {
               consolation_matches_target_rank:
