@@ -79,13 +79,14 @@ export const startChallongeTournament = onCall({
 
   const challongeTournamentId = createData.data.id;
 
-  const playersSnap = await db.ref("players").once("value");
-  const playersObj = playersSnap.val() ?? {};
+  const playerSnaps = await Promise.all(
+      approved.map((r) => db.ref("players/" + r.uid).once("value")),
+  );
 
-  const participants = approved.map((r) => {
-    const player = playersObj[r.uid];
+  const participants = playerSnaps.map((snap, i) => {
+    const player = snap.val();
     if (!player) {
-      throw new HttpsError("not-found", `Player ${r.uid} not found`);
+      throw new HttpsError("not-found", `Player ${approved[i].uid} not found`);
     }
     return {
       name: player.name,
