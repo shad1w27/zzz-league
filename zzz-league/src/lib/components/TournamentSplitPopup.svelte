@@ -35,7 +35,7 @@
 	let isSplitting = false;
 	async function handleSplit() {
 		if (isSplitting || !isValid) return;
-		if (!confirm(`Разделить турнир на ${divisionCount} дивизион(ов)?`))
+		if (!confirm(`Разделить турнир на ${divisionCount} сетки?`))
 			return;
 
 		isSplitting = true;
@@ -54,8 +54,8 @@
 {#if open}
 	<div class="popup">
 		<div class="card">
-			<h2>Разделить на дивизионы</h2>
-			<label for="division-count">Количество дивизионов</label>
+			<h2>Разделить на сетки</h2>
+			<label for="division-count">Количество сеток</label>
 			<input
 				id="division-count"
 				type="number"
@@ -64,7 +64,7 @@
 			/>
 			<hr style="width: 100%" />
 			{#each divisionSizes as _, i}
-				<label for="division-size-{i}">Игроков в дивизионе {i + 1}</label>
+				<label for="division-size-{i}">Игроков в сетке {i + 1}</label>
 				<input
 					id="division-size-{i}"
 					type="number"
@@ -73,7 +73,7 @@
 				/>
 			{/each}
 			<p>Распределено: {totalAssigned} / {approvedCount}</p>
-			<p class="hint">Минимум 2 игрока в дивизионе</p>
+			<p class="hint">Минимум 2 игрока</p>
 
 			{#if status}<p class="status error">{status}</p>{/if}
 			<div class="btn-row">

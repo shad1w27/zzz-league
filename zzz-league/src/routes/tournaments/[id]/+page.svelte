@@ -255,7 +255,7 @@
 			<h2>{tournament.name}</h2>
 			<div class="description-container">
 				{#if tournament.divisionIndex}
-					<p>Дивизион {tournament.divisionIndex}</p>
+					<p>Сетка {tournament.divisionIndex}</p>
 				{/if}
 				<p>{tournament.description}</p>
 				<p>
@@ -355,7 +355,7 @@
 								<button
 									class="btn-common"
 									onclick={() => (splitPopupOpen = true)}
-									>Разделить на дивизионы</button
+									>Разделить на сетки</button
 								>
 							{/if}
 							<button

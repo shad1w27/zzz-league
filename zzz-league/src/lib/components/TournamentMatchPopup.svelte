@@ -1,7 +1,12 @@
 <script lang="ts">
 	import { adminSetMatchResult, approveResult } from "$lib/firebase";
 	import { currentUser, isAdmin } from "$lib/store";
-	import { bustCache, openImagePopup } from "$lib/uiCommon";
+	import {
+		bustCache,
+		isImageTooLarge,
+		MAX_IMAGE_SIZE_MB,
+		openImagePopup,
+	} from "$lib/uiCommon";
 
 	let {
 		open = $bindable(false),
@@ -49,6 +54,10 @@
 			alert("Необходимо загрузить скриншот результата");
 			return;
 		}
+		if (resultScreenshot && isImageTooLarge(resultScreenshot)) {
+			alert(`Файл слишком большой, максимум ${MAX_IMAGE_SIZE_MB}МБ`);
+			return;
+		}
 		try {
 			isApproving = true;
 			await approveResult(
@@ -71,6 +80,11 @@
 	async function handleAdminSetResult() {
 		if (isAdminSubmitting) return;
 		if (!matchResultP1 || !matchResultP2) return;
+		const adminScreenshot = adminInputScreenshot?.[0] ?? null;
+		if (adminScreenshot && isImageTooLarge(adminScreenshot)) {
+			alert(`Файл слишком большой, максимум ${MAX_IMAGE_SIZE_MB}МБ`);
+			return;
+		}
 		if (!confirm("Записать результат от имени администратора?")) return;
 		try {
 			isAdminSubmitting = true;
@@ -79,7 +93,7 @@
 				match.id,
 				matchResultP1,
 				matchResultP2,
-				adminInputScreenshot?.[0] ?? null,
+				adminScreenshot,
 			);
 		} catch (error) {
 			alert(error);
@@ -338,5 +352,6 @@
 		object-fit: contain;
 		border-radius: 8px;
 		cursor: pointer;
+		max-height: 240px;
 	}
 </style>

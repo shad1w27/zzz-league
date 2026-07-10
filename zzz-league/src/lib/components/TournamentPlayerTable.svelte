@@ -23,7 +23,11 @@
 	let sortedRegs = $derived(
 		[...registrations]
 			.filter((p) => p.player.name)
-			.sort((a, b) => (b.player.elo || 1000) - (a.player.elo || 1000)),
+			.sort(
+				(a, b) =>
+					a.registration.registrationTimestamp -
+					b.registration.registrationTimestamp,
+			),
 	);
 
 	let filteredRegs = $derived(
@@ -91,7 +95,7 @@ function getTier(p: Player) {
 					<button
 						class="icon-btn"
 						onclick={() => onViewRegistration?.(reg.player.uid)}
-						>🖼️</button
+						>Смотреть</button
 					>
 				</td>
 				{#if $isAdmin && !hideOptions}

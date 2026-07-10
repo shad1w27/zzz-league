@@ -1,6 +1,7 @@
 import {onCall, HttpsError} from "firebase-functions/https";
-import {db, storage} from "../config/firebase.js";
+import {db} from "../config/firebase.js";
 import {defaultOptions} from "../config/options.js";
+import {uploadImage} from "../utils/uploadImage.js";
 
 export const applyForTournament = onCall(defaultOptions, async (request) => {
   const callerUid = request.auth?.uid;
@@ -56,26 +57,14 @@ export const applyForTournament = onCall(defaultOptions, async (request) => {
     throw new HttpsError("permission-denied", "Player is out of tier group");
   }
 
-  const base64Data = rosterScreenshot.replace(/^data:image\/\w+;base64,/, "");
-  const buffer = Buffer.from(base64Data, "base64");
+  const rosterScreenshotUrl = await uploadImage(
+      rosterScreenshot, `tournaments/${tournamentId}/${callerUid}-roster`,
+  );
 
-  if (buffer.length > 1 * 1024 * 1024) {
-    throw new HttpsError("invalid-argument", "File too large, max 1MB");
-  }
-
-  const match = rosterScreenshot.match(/^data:(image\/\w+);base64,/);
-  const contentType = match ? match[1] : "image/jpeg";
-  const ext = contentType.split("/")[1];
-
-  const filePath = `tournaments/${tournamentId}/${callerUid}-roster.${ext}`;
-  const file = storage.bucket().file(filePath);
-
-  await file.save(buffer, {
-    metadata: {contentType},
-  });
-
-  await file.makePublic();
-  const rosterScreenshotUrl = `https://storage.googleapis.com/${storage.bucket().name}/${filePath}`;
+  const existingRegSnap = await db
+      .ref(`tournaments/${tournamentId}/registrations/${callerUid}`)
+      .once("value");
+  const existingReg = existingRegSnap.val();
 
   await db.ref(`tournaments/${tournamentId}/registrations/${callerUid}`).set({
     uid: callerUid,
@@ -84,7 +73,7 @@ export const applyForTournament = onCall(defaultOptions, async (request) => {
     darteAccount,
     dartePreset,
     rosterScreenshot: rosterScreenshotUrl,
-    registrationTimestamp: Date.now(),
+    registrationTimestamp: existingReg?.registrationTimestamp ?? Date.now(),
     approved: false,
   });
 

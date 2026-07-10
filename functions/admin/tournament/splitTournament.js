@@ -66,16 +66,13 @@ export const splitTournament = onCall(defaultOptions, async (request) => {
 
   const updates = {};
 
-  // Splitting finalizes the participant list, so registration closes
-  // immediately for every resulting division (never extends it, in case
-  // it had already closed on its own).
   const closedRegistrationEndDate =
     Math.min(tournament.registrationEndDate, Date.now());
 
   const division1Group = groups[0];
   const division1Uids = new Set(division1Group.map((r) => r.uid));
   updates[`tournaments/${tournamentId}/name`] =
-    `${tournament.name} - Division 1`;
+    `${tournament.name} A`;
   updates[`tournaments/${tournamentId}/divisionGroupId`] = tournamentId;
   updates[`tournaments/${tournamentId}/divisionIndex`] = 1;
   updates[`tournaments/${tournamentId}/registrationEndDate`] =
@@ -111,7 +108,7 @@ export const splitTournament = onCall(defaultOptions, async (request) => {
 
     updates[`tournaments/${newId}`] = {
       id: newId,
-      name: `${tournament.name} - Division ${divisionIndex}`,
+      name: `${tournament.name} ${String.fromCharCode(64 + divisionIndex)}`,
       description: description ?? "",
       registrationStartDate,
       registrationEndDate: closedRegistrationEndDate,

@@ -3,6 +3,8 @@
 	import {
 		bustCache,
 		dateDisplayOptions,
+		isImageTooLarge,
+		MAX_IMAGE_SIZE_MB,
 		openImagePopup,
 	} from "$lib/uiCommon";
 
@@ -45,6 +47,11 @@
 		}
 
 		const screenshotFile = rosterScreenshot[0];
+
+		if (isImageTooLarge(screenshotFile)) {
+			status = `Файл слишком большой, максимум ${MAX_IMAGE_SIZE_MB}МБ`;
+			return;
+		}
 
 		isRegistering = true;
 		try {
@@ -180,6 +187,7 @@
 		object-fit: contain;
 		border-radius: 8px;
 		cursor: pointer;
+		max-height: 240px;
 	}
 
 	.awareness {
