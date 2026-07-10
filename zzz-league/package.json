@@ -23,6 +23,8 @@
 	},
 	"dependencies": {
 		"@sveltejs/adapter-static": "^3.0.10",
-		"firebase": "^12.12.1"
+		"dompurify": "^3.4.11",
+		"firebase": "^12.12.1",
+		"marked": "^18.0.6"
 	}
 }

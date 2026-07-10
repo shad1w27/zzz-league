@@ -243,6 +243,7 @@ select,
 input,
 textarea {
 	font-family: inherit;
+	font-size: 14px;
 	color: inherit;
 }
 

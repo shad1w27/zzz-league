@@ -5,9 +5,11 @@
 	import SidePanel from "$lib/components/SidePanel.svelte";
 	import { isAdmin } from "$lib/store";
 	import type { Tournament } from "$lib/types";
+	import { renderMarkdown } from "$lib/uiCommon";
 
 	let name = $state("");
 	let description = $state("");
+	let descriptionPreview = $derived(renderMarkdown(description));
 
 	const now = new Date();
 	let registrationStartDate = $state(toDateTimeLocal(now));
@@ -116,6 +118,12 @@
 				<textarea id="f-description" rows="4" bind:value={description}
 				></textarea>
 			</div>
+			{#if description.trim()}
+				<div class="form-row-wide preview-row">
+					<span>Превью</span>
+					<div class="description-preview">{@html descriptionPreview}</div>
+				</div>
+			{/if}
 			<div class="form-row-wide">
 				<label for="f-type">Тип турнира</label>
 				<select id="f-type" bind:value={tournamentType}>
@@ -231,3 +239,32 @@
 		{/if}
 	</div>
 </div>
+
+<style>
+	.preview-row {
+		align-items: flex-start;
+	}
+
+	.preview-row span {
+		flex: 0 0 200px;
+		color: #888;
+	}
+
+	.description-preview {
+		width: 100%;
+		border: 1px dashed #444;
+		border-radius: 8px;
+		padding: 8px 10px;
+		color: #ccc;
+	}
+
+	.description-preview :global(a) {
+		color: var(--gold);
+		text-decoration: underline;
+	}
+
+	.description-preview :global(p) {
+		margin: 0;
+		line-height: 21px;
+	}
+</style>

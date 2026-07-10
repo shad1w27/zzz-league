@@ -1,5 +1,9 @@
+import DOMPurify from "dompurify";
+import { marked } from "marked";
 import { loginOpen, profileUser, registerOpen, settingsOpen, viewingImage } from "./store";
 import type { Player } from "./types";
+
+marked.setOptions({ breaks: true });
 
 export const dateDisplayOptions: Intl.DateTimeFormatOptions = {
 	month: "short",
@@ -55,4 +59,12 @@ export function openImagePopup(src: string) {
 
 export function closeImagePopup() {
 	viewingImage.set("");
+}
+
+export function renderMarkdown(text: string): string {
+	// CommonMark treats __text__ as bold, same as **text**. Convert it to real
+	// underline first so __text__ reads as underline (matches Discord's convention).
+	const withUnderline = (text ?? "").replace(/__(.+?)__/g, "<u>$1</u>");
+	const html = marked.parse(withUnderline, { async: false }) as string;
+	return DOMPurify.sanitize(html);
 }
