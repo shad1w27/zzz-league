@@ -20,11 +20,12 @@ export const applyForTournament = onCall(defaultOptions, async (request) => {
     darteAccount,
     dartePreset,
     rosterScreenshot,
+    hoyolabScreenshot,
     zzzUid,
   } = request.data;
 
   if (!tournamentId || !darteNickname || !darteAccount ||
-    !dartePreset || !rosterScreenshot || !zzzUid) {
+    !dartePreset || !rosterScreenshot || !hoyolabScreenshot || !zzzUid) {
     throw new HttpsError("invalid-argument", "Missing required fields");
   }
 
@@ -61,6 +62,10 @@ export const applyForTournament = onCall(defaultOptions, async (request) => {
       rosterScreenshot, `tournaments/${tournamentId}/${callerUid}-roster`,
   );
 
+  const hoyolabScreenshotUrl = await uploadImage(
+      hoyolabScreenshot, `tournaments/${tournamentId}/${callerUid}-hoyolab`,
+  );
+
   const existingRegSnap = await db
       .ref(`tournaments/${tournamentId}/registrations/${callerUid}`)
       .once("value");
@@ -73,6 +78,7 @@ export const applyForTournament = onCall(defaultOptions, async (request) => {
     darteAccount,
     dartePreset,
     rosterScreenshot: rosterScreenshotUrl,
+    hoyolabScreenshot: hoyolabScreenshotUrl,
     registrationTimestamp: existingReg?.registrationTimestamp ?? Date.now(),
     approved: false,
   });

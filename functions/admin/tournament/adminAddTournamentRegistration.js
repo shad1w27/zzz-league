@@ -47,6 +47,7 @@ export const adminAddTournamentRegistration = onCall(
         darteAccount: "",
         dartePreset: "",
         rosterScreenshot: "",
+        hoyolabScreenshot: "",
         registrationTimestamp: Date.now(),
         approved: true,
       });

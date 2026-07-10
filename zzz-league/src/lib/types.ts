@@ -64,6 +64,7 @@ export interface TournamentRegistration {
 	darteAccount: string,
 	dartePreset: string,
 	rosterScreenshot: string,
+	hoyolabScreenshot: string,
 	approved: boolean,
 	registrationTimestamp: number
 }

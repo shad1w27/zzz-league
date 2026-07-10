@@ -62,7 +62,7 @@ function getTier(p: Player) {
 			<th>ELO</th>
 			<th>LVL</th>
 			<th>Подтвержден</th>
-			<th>Реги</th>
+			<th>Рега</th>
 			{#if $isAdmin && !hideOptions}<th>Опции</th>{/if}
 		</tr>
 	</thead>

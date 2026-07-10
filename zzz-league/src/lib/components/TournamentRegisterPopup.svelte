@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { applyForTournament } from "$lib/firebase";
+	import { currentUser, isAdmin } from "$lib/store";
 	import {
 		bustCache,
 		dateDisplayOptions,
@@ -22,8 +23,14 @@
 	let dartePreset = $state(reg?.dartePreset ?? "");
 	let regScreenshot = $state(reg?.rosterScreenshot ?? "");
 	let rosterScreenshot = $state<FileList | null>(null);
+	let regHoyolabScreenshot = $state(reg?.hoyolabScreenshot ?? "");
+	let hoyolabScreenshot = $state<FileList | null>(null);
 	let awareness = $state(false);
 	let status = $state();
+
+	let canViewHoyolab = $derived(
+		($isAdmin || $currentUser?.uid === player?.uid) && !tournament?.state,
+	);
 
 	let isRegistering = false;
 	async function handleRegister() {
@@ -40,15 +47,18 @@
 			!darteAccount ||
 			!dartePreset ||
 			!rosterScreenshot ||
-			rosterScreenshot.length === 0
+			rosterScreenshot.length === 0 ||
+			!hoyolabScreenshot ||
+			hoyolabScreenshot.length === 0
 		) {
 			status = "Заполните все поля";
 			return;
 		}
 
 		const screenshotFile = rosterScreenshot[0];
+		const hoyolabScreenshotFile = hoyolabScreenshot[0];
 
-		if (isImageTooLarge(screenshotFile)) {
+		if (isImageTooLarge(screenshotFile) || isImageTooLarge(hoyolabScreenshotFile)) {
 			status = `Файл слишком большой, максимум ${MAX_IMAGE_SIZE_MB}МБ`;
 			return;
 		}
@@ -62,6 +72,7 @@
 				darteAccount,
 				dartePreset,
 				screenshotFile,
+				hoyolabScreenshotFile,
 			);
 			status = "";
 			open = false;
@@ -128,6 +139,25 @@
 				<input type="file" accept="image/*" bind:files={rosterScreenshot} />
 				<hr style="width: 100%" />
 			{/if}
+			{#if canViewHoyolab}
+				<span>Скриншот персонажа Hoyolab</span>
+				{#if regHoyolabScreenshot}
+					<button
+						class="img-btn"
+						onclick={() => openImagePopup(regHoyolabScreenshot)}
+					>
+						<img src={bustCache(regHoyolabScreenshot)} alt="" />
+					</button>
+				{/if}
+				{#if editable}
+					<input
+						type="file"
+						accept="image/*"
+						bind:files={hoyolabScreenshot}
+					/>
+				{/if}
+				<hr style="width: 100%" />
+			{/if}
 			{#if editable}
 				<!-- svelte-ignore a11y_click_events_have_key_events -->
 				<!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -138,7 +168,7 @@
 						onclick={(e) => e.stopPropagation()}
 					/>
 					<span
-						>Конечно я полностью прочитал регламент, и осознаю, что турнир
+						>Конечно, я полностью прочитал регламент, и осознаю, что турнир
 						проходит с <span class="value-highlight"
 							>{new Date(tournament.tournamentStartDate).toLocaleString(
 								"ru",
@@ -152,9 +182,7 @@
 								dateDisplayOptions,
 							)}</span
 						>
-						по моему локальному времени. Также я осознаю что НЕ регнул Лайтера,
-						которого нет у меня на аккаунте.</span
-					>
+					</span>
 				</div>
 			{/if}
 
@@ -204,11 +232,11 @@
 		cursor: pointer;
 		accent-color: var(--gold);
 	}
-	
+
 	.awareness span {
 		color: #aaa;
 	}
-	
+
 	.value-highlight {
 		color: var(--gold) !important;
 	}
