@@ -101,31 +101,37 @@
 <div class="popup">
 	<div class="card">
 		<h2>Настройки аккаунта</h2>
-		<label for="settings-email">Email</label>
-		<input
-			id="settings-email"
-			class="input-disabled"
-			type="email"
-			bind:value={email}
-			placeholder="Email"
-			disabled
-		/>
-		<label for="settings-username">Ник</label>
-		<input
-			id="settings-username"
-			type="text"
-			bind:value={username}
-			placeholder="Ник"
-		/>
-		<label for="settings-discord">Discord</label>
-		<input
-			id="settings-discord"
-			type="text"
-			class="input-disabled"
-			bind:value={discord}
-			placeholder="Discord"
-			disabled
-		/>
+		<div class="form-row">
+			<label for="settings-email">Email</label>
+			<input
+				id="settings-email"
+				class="input-disabled"
+				type="email"
+				bind:value={email}
+				placeholder="Email"
+				disabled
+			/>
+		</div>
+		<div class="form-row">
+			<label for="settings-username">Ник</label>
+			<input
+				id="settings-username"
+				type="text"
+				bind:value={username}
+				placeholder="Ник"
+			/>
+		</div>
+		<div class="form-row">
+			<label for="settings-discord">Discord</label>
+			<input
+				id="settings-discord"
+				type="text"
+				class="input-disabled"
+				bind:value={discord}
+				placeholder="Discord"
+				disabled
+			/>
+		</div>
 		{#if user.discordId}
 			<button class="btn-common" onclick={() => handleUnlinkDiscord()}
 				>Отвязать Discord</button
@@ -136,27 +142,33 @@
 			>
 		{/if}
 		<br />
-		<label for="settings-current-password">Текущий пароль</label>
-		<input
-			id="settings-current-password"
-			type="password"
-			bind:value={currentPassword}
-			placeholder="Текущий пароль"
-		/>
-		<label for="settings-new-password">Новый пароль</label>
-		<input
-			id="settings-new-password"
-			type="password"
-			bind:value={newPassword}
-			placeholder="Новый пароль"
-		/>
-		<label for="settings-confirm-password">Подтвердите пароль</label>
-		<input
-			id="settings-confirm-password"
-			type="password"
-			bind:value={confirmPass}
-			placeholder="Подтвердите пароль"
-		/>
+		<div class="form-row">
+			<label for="settings-current-password">Текущий пароль</label>
+			<input
+				id="settings-current-password"
+				type="password"
+				bind:value={currentPassword}
+				placeholder="Текущий пароль"
+			/>
+		</div>
+		<div class="form-row">
+			<label for="settings-new-password">Новый пароль</label>
+			<input
+				id="settings-new-password"
+				type="password"
+				bind:value={newPassword}
+				placeholder="Новый пароль"
+			/>
+		</div>
+		<div class="form-row">
+			<label for="settings-confirm-password">Подтвердите пароль</label>
+			<input
+				id="settings-confirm-password"
+				type="password"
+				bind:value={confirmPass}
+				placeholder="Подтвердите пароль"
+			/>
+		</div>
 		<br />
 		{#if status}<p class="status error">{status}</p>{/if}
 		<div class="btn-row">
@@ -168,3 +180,24 @@
 		</div>
 	</div>
 </div>
+
+<style>
+	.form-row {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+	}
+
+	.form-row label {
+		flex: 0 0 120px;
+		color: #fff;
+		font-size: 13px;
+		line-height: 1.3;
+	}
+
+	.form-row input {
+		flex: 1;
+		min-width: 0;
+		width: auto;
+	}
+</style>

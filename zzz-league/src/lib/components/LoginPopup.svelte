@@ -51,13 +51,15 @@
 	<div class="card">
 		{#if resettingPassword}
 			<h2>Сброс пароля</h2>
-			<label for="login-reset-email">Email</label>
-			<input
-				id="login-reset-email"
-				type="text"
-				bind:value={email}
-				placeholder="Email"
-			/>
+			<div class="form-row">
+				<label for="login-reset-email">Email</label>
+				<input
+					id="login-reset-email"
+					type="text"
+					bind:value={email}
+					placeholder="Email"
+				/>
+			</div>
 
 			{#if status}<p class="status error">{status}</p>{/if}
 			<div class="btn-row">
@@ -71,21 +73,25 @@
 			</div>
 		{:else}
 			<h2>Вход</h2>
-			<label for="login-email">Email</label>
-			<input
-				id="login-email"
-				type="text"
-				bind:value={email}
-				placeholder="Email"
-			/>
-			<label for="login-password">Пароль</label>
-			<input
-				id="login-password"
-				type="password"
-				bind:value={password}
-				placeholder="Пароль"
-				onkeydown={(e) => e.key === "Enter" && handleLogin()}
-			/>
+			<div class="form-row">
+				<label for="login-email">Email</label>
+				<input
+					id="login-email"
+					type="text"
+					bind:value={email}
+					placeholder="Email"
+				/>
+			</div>
+			<div class="form-row">
+				<label for="login-password">Пароль</label>
+				<input
+					id="login-password"
+					type="password"
+					bind:value={password}
+					placeholder="Пароль"
+					onkeydown={(e) => e.key === "Enter" && handleLogin()}
+				/>
+			</div>
 			{#if status}<p class="status error">{status}</p>{/if}
 			<div class="btn-row">
 				<button class="btn-common btn-play" onclick={handleLogin}
@@ -99,3 +105,24 @@
 		{/if}
 	</div>
 </div>
+
+<style>
+	.form-row {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+	}
+
+	.form-row label {
+		flex: 0 0 120px;
+		color: #fff;
+		font-size: 13px;
+		line-height: 1.3;
+	}
+
+	.form-row input {
+		flex: 1;
+		min-width: 0;
+		width: auto;
+	}
+</style>

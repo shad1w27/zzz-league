@@ -48,35 +48,43 @@
 <div class="popup">
 	<div class="card">
 		<h2>Регистрация</h2>
-		<label for="register-username">Ник</label>
-		<input
-			id="register-username"
-			type="text"
-			bind:value={username}
-			placeholder="Ник"
-		/>
-		<label for="register-email">Email</label>
-		<input
-			id="register-email"
-			type="email"
-			bind:value={email}
-			placeholder="Email"
-		/>
-		<label for="register-password">Пароль</label>
-		<input
-			id="register-password"
-			type="password"
-			bind:value={password}
-			placeholder="Пароль"
-		/>
-		<label for="register-confirm-password">Подтвердите пароль</label>
-		<input
-			id="register-confirm-password"
-			type="password"
-			bind:value={confirmPass}
-			placeholder="Подтвердите пароль"
-			onkeydown={(e) => e.key === "Enter" && handleRegister()}
-		/>
+		<div class="form-row">
+			<label for="register-username">Ник</label>
+			<input
+				id="register-username"
+				type="text"
+				bind:value={username}
+				placeholder="Ник"
+			/>
+		</div>
+		<div class="form-row">
+			<label for="register-email">Email</label>
+			<input
+				id="register-email"
+				type="email"
+				bind:value={email}
+				placeholder="Email"
+			/>
+		</div>
+		<div class="form-row">
+			<label for="register-password">Пароль</label>
+			<input
+				id="register-password"
+				type="password"
+				bind:value={password}
+				placeholder="Пароль"
+			/>
+		</div>
+		<div class="form-row">
+			<label for="register-confirm-password">Подтвердите пароль</label>
+			<input
+				id="register-confirm-password"
+				type="password"
+				bind:value={confirmPass}
+				placeholder="Подтвердите пароль"
+				onkeydown={(e) => e.key === "Enter" && handleRegister()}
+			/>
+		</div>
 		{#if status}<p class="status error">{status}</p>{/if}
 		<div class="btn-row">
 			<button class="btn-common btn-play" onclick={handleRegister}
@@ -86,3 +94,24 @@
 		</div>
 	</div>
 </div>
+
+<style>
+	.form-row {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+	}
+
+	.form-row label {
+		flex: 0 0 120px;
+		color: #fff;
+		font-size: 13px;
+		line-height: 1.3;
+	}
+
+	.form-row input {
+		flex: 1;
+		min-width: 0;
+		width: auto;
+	}
+</style>

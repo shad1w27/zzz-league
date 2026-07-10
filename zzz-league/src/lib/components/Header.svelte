@@ -23,6 +23,7 @@
 <header class="site-header card">
 	<a class="site-logo" href={resolve("/")}>NESC</a>
 	<nav class="nav-links">
+		<a class="nav-link" href={resolve("/")}>Главная</a>
 		<a class="nav-link" href={resolve("/tournaments")}>Архив турниров</a>
 		<a class="nav-link" href={resolve("/history")}>История матчей</a>
 	</nav>

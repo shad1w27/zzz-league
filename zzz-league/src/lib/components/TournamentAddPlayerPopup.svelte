@@ -46,21 +46,25 @@
 	<div class="popup">
 		<div class="card">
 			<h2>Добавить игрока</h2>
-			<label for="add-player-search">Поиск игрока</label>
-			<input
-				id="add-player-search"
-				type="text"
-				class="search-input"
-				placeholder="Поиск игрока..."
-				bind:value={searchQuery}
-			/>
-			<label for="add-player-select">Игрок</label>
-			<select id="add-player-select" bind:value={selectedUid}>
-				<option value="">Выберите игрока</option>
-				{#each availablePlayers as player}
-					<option value={player.uid}>{player.name}</option>
-				{/each}
-			</select>
+			<div class="form-row">
+				<label for="add-player-search">Поиск игрока</label>
+				<input
+					id="add-player-search"
+					type="text"
+					class="search-input"
+					placeholder="Поиск игрока..."
+					bind:value={searchQuery}
+				/>
+			</div>
+			<div class="form-row">
+				<label for="add-player-select">Игрок</label>
+				<select id="add-player-select" bind:value={selectedUid}>
+					<option value="">Выберите игрока</option>
+					{#each availablePlayers as player}
+						<option value={player.uid}>{player.name}</option>
+					{/each}
+				</select>
+			</div>
 
 			{#if status}<p class="status error">{status}</p>{/if}
 			<div class="btn-row">
@@ -76,3 +80,25 @@
 		</div>
 	</div>
 {/if}
+
+<style>
+	.form-row {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+	}
+
+	.form-row label {
+		flex: 0 0 120px;
+		color: #fff;
+		font-size: 13px;
+		line-height: 1.3;
+	}
+
+	.form-row input,
+	.form-row select {
+		flex: 1;
+		min-width: 0;
+		width: auto;
+	}
+</style>

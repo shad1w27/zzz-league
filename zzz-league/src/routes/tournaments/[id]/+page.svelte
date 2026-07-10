@@ -5,7 +5,7 @@
 	import SidePanel from "$lib/components/SidePanel.svelte";
 	import TournamentGamePopup from "$lib/components/TournamentMatchPopup.svelte";
 	import TournamentPlayerTable from "$lib/components/TournamentPlayerTable.svelte";
-	import TournamentRegisterPopup from "$lib/components/TournamentRegisterPopup.svelte";
+	import TournamentRegisterPopup from "$lib/components/TournamentRegistrationPopup.svelte";
 	import TournamentSplitPopup from "$lib/components/TournamentSplitPopup.svelte";
 	import TournamentAddPlayerPopup from "$lib/components/TournamentAddPlayerPopup.svelte";
 	import {
@@ -181,12 +181,6 @@
 	function openMatch(match: TournamentMatch) {
 		currentMatchId = match.id;
 		matchOpen = true;
-	}
-
-	function openMyRegistration() {
-		userRegistration = myRegistration;
-		userPlayer = $currentUser;
-		registrationOpen = true;
 	}
 
 	onMount(() => {
@@ -379,10 +373,10 @@
 						{/if}
 					{/if}
 					{#if $currentUser && tierEligible && !tournament.state && now > tournament.registrationStartDate && now < tournament.registrationEndDate}
-						<button
+						<a
 							class="btn-common btn-play"
-							onclick={openMyRegistration}
-							>{#if myRegistration}Обновить регистрацию{:else}Зарегистрироваться{/if}</button
+							href={resolve(`/tournaments/${tournament.id}/register`)}
+							>{#if myRegistration}Обновить регистрацию{:else}Зарегистрироваться{/if}</a
 						>
 					{/if}
 				</div>
@@ -475,10 +469,6 @@
 		{tournament}
 		player={userPlayer}
 		reg={userRegistration}
-		editable={userRegistration?.uid === myRegistration?.uid &&
-			now < tournament!.registrationEndDate &&
-			!tournament!.state &&
-			!tournament!.challongeTournamentId}
 	></TournamentRegisterPopup>
 {/if}
 {#if matchOpen}

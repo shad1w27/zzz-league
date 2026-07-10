@@ -55,25 +55,29 @@
 	<div class="popup">
 		<div class="card">
 			<h2>Разделить на сетки</h2>
-			<label for="division-count">Количество сеток</label>
-			<input
-				id="division-count"
-				type="number"
-				min="2"
-				bind:value={divisionCount}
-			/>
-			<hr style="width: 100%" />
-			{#each divisionSizes as _, i}
-				<label for="division-size-{i}">Игроков в сетке {i + 1}</label>
+			<div class="form-row">
+				<label for="division-count">Количество сеток</label>
 				<input
-					id="division-size-{i}"
+					id="division-count"
 					type="number"
 					min="2"
-					bind:value={divisionSizes[i]}
+					bind:value={divisionCount}
 				/>
+			</div>
+			<hr style="width: 100%" />
+			{#each divisionSizes as _, i}
+				<div class="form-row">
+					<label for="division-size-{i}">Игроков в сетке {i + 1}</label>
+					<input
+						id="division-size-{i}"
+						type="number"
+						min="2"
+						bind:value={divisionSizes[i]}
+					/>
+				</div>
 			{/each}
 			<p>Распределено: {totalAssigned} / {approvedCount}</p>
-			<p class="hint">Минимум 2 игрока</p>
+			<p class="hint">Минимум 2 игрока в сетке</p>
 
 			{#if status}<p class="status error">{status}</p>{/if}
 			<div class="btn-row">
@@ -91,6 +95,25 @@
 {/if}
 
 <style>
+	.form-row {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+	}
+
+	.form-row label {
+		flex: 0 0 120px;
+		color: #fff;
+		font-size: 13px;
+		line-height: 1.3;
+	}
+
+	.form-row input {
+		flex: 1;
+		min-width: 0;
+		width: auto;
+	}
+
 	.hint {
 		color: #888;
 		font-size: 13px;
