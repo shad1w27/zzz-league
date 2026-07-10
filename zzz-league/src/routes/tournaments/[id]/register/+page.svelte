@@ -74,26 +74,30 @@
 			return;
 		}
 
+		const hasRosterScreenshot =
+			(rosterScreenshot && rosterScreenshot.length > 0) || regScreenshot;
+		const hasHoyolabScreenshot =
+			(hoyolabScreenshot && hoyolabScreenshot.length > 0) ||
+			regHoyolabScreenshot;
+
 		if (
 			!zzzUid ||
 			!darteNickname ||
 			!darteAccount ||
 			!dartePreset ||
-			!rosterScreenshot ||
-			rosterScreenshot.length === 0 ||
-			!hoyolabScreenshot ||
-			hoyolabScreenshot.length === 0
+			!hasRosterScreenshot ||
+			!hasHoyolabScreenshot
 		) {
 			status = "Заполните все поля";
 			return;
 		}
 
-		const screenshotFile = rosterScreenshot[0];
-		const hoyolabScreenshotFile = hoyolabScreenshot[0];
+		const screenshotFile = rosterScreenshot?.[0] ?? null;
+		const hoyolabScreenshotFile = hoyolabScreenshot?.[0] ?? null;
 
 		if (
-			isImageTooLarge(screenshotFile) ||
-			isImageTooLarge(hoyolabScreenshotFile)
+			(screenshotFile && isImageTooLarge(screenshotFile)) ||
+			(hoyolabScreenshotFile && isImageTooLarge(hoyolabScreenshotFile))
 		) {
 			status = `Файл слишком большой, максимум ${MAX_IMAGE_SIZE_MB}МБ`;
 			return;
@@ -167,7 +171,7 @@
 			{:else if !registrationWindowOpen}
 				<p class="notice">Регистрация на турнир закрыта.</p>
 			{:else if regLoaded}
-				<div class="form-row">
+				<div class="form-row-wide">
 					<label for="reg-zzz-uid">Игровой UID</label>
 					<input
 						id="reg-zzz-uid"
@@ -176,7 +180,7 @@
 						placeholder="Игровой UID"
 					/>
 				</div>
-				<div class="form-row">
+				<div class="form-row-wide">
 					<label for="reg-darte-nickname">Ник на Darte</label>
 					<input
 						id="reg-darte-nickname"
@@ -185,7 +189,7 @@
 						placeholder="Ник на Darte"
 					/>
 				</div>
-				<div class="form-row">
+				<div class="form-row-wide">
 					<label for="reg-darte-account">Название аккаунта на Darte</label>
 					<input
 						id="reg-darte-account"
@@ -194,7 +198,7 @@
 						placeholder="Название аккаунта на Darte"
 					/>
 				</div>
-				<div class="form-row">
+				<div class="form-row-wide">
 					<label for="reg-darte-preset">Название пресета</label>
 					<input
 						id="reg-darte-preset"
@@ -206,7 +210,7 @@
 
 				<hr style="width: 100%" />
 
-				<div class="form-row">
+				<div class="form-row-wide">
 					<label for="reg-roster-screenshot">Скриншот ростера</label>
 					<input
 						id="reg-roster-screenshot"
@@ -222,11 +226,12 @@
 					>
 						<img src={bustCache(regScreenshot)} alt="" />
 					</button>
+					<p class="notice">Оставьте пустым, чтобы не менять скриншот</p>
 				{/if}
 
 				<hr style="width: 100%" />
 
-				<div class="form-row">
+				<div class="form-row-wide">
 					<label for="reg-hoyolab-screenshot"
 						>Скриншот персонажа Hoyolab</label
 					>
@@ -244,6 +249,7 @@
 					>
 						<img src={bustCache(regHoyolabScreenshot)} alt="" />
 					</button>
+					<p class="notice">Оставьте пустым, чтобы не менять скриншот</p>
 				{/if}
 
 				<hr style="width: 100%" />
@@ -289,29 +295,6 @@
 </div>
 
 <style>
-	.notice {
-		color: #aaa;
-	}
-
-	.form-row {
-		display: flex;
-		align-items: center;
-		gap: 16px;
-	}
-
-	.form-row label {
-		flex: 0 0 200px;
-		color: #888;
-	}
-
-	.form-row input {
-		width: 240px;
-	}
-
-	.form-row input[type="file"] {
-		padding: 8px;
-	}
-
 	.awareness {
 		display: flex;
 		align-items: center;
@@ -329,38 +312,5 @@
 
 	.awareness span {
 		color: #aaa;
-	}
-
-	.value-highlight {
-		color: var(--gold) !important;
-	}
-
-	.img-btn {
-		background: none;
-		border: none;
-		padding: 0;
-		width: 100%;
-	}
-
-	.img-btn img {
-		width: 100%;
-		height: auto;
-		object-fit: contain;
-		border-radius: 8px;
-		cursor: pointer;
-		max-height: 320px;
-	}
-
-	.btn-col {
-		margin-top: 14px;
-		display: flex;
-		flex-direction: column;
-		gap: 14px;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.btn-col .btn-common {
-		width: 240px;
 	}
 </style>

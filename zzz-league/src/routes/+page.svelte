@@ -178,13 +178,6 @@
 </div>
 
 <style>
-	.tournament-container {
-		display: flex;
-		flex-direction: row;
-		gap: 12px;
-		flex-wrap: wrap;
-	}
-
 	.main-timer {
 		background: #222;
 		border: 1px solid #444;

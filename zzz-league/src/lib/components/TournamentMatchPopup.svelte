@@ -204,8 +204,7 @@
 				bind:files={inputScreenshot}
 			/>
 			<button class="btn-common" onclick={handleApproveResult}
-				>Подтвердить результат {match.p1ApprovedResult ? "✅" : "❌"}
-				{match.p2ApprovedResult ? "✅" : "❌"}</button
+				>Подтвердить результат {match.p1ApprovedResult ? "✅" : "❌"} {match.p2ApprovedResult ? "✅" : "❌"}</button
 			>
 		{/if}
 
@@ -275,49 +274,8 @@
 		width: 240px;
 	}
 
-	.match-players {
-		display: grid;
-		grid-template-columns: 1fr auto 1fr;
-		align-items: center;
-		gap: 16px;
-	}
-
-	.match-player-name {
-		font-weight: bold;
-		color: white;
-		font-size: 22px;
-	}
-
 	.match-player-left {
-		text-align: right;
 		align-items: flex-end;
-	}
-
-	.match-player-right {
-		text-align: left;
-	}
-
-	.match-vs {
-		text-align: center;
-		color: #666;
-		white-space: nowrap;
-	}
-
-	.match-winner {
-		color: var(--green);
-	}
-
-	.match-loser {
-		color: var(--loss);
-	}
-
-	.match-techloss {
-		color: #888;
-	}
-
-	.techloss-label {
-		color: #888;
-		text-align: center;
 	}
 
 	.back-btn {
@@ -338,20 +296,8 @@
 	.admin-techloss-row .btn-common {
 		flex: 1;
 	}
-
-	.img-btn {
-		background: none;
-		border: none;
-		padding: 0;
-		width: 100%;
-	}
-
-	.img-btn img {
-		width: 100%;
-		height: auto;
-		object-fit: contain;
-		border-radius: 8px;
-		cursor: pointer;
-		max-height: 240px;
+	
+	.card .btn-common {
+		padding: 14px;
 	}
 </style>

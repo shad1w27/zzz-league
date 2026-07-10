@@ -25,7 +25,19 @@ export const applyForTournament = onCall(defaultOptions, async (request) => {
   } = request.data;
 
   if (!tournamentId || !darteNickname || !darteAccount ||
-    !dartePreset || !rosterScreenshot || !hoyolabScreenshot || !zzzUid) {
+    !dartePreset || !zzzUid) {
+    throw new HttpsError("invalid-argument", "Missing required fields");
+  }
+
+  const existingRegSnap = await db
+      .ref(`tournaments/${tournamentId}/registrations/${callerUid}`)
+      .once("value");
+  const existingReg = existingRegSnap.val();
+
+  if (!rosterScreenshot && !existingReg?.rosterScreenshot) {
+    throw new HttpsError("invalid-argument", "Missing required fields");
+  }
+  if (!hoyolabScreenshot && !existingReg?.hoyolabScreenshot) {
     throw new HttpsError("invalid-argument", "Missing required fields");
   }
 
@@ -58,18 +70,13 @@ export const applyForTournament = onCall(defaultOptions, async (request) => {
     throw new HttpsError("permission-denied", "Player is out of tier group");
   }
 
-  const rosterScreenshotUrl = await uploadImage(
+  const rosterScreenshotUrl = rosterScreenshot ? await uploadImage(
       rosterScreenshot, `tournaments/${tournamentId}/${callerUid}-roster`,
-  );
+  ) : existingReg.rosterScreenshot;
 
-  const hoyolabScreenshotUrl = await uploadImage(
+  const hoyolabScreenshotUrl = hoyolabScreenshot ? await uploadImage(
       hoyolabScreenshot, `tournaments/${tournamentId}/${callerUid}-hoyolab`,
-  );
-
-  const existingRegSnap = await db
-      .ref(`tournaments/${tournamentId}/registrations/${callerUid}`)
-      .once("value");
-  const existingReg = existingRegSnap.val();
+  ) : existingReg.hoyolabScreenshot;
 
   await db.ref(`tournaments/${tournamentId}/registrations/${callerUid}`).set({
     uid: callerUid,

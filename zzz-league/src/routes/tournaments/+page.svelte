@@ -50,13 +50,6 @@
 </div>
 
 <style>
-	.tournament-container {
-		display: flex;
-		flex-direction: row;
-		gap: 12px;
-		flex-wrap: wrap;
-	}
-
 	.empty-label {
 		color: #888;
 	}

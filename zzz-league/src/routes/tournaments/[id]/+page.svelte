@@ -492,12 +492,6 @@
 {/if}
 
 <style>
-	.match-list {
-		display: flex;
-		flex-direction: column;
-		gap: 8px;
-	}
-
 	.match-item {
 		display: flex;
 		align-items: center;
@@ -506,55 +500,17 @@
 	}
 
 	.match-players {
-		display: grid;
-		grid-template-columns: 1fr auto 1fr;
-		align-items: center;
-		gap: 16px;
 		width: 400px;
 	}
 
 	.match-player-name {
 		cursor: pointer;
-		font-weight: bold;
-		color: white;
-		font-size: 22px;
-	}
-
-	.match-player-left {
-		text-align: right;
-	}
-
-	.match-player-right {
-		text-align: left;
-	}
-
-	.match-vs {
-		text-align: center;
-		color: #666;
-		white-space: nowrap;
-	}
-
-	.match-winner {
-		color: var(--green);
-	}
-
-	.match-loser {
-		color: var(--loss);
-	}
-
-	.match-techloss {
-		color: #888;
 	}
 
 	.match-item-content {
 		display: flex;
 		flex-direction: column;
 		gap: 4px;
-	}
-
-	.techloss-label {
-		color: #888;
-		text-align: center;
 	}
 
 	.btn-match {
@@ -594,11 +550,6 @@
 	.description-container p {
 		margin: 0;
 		line-height: 21px;
-	}
-
-	.value-highlight {
-		color: var(--gold);
-		font-weight: bold;
 	}
 
 	.winner-label {

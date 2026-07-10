@@ -95,25 +95,6 @@
 {/if}
 
 <style>
-	.form-row {
-		display: flex;
-		align-items: center;
-		gap: 10px;
-	}
-
-	.form-row label {
-		flex: 0 0 120px;
-		color: #fff;
-		font-size: 13px;
-		line-height: 1.3;
-	}
-
-	.form-row input {
-		flex: 1;
-		min-width: 0;
-		width: auto;
-	}
-
 	.hint {
 		color: #888;
 		font-size: 13px;

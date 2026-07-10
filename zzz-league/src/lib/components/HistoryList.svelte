@@ -97,7 +97,7 @@
 
 		<div class="match-item {viewerId ? `border-${changeClass(leftChange)}` : ''}">
 			<div class="match-row">
-				<div class="match-players">
+				<div class="history-match-players">
 					<span class={changeClass(leftChange)}>
 						({leftChange > 0 ? "+" : ""}{leftChange})
 					</span>
@@ -105,20 +105,20 @@
 						<!-- svelte-ignore a11y_click_events_have_key_events -->
 						<!-- svelte-ignore a11y_no_static_element_interactions -->
 						<span
-							class="match-player-name match-opponent"
+							class="history-match-player-name match-opponent"
 							onclick={() => openPlayer(left)}
 						>
 							{getPlayerName(left)}
 						</span>
 					{:else}
-						<span class="match-player-name">{getPlayerName(left)}</span>
+						<span class="history-match-player-name">{getPlayerName(left)}</span>
 					{/if}
 					{#if right}
-						<span class="match-player-name">vs</span>
+						<span class="history-match-player-name">vs</span>
 						<!-- svelte-ignore a11y_click_events_have_key_events -->
 						<!-- svelte-ignore a11y_no_static_element_interactions -->
 						<span
-							class="match-player-name match-opponent"
+							class="history-match-player-name match-opponent"
 							onclick={() => openPlayer(right!)}
 						>
 							{getPlayerName(right)}
@@ -127,11 +127,11 @@
 							({rightChange! > 0 ? "+" : ""}{rightChange})
 						</span>
 					{:else if viewerId}
-						<span class="match-player-name match-adjustment"
+						<span class="history-match-player-name match-adjustment"
 							>Корректировка ELO</span
 						>
 					{:else}
-						<span class="match-player-name match-adjustment"
+						<span class="history-match-player-name match-adjustment"
 							>— Корректировка ELO</span
 						>
 					{/if}
@@ -146,7 +146,7 @@
 						</a>
 					{/if}
 					{#if entry.tournamentMatch === "techloss"}
-						<span class="match-techloss">Техлуз</span>
+						<span class="history-match-techloss">Техлуз</span>
 					{/if}
 					<span>{formatDate(entry.timestamp)}</span>
 					{#if $isAdmin}
@@ -163,11 +163,11 @@
 			{#if entry.resultP1 && entry.resultP2}
 				<div class="match-result">
 					<span>{entry.resultP1}</span>
-					<span class="match-vs">—</span>
+					<span class="history-match-vs">—</span>
 					<span>{entry.resultP2}</span>
 					{#if entry.resultScreenshot}
 						<button
-							class="img-btn"
+							class="history-img-btn"
 							onclick={() => openImagePopup(entry.resultScreenshot!)}
 						>
 							<img src={bustCache(entry.resultScreenshot)} alt="" />
@@ -182,12 +182,6 @@
 </div>
 
 <style>
-	.match-list {
-		display: flex;
-		flex-direction: column;
-		gap: 8px;
-	}
-
 	.match-item {
 		display: flex;
 		flex-direction: column;
@@ -217,13 +211,13 @@
 		align-items: center;
 	}
 
-	.match-players {
+	.history-match-players {
 		display: flex;
 		align-items: center;
 		gap: 8px;
 	}
 
-	.match-player-name {
+	.history-match-player-name {
 		font-weight: bold;
 	}
 
@@ -255,7 +249,7 @@
 		color: #888;
 	}
 
-	.match-techloss {
+	.history-match-techloss {
 		color: var(--loss);
 	}
 
@@ -282,18 +276,18 @@
 		color: #ccc;
 	}
 
-	.match-vs {
+	.history-match-vs {
 		color: #666;
 	}
 
-	.img-btn {
+	.history-img-btn {
 		background: none;
 		border: none;
 		padding: 0;
 		margin-left: auto;
 	}
 
-	.img-btn img {
+	.history-img-btn img {
 		width: 48px;
 		height: 48px;
 		object-fit: cover;
