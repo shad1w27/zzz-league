@@ -190,21 +190,21 @@
 					/>
 				</div>
 				<div class="form-row-wide">
-					<label for="reg-darte-account">Название аккаунта на Darte</label>
+					<label for="reg-darte-account">Название пресета на Darte</label>
 					<input
 						id="reg-darte-account"
 						type="text"
 						bind:value={darteAccount}
-						placeholder="Название аккаунта на Darte"
+						placeholder="Название пресета на Darte"
 					/>
 				</div>
 				<div class="form-row-wide">
-					<label for="reg-darte-preset">Название пресета</label>
+					<label for="reg-darte-preset">Название рсотера</label>
 					<input
 						id="reg-darte-preset"
 						type="text"
 						bind:value={dartePreset}
-						placeholder="Название пресета"
+						placeholder="Название ростера"
 					/>
 				</div>
 

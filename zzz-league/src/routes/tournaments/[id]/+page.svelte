@@ -387,7 +387,7 @@
 					title="challonge iframe"
 					src="{tournament.challongeTournamentUrl}/module"
 					width="100%"
-					height="500"
+					height="600"
 					frameborder="0"
 					scrolling="auto"
 					allowtransparency={true}
@@ -494,7 +494,7 @@
 	}
 
 	.match-players {
-		width: 400px;
+		width: 440px;
 	}
 
 	.match-player-name {
