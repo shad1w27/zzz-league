@@ -43,6 +43,7 @@ export const adminAddTournamentRegistration = onCall(
       await regRef.set({
         uid,
         zzzUid: "",
+        prizeUid: "",
         darteNickname: player.name,
         darteAccount: "",
         dartePreset: "",

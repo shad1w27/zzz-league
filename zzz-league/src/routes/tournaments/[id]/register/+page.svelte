@@ -24,6 +24,7 @@
 	let regLoaded = $state(false);
 
 	let zzzUid = $state("");
+	let prizeUid = $state("");
 	let darteNickname = $state("");
 	let darteAccount = $state("");
 	let dartePreset = $state("");
@@ -40,6 +41,7 @@
 		if (!reg || fieldsInitialized) return;
 		fieldsInitialized = true;
 		zzzUid = reg.zzzUid ?? "";
+		prizeUid = reg.prizeUid ?? "";
 		darteNickname = reg.darteNickname ?? "";
 		darteAccount = reg.darteAccount ?? "";
 		dartePreset = reg.dartePreset ?? "";
@@ -82,6 +84,7 @@
 
 		if (
 			!zzzUid ||
+			!prizeUid ||
 			!darteNickname ||
 			!darteAccount ||
 			!dartePreset ||
@@ -108,6 +111,7 @@
 			await applyForTournament(
 				tournament.id,
 				zzzUid,
+				prizeUid,
 				darteNickname,
 				darteAccount,
 				dartePreset,
@@ -178,6 +182,15 @@
 						type="text"
 						bind:value={zzzUid}
 						placeholder="Игровой UID"
+					/>
+				</div>
+				<div class="form-row-wide">
+					<label for="reg-prize-uid">UID для призовых</label>
+					<input
+						id="reg-prize-uid"
+						type="text"
+						bind:value={prizeUid}
+						placeholder="UID для призовых"
 					/>
 				</div>
 				<div class="form-row-wide">

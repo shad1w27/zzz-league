@@ -62,6 +62,7 @@ export interface Tournament {
 export interface TournamentRegistration {
 	uid: string,
 	zzzUid: string,
+	prizeUid: string,
 	darteNickname: string,
 	darteAccount: string,
 	dartePreset: string,
