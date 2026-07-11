@@ -11,6 +11,7 @@
 	let allTournaments = $state<Tournament[]>([]);
 	let filteredTournaments = $derived(
 		allTournaments.filter((t) => {
+			if (t.visible === false && !$isAdmin) return false;
 			const expiration = 3 * 24 * 60 * 60 * 1000;
 			return Date.now() - t.tournamentEndDate < expiration;
 		}),

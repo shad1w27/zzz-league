@@ -59,6 +59,8 @@
 		),
 	);
 
+	let canView = $derived(tournament?.visible !== false || $isAdmin);
+
 	let currentUserTier = $derived(
 		$currentUser?.isHighConfirmed
 			? 1000
@@ -233,7 +235,9 @@
 	<SidePanel></SidePanel>
 
 	<div class="card main-content">
-		{#if tournament}
+		{#if tournament && !canView}
+			<p class="notice">Недостаточно прав для просмотра этой страницы.</p>
+		{:else if tournament}
 			<h2>{tournament.name}</h2>
 			<div class="description-container">
 				{#if tournament.divisionIndex}
@@ -435,7 +439,6 @@
 					{/each}
 				</div>
 			{/if}
-		{/if}
 
 		<div class="search-container">
 			<h2>Участники</h2>
@@ -454,6 +457,7 @@
 				onViewRegistration={openRegistration}
 			/>
 		</div>
+		{/if}
 	</div>
 </div>
 

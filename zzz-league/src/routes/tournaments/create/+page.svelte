@@ -25,6 +25,7 @@
 	let minCharacters = $state(14);
 	let minTier = $state("0");
 	let maxTier = $state("1000");
+	let visible = $state(true);
 
 	let status = $state("");
 	let creatingTournament = false;
@@ -91,6 +92,7 @@
 				consolationMatchesTargetRank: breakTiesEnabled
 					? breakTiesPlace
 					: null,
+				visible,
 			};
 			const id = await createTournament(tournament);
 			await goto(resolve(`/tournaments/${id}`));
@@ -187,6 +189,10 @@
 					type="number"
 					bind:value={minCharacters}
 				/>
+			</div>
+			<div class="form-row-wide">
+				<label for="f-visible">Публичный</label>
+				<input id="f-visible" type="checkbox" bind:checked={visible} />
 			</div>
 
 			<hr style="width: 100%" />

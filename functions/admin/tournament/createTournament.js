@@ -21,6 +21,7 @@ export const createTournament = onCall(defaultOptions, async (request) => {
     overrideEloChange,
     type,
     consolationMatchesTargetRank,
+    visible,
   } = request.data;
 
   if (!name || !registrationStartDate || !registrationEndDate ||
@@ -49,6 +50,7 @@ export const createTournament = onCall(defaultOptions, async (request) => {
     overrideEloChange,
     type,
     consolationMatchesTargetRank: consolationMatchesTargetRank ?? null,
+    visible: visible ?? true,
   });
 
   return {success: true, id};

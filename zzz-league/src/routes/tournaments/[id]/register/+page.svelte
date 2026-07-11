@@ -4,7 +4,7 @@
 	import { page } from "$app/state";
 	import SidePanel from "$lib/components/SidePanel.svelte";
 	import { applyForTournament, db } from "$lib/firebase";
-	import { currentUser } from "$lib/store";
+	import { currentUser, isAdmin } from "$lib/store";
 	import type { Tournament, TournamentRegistration } from "$lib/types";
 	import {
 		bustCache,
@@ -166,7 +166,9 @@
 		{#if tournament}
 			<h2>Регистрация: {tournament.name}</h2>
 
-			{#if !$currentUser}
+			{#if tournament.visible === false && !$isAdmin}
+				<p class="notice">Недостаточно прав для просмотра этой страницы.</p>
+			{:else if !$currentUser}
 				<p class="notice">Войдите, чтобы зарегистрироваться на турнир.</p>
 			{:else if !tierEligible}
 				<p class="notice">Ваш тир не подходит для этого турнира.</p>

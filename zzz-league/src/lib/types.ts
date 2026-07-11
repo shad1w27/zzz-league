@@ -57,6 +57,7 @@ export interface Tournament {
 	consolationMatchesTargetRank: number | null,
 	divisionGroupId?: string,
 	divisionIndex?: number,
+	visible?: boolean,
 }
 
 export interface TournamentRegistration {

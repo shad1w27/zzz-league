@@ -5,14 +5,15 @@
 	import type { Tournament } from "$lib/types";
 	import SidePanel from "$lib/components/SidePanel.svelte";
 	import TournamentCard from "$lib/components/TournamentCard.svelte";
+	import { isAdmin } from "$lib/store";
 
 	let allTournaments = $state<Tournament[]>([]);
 	let now = $state(Date.now());
 
 	let sortedTournaments = $derived(
-		[...allTournaments].sort(
-			(a, b) => b.tournamentStartDate - a.tournamentStartDate,
-		),
+		[...allTournaments]
+			.filter((t) => t.visible !== false || $isAdmin)
+			.sort((a, b) => b.tournamentStartDate - a.tournamentStartDate),
 	);
 
 	onMount(() => {
