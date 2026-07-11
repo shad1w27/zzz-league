@@ -19,17 +19,30 @@
 		<div class="card">
 			<h2>Регистрация</h2>
 			<p>Discord: {player?.discord ?? "-"}</p>
-			<div class="form-row">
-				<label for="reg-zzz-uid">Игровой UID</label>
-				<input
-					id="reg-zzz-uid"
-					type="text"
-					class="input-disabled"
-					value={reg?.zzzUid ?? ""}
-					placeholder="Игровой UID"
-					disabled
-				/>
-			</div>
+			{#if $isAdmin}
+				<div class="form-row">
+					<label for="reg-zzz-uid">Игровой UID</label>
+					<input
+						id="reg-zzz-uid"
+						type="text"
+						class="input-disabled"
+						value={reg?.zzzUid ?? ""}
+						placeholder="Игровой UID"
+						disabled
+					/>
+				</div>
+				<div class="form-row">
+					<label for="reg-prize-uid">UID для призовых</label>
+					<input
+						id="reg-prize-uid"
+						type="text"
+						class="input-disabled"
+						value={reg?.prizeUid ?? ""}
+						placeholder="UID для призовых"
+						disabled
+					/>
+				</div>
+			{/if}
 			<div class="form-row">
 				<label for="reg-darte-nickname">Ник на Darte</label>
 				<input

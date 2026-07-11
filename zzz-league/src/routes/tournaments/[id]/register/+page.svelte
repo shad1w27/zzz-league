@@ -4,7 +4,7 @@
 	import { page } from "$app/state";
 	import SidePanel from "$lib/components/SidePanel.svelte";
 	import { applyForTournament, db } from "$lib/firebase";
-	import { currentUser } from "$lib/store";
+	import { currentUser, isAdmin } from "$lib/store";
 	import type { Tournament, TournamentRegistration } from "$lib/types";
 	import {
 		bustCache,
@@ -24,6 +24,7 @@
 	let regLoaded = $state(false);
 
 	let zzzUid = $state("");
+	let prizeUid = $state("");
 	let darteNickname = $state("");
 	let darteAccount = $state("");
 	let dartePreset = $state("");
@@ -40,6 +41,7 @@
 		if (!reg || fieldsInitialized) return;
 		fieldsInitialized = true;
 		zzzUid = reg.zzzUid ?? "";
+		prizeUid = reg.prizeUid ?? "";
 		darteNickname = reg.darteNickname ?? "";
 		darteAccount = reg.darteAccount ?? "";
 		dartePreset = reg.dartePreset ?? "";
@@ -82,6 +84,7 @@
 
 		if (
 			!zzzUid ||
+			!prizeUid ||
 			!darteNickname ||
 			!darteAccount ||
 			!dartePreset ||
@@ -108,6 +111,7 @@
 			await applyForTournament(
 				tournament.id,
 				zzzUid,
+				prizeUid,
 				darteNickname,
 				darteAccount,
 				dartePreset,
@@ -162,7 +166,9 @@
 		{#if tournament}
 			<h2>Регистрация: {tournament.name}</h2>
 
-			{#if !$currentUser}
+			{#if tournament.visible === false && !$isAdmin}
+				<p class="notice">Недостаточно прав для просмотра этой страницы.</p>
+			{:else if !$currentUser}
 				<p class="notice">Войдите, чтобы зарегистрироваться на турнир.</p>
 			{:else if !tierEligible}
 				<p class="notice">Ваш тир не подходит для этого турнира.</p>
@@ -181,6 +187,15 @@
 					/>
 				</div>
 				<div class="form-row-wide">
+					<label for="reg-prize-uid">UID для призовых</label>
+					<input
+						id="reg-prize-uid"
+						type="text"
+						bind:value={prizeUid}
+						placeholder="UID для призовых"
+					/>
+				</div>
+				<div class="form-row-wide">
 					<label for="reg-darte-nickname">Ник на Darte</label>
 					<input
 						id="reg-darte-nickname"
@@ -190,21 +205,21 @@
 					/>
 				</div>
 				<div class="form-row-wide">
-					<label for="reg-darte-account">Название аккаунта на Darte</label>
+					<label for="reg-darte-account">Название пресета на Darte</label>
 					<input
 						id="reg-darte-account"
 						type="text"
 						bind:value={darteAccount}
-						placeholder="Название аккаунта на Darte"
+						placeholder="Название пресета на Darte"
 					/>
 				</div>
 				<div class="form-row-wide">
-					<label for="reg-darte-preset">Название пресета</label>
+					<label for="reg-darte-preset">Название рсотера</label>
 					<input
 						id="reg-darte-preset"
 						type="text"
 						bind:value={dartePreset}
-						placeholder="Название пресета"
+						placeholder="Название ростера"
 					/>
 				</div>
 

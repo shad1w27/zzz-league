@@ -42,7 +42,7 @@
 		approveRegistration(tournament!.id, uid, !approved);
 	}
 
-function getTier(p: Player) {
+	function getTier(p: Player) {
 		if (p.isHighConfirmed) return { cls: "t-high", name: "HIGH TIER" };
 		if (p.isMidConfirmed) return { cls: "t-mid", name: "MID TIER" };
 		return { cls: "t-newbie", name: "NEWBIE" };
@@ -51,6 +51,8 @@ function getTier(p: Player) {
 	function getLvl(elo: number) {
 		return Math.min(10, Math.floor(((elo || 1000) - 1000) / 40) + 1);
 	}
+
+	let canViewRegistrations = $derived($isAdmin || !!tournament?.state);
 </script>
 
 <table>
@@ -62,7 +64,7 @@ function getTier(p: Player) {
 			<th>ELO</th>
 			<th>LVL</th>
 			<th>Подтвержден</th>
-			<th>Рега</th>
+			{#if canViewRegistrations}<th>Рега</th>{/if}
 			{#if $isAdmin && !hideOptions}<th>Опции</th>{/if}
 		</tr>
 	</thead>
@@ -90,14 +92,16 @@ function getTier(p: Player) {
 					{/if}
 				</td>
 				<td><span class="lvl-badge">L{getLvl(elo)}</span></td>
-				<td><span>{reg.registration.approved ?  "✅" : "❌"}</span></td>
-				<td>
-					<button
-						class="icon-btn"
-						onclick={() => onViewRegistration?.(reg.player.uid)}
-						>Смотреть</button
-					>
-				</td>
+				<td><span>{reg.registration.approved ? "✅" : "❌"}</span></td>
+				{#if canViewRegistrations}
+					<td>
+						<button
+							class="icon-btn"
+							onclick={() => onViewRegistration?.(reg.player.uid)}
+							>Смотреть</button
+						>
+					</td>
+				{/if}
 				{#if $isAdmin && !hideOptions}
 					<td class="options-cell">
 						<button

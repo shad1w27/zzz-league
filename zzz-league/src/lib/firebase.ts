@@ -96,12 +96,13 @@ function fileToBase64(file: File): Promise<string> {
 	});
 }
 
-export async function applyForTournament(tournamentId: string, zzzUid: string, darteNickname: string,
+export async function applyForTournament(tournamentId: string, zzzUid: string, prizeUid: string, darteNickname: string,
 	darteAccount: string, dartePreset: string, rosterScreenshot: File | null, hoyolabScreenshot: File | null): Promise<void> {
 
 	await httpsCallable(functions, 'applyForTournament')({
 		tournamentId,
 		zzzUid,
+		prizeUid,
 		darteNickname,
 		darteAccount,
 		dartePreset,

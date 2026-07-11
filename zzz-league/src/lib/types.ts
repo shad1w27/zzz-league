@@ -57,11 +57,13 @@ export interface Tournament {
 	consolationMatchesTargetRank: number | null,
 	divisionGroupId?: string,
 	divisionIndex?: number,
+	visible?: boolean,
 }
 
 export interface TournamentRegistration {
 	uid: string,
 	zzzUid: string,
+	prizeUid: string,
 	darteNickname: string,
 	darteAccount: string,
 	dartePreset: string,
