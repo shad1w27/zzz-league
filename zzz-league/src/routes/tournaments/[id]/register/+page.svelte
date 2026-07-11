@@ -214,7 +214,7 @@
 					/>
 				</div>
 				<div class="form-row-wide">
-					<label for="reg-darte-preset">Название рсотера</label>
+					<label for="reg-darte-preset">Название ростера</label>
 					<input
 						id="reg-darte-preset"
 						type="text"
