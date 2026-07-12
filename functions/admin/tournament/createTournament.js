@@ -22,6 +22,8 @@ export const createTournament = onCall(defaultOptions, async (request) => {
     type,
     consolationMatchesTargetRank,
     visible,
+    discordRoleName,
+    discordChannelName,
   } = request.data;
 
   if (!name || !registrationStartDate || !registrationEndDate ||
@@ -51,6 +53,8 @@ export const createTournament = onCall(defaultOptions, async (request) => {
     type,
     consolationMatchesTargetRank: consolationMatchesTargetRank ?? null,
     visible: visible ?? true,
+    discordRoleName: discordRoleName ?? "",
+    discordChannelName: discordChannelName ?? "",
   });
 
   return {success: true, id};

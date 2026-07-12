@@ -7,7 +7,7 @@ import {
   DISCORD_MID_ROLE,
   DISCORD_HIGH_ROLE,
 } from "../config/secrets.js";
-import {assignDiscordRole} from "../utils/assignDiscordRole.js";
+import {assignDiscordRole} from "../discord/assignDiscordRole.js";
 import {validateAdminRequest} from "../utils/validateAdminRequest.js";
 import {defaultOptions} from "../config/options.js";
 

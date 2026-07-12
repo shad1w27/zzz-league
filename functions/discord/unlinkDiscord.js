@@ -7,6 +7,7 @@ import {
   DISCORD_MID_ROLE,
   DISCORD_HIGH_ROLE,
 } from "../config/secrets.js";
+import {removeMemberRole} from "./discordClient.js";
 import {defaultOptions} from "../config/options.js";
 
 export const unlinkDiscord = onCall({
@@ -25,19 +26,15 @@ export const unlinkDiscord = onCall({
   if (!player) throw new HttpsError("not-found", "Player not found");
 
   if (player.discordId) {
-    const guildId = DISCORD_GUILD_ID.value();
-    const token = DISCORD_BOT_TOKEN.value();
     const allRoles = [
       DISCORD_NEWBIE_ROLE.value(),
       DISCORD_MID_ROLE.value(),
       DISCORD_HIGH_ROLE.value(),
     ];
 
-    await Promise.all(allRoles.map((roleId) => fetch(`https://discord.com/api/guilds/${guildId}/members/${player.discordId}/roles/${roleId}`, {
-      method: "DELETE",
-      headers: {Authorization: `Bot ${token}`},
-    }),
-    ));
+    await Promise.all(
+        allRoles.map((roleId) => removeMemberRole(player.discordId, roleId)),
+    );
   }
 
   await db.ref("players/" + callerUid).update({

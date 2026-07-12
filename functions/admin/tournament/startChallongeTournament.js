@@ -1,13 +1,25 @@
 import {onCall, HttpsError} from "firebase-functions/https";
 import {db} from "../../config/firebase.js";
-import {CHALLONGE_API_KEY} from "../../config/secrets.js";
+import {
+  CHALLONGE_API_KEY,
+  DISCORD_BOT_TOKEN,
+  DISCORD_GUILD_ID,
+  DISCORD_TOURNAMENT_CATEGORY_ID,
+} from "../../config/secrets.js";
+import {createTournamentDiscordResources}
+  from "../../discord/tournamentDiscordResources.js";
 import {updateTournamentGames} from "../../utils/updateTournamentGames.js";
 import {validateAdminRequest} from "../../utils/validateAdminRequest.js";
 import {defaultOptions} from "../../config/options.js";
 
 export const startChallongeTournament = onCall({
   ...defaultOptions,
-  secrets: [CHALLONGE_API_KEY],
+  secrets: [
+    CHALLONGE_API_KEY,
+    DISCORD_BOT_TOKEN,
+    DISCORD_GUILD_ID,
+    DISCORD_TOURNAMENT_CATEGORY_ID,
+  ],
 }, async (request) => {
   await validateAdminRequest(request);
 
@@ -165,6 +177,7 @@ export const startChallongeTournament = onCall({
   });
 
   await updateTournamentGames(tournamentId, challongeTournamentId);
+  await createTournamentDiscordResources(tournamentId);
 
   return {success: true, challongeTournamentId};
 });

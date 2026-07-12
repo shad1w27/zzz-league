@@ -29,7 +29,8 @@ export {updatePlayerElo} from "./admin/updatePlayerElo.js";
 
 export {applyForTournament} from "./user/applyForTournament.js";
 export {approveResult} from "./user/approveResult.js";
-export {linkDiscord} from "./user/linkDiscord.js";
 export {register} from "./user/register.js";
-export {unlinkDiscord} from "./user/unlinkDiscord.js";
 export {updateProfile} from "./user/updateProfile.js";
+
+export {linkDiscord} from "./discord/linkDiscord.js";
+export {unlinkDiscord} from "./discord/unlinkDiscord.js";

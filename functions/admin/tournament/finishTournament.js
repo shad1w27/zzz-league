@@ -1,12 +1,18 @@
 import {onCall, HttpsError} from "firebase-functions/https";
 import {db} from "../../config/firebase.js";
-import {CHALLONGE_API_KEY} from "../../config/secrets.js";
+import {
+  CHALLONGE_API_KEY,
+  DISCORD_BOT_TOKEN,
+  DISCORD_GUILD_ID,
+} from "../../config/secrets.js";
+import {revokeTournamentDiscordRoles}
+  from "../../discord/tournamentDiscordResources.js";
 import {validateAdminRequest} from "../../utils/validateAdminRequest.js";
 import {defaultOptions} from "../../config/options.js";
 
 export const finishTournament = onCall({
   ...defaultOptions,
-  secrets: [CHALLONGE_API_KEY],
+  secrets: [CHALLONGE_API_KEY, DISCORD_BOT_TOKEN, DISCORD_GUILD_ID],
 }, async (request) => {
   await validateAdminRequest(request);
 
@@ -68,6 +74,8 @@ export const finishTournament = onCall({
     challongeWinnerId,
     winnerId,
   });
+
+  await revokeTournamentDiscordRoles(tournamentId);
 
   return {success: true};
 });

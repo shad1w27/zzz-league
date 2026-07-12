@@ -26,6 +26,8 @@
 	let minTier = $state("0");
 	let maxTier = $state("1000");
 	let visible = $state(true);
+	let discordRoleName = $state("");
+	let discordChannelName = $state("");
 
 	let status = $state("");
 	let creatingTournament = false;
@@ -93,6 +95,8 @@
 					? breakTiesPlace
 					: null,
 				visible,
+				discordRoleName,
+				discordChannelName,
 			};
 			const id = await createTournament(tournament);
 			await goto(resolve(`/tournaments/${id}`));
@@ -188,6 +192,24 @@
 					id="f-min-characters"
 					type="number"
 					bind:value={minCharacters}
+				/>
+			</div>
+			<div class="form-row-wide">
+				<label for="f-discord-role">Называние дискорд роли</label>
+				<input
+					id="f-discord-role"
+					type="text"
+					bind:value={discordRoleName}
+					placeholder="Название роли"
+				/>
+			</div>
+			<div class="form-row-wide">
+				<label for="f-discord-channel">Название дискорд канала</label>
+				<input
+					id="f-discord-channel"
+					type="text"
+					bind:value={discordChannelName}
+					placeholder="Название канала"
 				/>
 			</div>
 			<div class="form-row-wide">
