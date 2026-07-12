@@ -87,6 +87,11 @@ export async function createTournament(data: Tournament): Promise<string> {
 	return result.data.id;
 }
 
+export async function updateTournament(tournamentId: string, data: Tournament): Promise<void> {
+	const fn = httpsCallable(functions, 'updateTournament');
+	await fn({ ...data, tournamentId });
+}
+
 function fileToBase64(file: File): Promise<string> {
 	return new Promise((resolve, reject) => {
 		const reader = new FileReader();

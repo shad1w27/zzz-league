@@ -4,6 +4,7 @@ export {deleteArchive} from "./admin/history/deleteArchive.js";
 export {deleteHistoryEntry} from "./admin/history/deleteHistoryEntry.js";
 export {approveRegistration} from "./admin/tournament/approveRegistration.js";
 export {createTournament} from "./admin/tournament/createTournament.js";
+export {updateTournament} from "./admin/tournament/updateTournament.js";
 export {startChallongeTournament}
   from "./admin/tournament/startChallongeTournament.js";
 export {splitTournament}

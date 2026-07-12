@@ -338,6 +338,11 @@
 							onclick={handleDeleteTournament}>Удалить турнир</button
 						>
 						{#if !tournament.state && !tournament.challongeTournamentId}
+							<a
+								class="btn-common"
+								href={resolve(`/tournaments/${tournament.id}/edit`)}
+								>Редактировать турнир</a
+							>
 							<button
 								class="btn-common"
 								onclick={() => (addPlayerPopupOpen = true)}
