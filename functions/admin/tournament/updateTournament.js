@@ -3,10 +3,11 @@ import {db} from "../../config/firebase.js";
 import {validateAdminRequest} from "../../utils/validateAdminRequest.js";
 import {defaultOptions} from "../../config/options.js";
 
-export const createTournament = onCall(defaultOptions, async (request) => {
+export const updateTournament = onCall(defaultOptions, async (request) => {
   await validateAdminRequest(request);
 
   const {
+    tournamentId,
     name,
     description,
     registrationStartDate,
@@ -26,18 +27,26 @@ export const createTournament = onCall(defaultOptions, async (request) => {
     discordChannelName,
   } = request.data;
 
-  if (!name || !registrationStartDate || !registrationEndDate ||
-    !tournamentStartDate || !tournamentEndDate || minCost == null ||
-    !maxCost == null || !minCharacters == null || minTier == null ||
-    maxTier == null || type == null || overrideEloChange == null) {
+  if (!tournamentId || !name || !registrationStartDate ||
+    !registrationEndDate || !tournamentStartDate || !tournamentEndDate ||
+    minCost == null || maxCost == null || minCharacters == null ||
+    minTier == null || maxTier == null || type == null ||
+    overrideEloChange == null) {
     throw new HttpsError("invalid-argument", "Missing required fields");
   }
 
-  const newRef = db.ref("tournaments").push();
-  const id = newRef.key;
+  const tournamentRef = db.ref("tournaments/" + tournamentId);
+  const tournamentSnap = await tournamentRef.once("value");
+  const tournament = tournamentSnap.val();
+  if (!tournament) {
+    throw new HttpsError("not-found", "Tournament not found");
+  }
+  if (tournament.state) {
+    throw new HttpsError("failed-precondition",
+        "Tournament has already started");
+  }
 
-  await newRef.set({
-    id,
+  await tournamentRef.update({
     name,
     description: description ?? "",
     registrationStartDate,
@@ -57,5 +66,5 @@ export const createTournament = onCall(defaultOptions, async (request) => {
     discordChannelName: discordChannelName ?? "",
   });
 
-  return {success: true, id};
+  return {success: true};
 });

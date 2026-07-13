@@ -73,6 +73,10 @@ export const splitTournament = onCall(defaultOptions, async (request) => {
   const division1Uids = new Set(division1Group.map((r) => r.uid));
   updates[`tournaments/${tournamentId}/name`] =
     `${tournament.name} A`;
+  if (tournament.discordChannelName) {
+    updates[`tournaments/${tournamentId}/discordChannelName`] =
+      `${tournament.discordChannelName}-A`;
+  }
   updates[`tournaments/${tournamentId}/divisionGroupId`] = tournamentId;
   updates[`tournaments/${tournamentId}/divisionIndex`] = 1;
   updates[`tournaments/${tournamentId}/registrationEndDate`] =
@@ -96,19 +100,23 @@ export const splitTournament = onCall(defaultOptions, async (request) => {
     type,
     overrideEloChange,
     consolationMatchesTargetRank,
+    visible,
+    discordRoleName,
+    discordChannelName,
   } = tournament;
 
   const divisionTournamentIds = [tournamentId];
 
   for (let i = 1; i < groups.length; i++) {
     const divisionIndex = i + 1;
+    const divisionLetter = String.fromCharCode(64 + divisionIndex);
     const newRef = db.ref("tournaments").push();
     const newId = newRef.key;
     divisionTournamentIds.push(newId);
 
     updates[`tournaments/${newId}`] = {
       id: newId,
-      name: `${tournament.name} ${String.fromCharCode(64 + divisionIndex)}`,
+      name: `${tournament.name} ${divisionLetter}`,
       description: description ?? "",
       registrationStartDate,
       registrationEndDate: closedRegistrationEndDate,
@@ -122,6 +130,10 @@ export const splitTournament = onCall(defaultOptions, async (request) => {
       type,
       overrideEloChange,
       consolationMatchesTargetRank: consolationMatchesTargetRank ?? null,
+      visible: visible ?? true,
+      discordRoleName: discordRoleName ?? "",
+      discordChannelName: discordChannelName ?
+        `${discordChannelName}-${divisionLetter}` : "",
       state: "",
       divisionGroupId: tournamentId,
       divisionIndex,

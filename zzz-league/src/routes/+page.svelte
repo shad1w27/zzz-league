@@ -10,11 +10,13 @@
 
 	let allTournaments = $state<Tournament[]>([]);
 	let filteredTournaments = $derived(
-		allTournaments.filter((t) => {
-			if (t.visible === false && !$isAdmin) return false;
-			const expiration = 3 * 24 * 60 * 60 * 1000;
-			return Date.now() - t.tournamentEndDate < expiration;
-		}),
+		allTournaments
+			.filter((t) => {
+				if (t.visible === false && !$isAdmin) return false;
+				const expiration = 1 * 24 * 60 * 60 * 1000;
+				return Date.now() - t.tournamentEndDate < expiration;
+			})
+			.sort((a, b) => b.tournamentStartDate - a.tournamentStartDate),
 	);
 
 	let archives = $state<Archives>({});

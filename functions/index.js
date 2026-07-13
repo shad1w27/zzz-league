@@ -4,6 +4,7 @@ export {deleteArchive} from "./admin/history/deleteArchive.js";
 export {deleteHistoryEntry} from "./admin/history/deleteHistoryEntry.js";
 export {approveRegistration} from "./admin/tournament/approveRegistration.js";
 export {createTournament} from "./admin/tournament/createTournament.js";
+export {updateTournament} from "./admin/tournament/updateTournament.js";
 export {startChallongeTournament}
   from "./admin/tournament/startChallongeTournament.js";
 export {splitTournament}
@@ -29,7 +30,8 @@ export {updatePlayerElo} from "./admin/updatePlayerElo.js";
 
 export {applyForTournament} from "./user/applyForTournament.js";
 export {approveResult} from "./user/approveResult.js";
-export {linkDiscord} from "./user/linkDiscord.js";
 export {register} from "./user/register.js";
-export {unlinkDiscord} from "./user/unlinkDiscord.js";
 export {updateProfile} from "./user/updateProfile.js";
+
+export {linkDiscord} from "./discord/linkDiscord.js";
+export {unlinkDiscord} from "./discord/unlinkDiscord.js";

@@ -8,7 +8,7 @@ import {
   DISCORD_NEWBIE_ROLE,
   DISCORD_MID_ROLE,
   DISCORD_HIGH_ROLE} from "../config/secrets.js";
-import {assignDiscordRole} from "../utils/assignDiscordRole.js";
+import {assignDiscordRole} from "./assignDiscordRole.js";
 import {defaultOptions} from "../config/options.js";
 
 export const linkDiscord = onCall({

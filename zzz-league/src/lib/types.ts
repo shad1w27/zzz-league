@@ -58,6 +58,10 @@ export interface Tournament {
 	divisionGroupId?: string,
 	divisionIndex?: number,
 	visible?: boolean,
+	discordRoleName?: string,
+	discordChannelName?: string,
+	discordRoleId?: string,
+	discordChannelId?: string,
 }
 
 export interface TournamentRegistration {
