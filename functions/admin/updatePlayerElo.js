@@ -1,5 +1,4 @@
 import {onCall, HttpsError} from "firebase-functions/https";
-import admin from "firebase-admin";
 import {db} from "../config/firebase.js";
 import {
   DISCORD_BOT_TOKEN,
