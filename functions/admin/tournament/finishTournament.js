@@ -2,17 +2,25 @@ import {onCall, HttpsError} from "firebase-functions/https";
 import {db} from "../../config/firebase.js";
 import {
   CHALLONGE_API_KEY,
+  DISCORD_ARCHIVE_CATEGORY_ID,
   DISCORD_BOT_TOKEN,
   DISCORD_GUILD_ID,
 } from "../../config/secrets.js";
-import {revokeTournamentDiscordRoles}
-  from "../../discord/tournamentDiscordResources.js";
+import {
+  archiveTournamentDiscordChannel,
+  deleteTournamentDiscordRole,
+} from "../../discord/tournamentDiscordResources.js";
 import {validateAdminRequest} from "../../utils/validateAdminRequest.js";
 import {defaultOptions} from "../../config/options.js";
 
 export const finishTournament = onCall({
   ...defaultOptions,
-  secrets: [CHALLONGE_API_KEY, DISCORD_BOT_TOKEN, DISCORD_GUILD_ID],
+  secrets: [
+    CHALLONGE_API_KEY,
+    DISCORD_BOT_TOKEN,
+    DISCORD_GUILD_ID,
+    DISCORD_ARCHIVE_CATEGORY_ID,
+  ],
 }, async (request) => {
   await validateAdminRequest(request);
 
@@ -75,7 +83,8 @@ export const finishTournament = onCall({
     winnerId,
   });
 
-  await revokeTournamentDiscordRoles(tournamentId);
+  await deleteTournamentDiscordRole(tournamentId);
+  await archiveTournamentDiscordChannel(tournamentId);
 
   return {success: true};
 });

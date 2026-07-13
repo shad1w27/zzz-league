@@ -1,5 +1,4 @@
 import {onCall, HttpsError} from "firebase-functions/https";
-import admin from "firebase-admin";
 import {db} from "../config/firebase.js";
 import {
   DISCORD_BOT_TOKEN,
@@ -67,12 +66,6 @@ export const updatePlayerElo = onCall({
       timestamp: Date.now(),
     },
   };
-
-  if (change > 0) {
-    updates[`players/${uid}/wins`] = admin.database.ServerValue.increment(1);
-  } else if (change < 0) {
-    updates[`players/${uid}/losses`] = admin.database.ServerValue.increment(1);
-  }
 
   await db.ref().update(updates);
 

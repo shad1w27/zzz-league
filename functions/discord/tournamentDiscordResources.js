@@ -1,13 +1,21 @@
 import {db} from "../config/firebase.js";
-import {DISCORD_TOURNAMENT_CATEGORY_ID} from "../config/secrets.js";
+import {
+  DISCORD_ARCHIVE_CATEGORY_ID,
+  DISCORD_GUILD_ID,
+  DISCORD_TOURNAMENT_CATEGORY_ID,
+} from "../config/secrets.js";
 import {
   addMemberRole,
-  removeMemberRole,
   createGuildRole,
+  deleteGuildRole,
   createGuildChannel,
+  moveChannelToCategory,
+  PERMISSION_SEND_MESSAGES,
+  PERMISSION_ADD_REACTIONS,
 } from "./discordClient.js";
 
-const TOURNAMENT_CHANNEL_POSITION = 6;
+const WRITE_PERMISSIONS =
+  String(PERMISSION_SEND_MESSAGES | PERMISSION_ADD_REACTIONS);
 
 async function getApprovedDiscordPlayers(tournamentId) {
   const regSnap = await db
@@ -42,9 +50,13 @@ export async function createTournamentDiscordResources(tournamentId) {
   }
 
   if (tournament.discordChannelName && !tournament.discordChannelId) {
+    const permissionOverwrites = [
+      {id: DISCORD_GUILD_ID.value(), type: 0, deny: WRITE_PERMISSIONS},
+      ...(roleId ? [{id: roleId, type: 0, allow: WRITE_PERMISSIONS}] : []),
+    ];
     const channel = await createGuildChannel(tournament.discordChannelName, {
       parentId: DISCORD_TOURNAMENT_CATEGORY_ID.value(),
-      position: TOURNAMENT_CHANNEL_POSITION,
+      permissionOverwrites,
     });
     updates.discordChannelId = channel.id;
   }
@@ -61,16 +73,24 @@ export async function createTournamentDiscordResources(tournamentId) {
   }
 }
 
-export async function revokeTournamentDiscordRoles(tournamentId) {
-  const tournamentSnap =
-    await db.ref("tournaments/" + tournamentId).once("value");
+export async function deleteTournamentDiscordRole(tournamentId) {
+  const tournamentRef = db.ref("tournaments/" + tournamentId);
+  const tournamentSnap = await tournamentRef.once("value");
   const tournament = tournamentSnap.val();
   if (!tournament?.discordRoleId) return;
 
-  const players = await getApprovedDiscordPlayers(tournamentId);
-  await Promise.all(
-      players.map((player) =>
-        removeMemberRole(player.discordId, tournament.discordRoleId),
-      ),
+  await deleteGuildRole(tournament.discordRoleId);
+  await tournamentRef.update({discordRoleId: null});
+}
+
+export async function archiveTournamentDiscordChannel(tournamentId) {
+  const tournamentSnap =
+    await db.ref("tournaments/" + tournamentId).once("value");
+  const tournament = tournamentSnap.val();
+  if (!tournament?.discordChannelId) return;
+
+  await moveChannelToCategory(
+      tournament.discordChannelId,
+      DISCORD_ARCHIVE_CATEGORY_ID.value(),
   );
 }
