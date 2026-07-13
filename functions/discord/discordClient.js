@@ -69,9 +69,6 @@ export async function createGuildChannel(name, options = {}) {
   });
 }
 
-export async function moveChannelToCategory(channelId, categoryId) {
-  return botFetch(`/channels/${channelId}`, {
-    method: "PATCH",
-    body: JSON.stringify({parent_id: categoryId}),
-  });
+export async function deleteGuildChannel(channelId) {
+  await botFetch(`/channels/${channelId}`, {method: "DELETE"});
 }

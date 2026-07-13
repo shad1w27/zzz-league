@@ -1,6 +1,5 @@
 import {db} from "../config/firebase.js";
 import {
-  DISCORD_ARCHIVE_CATEGORY_ID,
   DISCORD_GUILD_ID,
   DISCORD_TOURNAMENT_CATEGORY_ID,
 } from "../config/secrets.js";
@@ -9,7 +8,7 @@ import {
   createGuildRole,
   deleteGuildRole,
   createGuildChannel,
-  moveChannelToCategory,
+  deleteGuildChannel,
   PERMISSION_SEND_MESSAGES,
   PERMISSION_ADD_REACTIONS,
 } from "./discordClient.js";
@@ -83,14 +82,12 @@ export async function deleteTournamentDiscordRole(tournamentId) {
   await tournamentRef.update({discordRoleId: null});
 }
 
-export async function archiveTournamentDiscordChannel(tournamentId) {
-  const tournamentSnap =
-    await db.ref("tournaments/" + tournamentId).once("value");
+export async function deleteTournamentDiscordChannel(tournamentId) {
+  const tournamentRef = db.ref("tournaments/" + tournamentId);
+  const tournamentSnap = await tournamentRef.once("value");
   const tournament = tournamentSnap.val();
   if (!tournament?.discordChannelId) return;
 
-  await moveChannelToCategory(
-      tournament.discordChannelId,
-      DISCORD_ARCHIVE_CATEGORY_ID.value(),
-  );
+  await deleteGuildChannel(tournament.discordChannelId);
+  await tournamentRef.update({discordChannelId: null});
 }

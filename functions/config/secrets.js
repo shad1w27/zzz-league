@@ -9,6 +9,4 @@ export const DISCORD_CLIENT_ID = defineSecret("DISCORD_CLIENT_ID");
 export const DISCORD_CLIENT_SECRET = defineSecret("DISCORD_CLIENT_SECRET");
 export const DISCORD_TOURNAMENT_CATEGORY_ID =
   defineSecret("DISCORD_TOURNAMENT_CATEGORY_ID");
-export const DISCORD_ARCHIVE_CATEGORY_ID =
-  defineSecret("DISCORD_ARCHIVE_CATEGORY_ID");
 export const CHALLONGE_API_KEY = defineSecret("CHALLONGE_API_KEY");
