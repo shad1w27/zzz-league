@@ -2,6 +2,9 @@ import {DISCORD_BOT_TOKEN, DISCORD_GUILD_ID} from "../config/secrets.js";
 
 const BASE_URL = "https://discord.com/api";
 
+export const PERMISSION_SEND_MESSAGES = 0x800;
+export const PERMISSION_ADD_REACTIONS = 0x40;
+
 async function botFetch(path, options = {}) {
   const res = await fetch(`${BASE_URL}${path}`, {
     ...options,
@@ -45,8 +48,13 @@ export async function createGuildRole(name) {
   });
 }
 
+export async function deleteGuildRole(roleId) {
+  const guildId = DISCORD_GUILD_ID.value();
+  await botFetch(`/guilds/${guildId}/roles/${roleId}`, {method: "DELETE"});
+}
+
 export async function createGuildChannel(name, options = {}) {
-  const {parentId, position} = options;
+  const {parentId, position, permissionOverwrites} = options;
   const guildId = DISCORD_GUILD_ID.value();
   return botFetch(`/guilds/${guildId}/channels`, {
     method: "POST",
@@ -55,6 +63,15 @@ export async function createGuildChannel(name, options = {}) {
       type: 0,
       ...(parentId != null && {parent_id: parentId}),
       ...(position != null && {position}),
+      ...(permissionOverwrites != null &&
+        {permission_overwrites: permissionOverwrites}),
     }),
+  });
+}
+
+export async function moveChannelToCategory(channelId, categoryId) {
+  return botFetch(`/channels/${channelId}`, {
+    method: "PATCH",
+    body: JSON.stringify({parent_id: categoryId}),
   });
 }
