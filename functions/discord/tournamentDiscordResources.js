@@ -14,7 +14,6 @@ import {
   PERMISSION_ADD_REACTIONS,
 } from "./discordClient.js";
 
-// const TOURNAMENT_CHANNEL_POSITION = 6;
 const WRITE_PERMISSIONS =
   String(PERMISSION_SEND_MESSAGES | PERMISSION_ADD_REACTIONS);
 
@@ -57,7 +56,6 @@ export async function createTournamentDiscordResources(tournamentId) {
     ];
     const channel = await createGuildChannel(tournament.discordChannelName, {
       parentId: DISCORD_TOURNAMENT_CATEGORY_ID.value(),
-      // position: TOURNAMENT_CHANNEL_POSITION,
       permissionOverwrites,
     });
     updates.discordChannelId = channel.id;
