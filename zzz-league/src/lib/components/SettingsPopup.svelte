@@ -18,6 +18,7 @@
 	let confirmPass = $state("");
 	let discord = $state("");
 	let status = $state("");
+	let savingSettings = $state(false);
 
 	$effect(() => {
 		if (!user) return;
@@ -53,47 +54,53 @@
 	}
 
 	async function handleSaveSettings() {
-		let successPw = false;
+		if (savingSettings) return;
+		savingSettings = true;
+		try {
+			let successPw = false;
 
-		if (newPassword.length > 0) {
-			if (newPassword !== confirmPass) {
-				status = "Пароли не совпадают";
-				return;
-			}
+			if (newPassword.length > 0) {
+				if (newPassword !== confirmPass) {
+					status = "Пароли не совпадают";
+					return;
+				}
 
-			try {
-				const credential = EmailAuthProvider.credential(
-					auth.currentUser!.email!,
-					currentPassword,
-				);
+				try {
+					const credential = EmailAuthProvider.credential(
+						auth.currentUser!.email!,
+						currentPassword,
+					);
 
-				await reauthenticateWithCredential(auth.currentUser!, credential);
-				await updatePassword(auth.currentUser!, newPassword);
+					await reauthenticateWithCredential(auth.currentUser!, credential);
+					await updatePassword(auth.currentUser!, newPassword);
+					successPw = true;
+				} catch (error: any) {
+					status = error.message;
+				}
+			} else {
 				successPw = true;
-			} catch (error: any) {
-				status = error.message;
 			}
-		} else {
-			successPw = true;
-		}
 
-		let successData = false;
+			let successData = false;
 
-		const newUsername = username !== user.name ? username : null;
+			const newUsername = username !== user.name ? username : null;
 
-		if (newUsername) {
-			try {
-				await updateProfile(newUsername);
+			if (newUsername) {
+				try {
+					await updateProfile(newUsername);
+					successData = true;
+				} catch (error: any) {
+					status = error.message;
+				}
+			} else {
 				successData = true;
-			} catch (error: any) {
-				status = error.message;
 			}
-		} else {
-			successData = true;
-		}
 
-		if (successPw && successData) {
-			close();
+			if (successPw && successData) {
+				close();
+			}
+		} finally {
+			savingSettings = false;
 		}
 	}
 </script>
@@ -174,6 +181,7 @@
 		<div class="btn-row">
 			<button
 				class="btn-common btn-play"
+				class:btn-loading={savingSettings}
 				onclick={() => handleSaveSettings()}>Сохранить</button
 			>
 			<button class="btn-common" onclick={() => close()}>Закрыть</button>

@@ -76,7 +76,9 @@
 				<td>{index + 1}</td>
 				<td><span class="tier-badge {tier.cls}">{tier.name}</span></td>
 				<td class="player-name">
-					<button onclick={() => openProfilePopup(reg.player)}
+					<button
+						class="hover-emphasis"
+						onclick={() => openProfilePopup(reg.player)}
 						>{reg.player.name}</button
 					>
 				</td>

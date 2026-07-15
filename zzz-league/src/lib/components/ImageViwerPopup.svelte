@@ -10,8 +10,15 @@
 	}
 </script>
 
-<div class="popup">
-	<div class="card image-popup-card">
+<!-- svelte-ignore a11y_click_events_have_key_events -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div class="popup" onclick={close}>
+	<!-- svelte-ignore a11y_click_events_have_key_events -->
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
+	<div
+		class="card image-popup-card"
+		onclick={(e) => e.stopPropagation()}
+	>
 		<button class="close-btn" onclick={close}>✕</button>
 
 		{#if !loaded}

@@ -9,6 +9,7 @@ import {
   deleteGuildRole,
   createGuildChannel,
   deleteGuildChannel,
+  forEachWithRateLimitDelay,
   PERMISSION_SEND_MESSAGES,
   PERMISSION_ADD_REACTIONS,
 } from "./discordClient.js";
@@ -66,9 +67,8 @@ export async function createTournamentDiscordResources(tournamentId) {
 
   if (roleId) {
     const players = await getApprovedDiscordPlayers(tournamentId);
-    await Promise.all(
-        players.map((player) => addMemberRole(player.discordId, roleId)),
-    );
+    await forEachWithRateLimitDelay(players,
+        (player) => addMemberRole(player.discordId, roleId));
   }
 }
 

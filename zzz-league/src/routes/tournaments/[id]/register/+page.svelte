@@ -67,7 +67,7 @@
 			now < tournament.registrationEndDate,
 	);
 
-	let isRegistering = false;
+	let isRegistering = $state(false);
 	async function handleRegister() {
 		if (isRegistering || !tournament) return;
 
@@ -297,7 +297,10 @@
 
 				{#if status}<p class="status error">{status}</p>{/if}
 				<div class="btn-col">
-					<button class="btn-common btn-play" onclick={handleRegister}
+					<button
+						class="btn-common btn-play"
+						class:btn-loading={isRegistering}
+						onclick={handleRegister}
 						>{#if myRegistration}Обновить регистрацию{:else}Зарегистрироваться{/if}</button
 					>
 					<a class="btn-common" href={resolve(`/tournaments/${tournament.id}`)}

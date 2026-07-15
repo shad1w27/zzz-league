@@ -45,7 +45,7 @@
 		return player === winnerId ? "match-winner" : "match-loser";
 	}
 
-	let isApproving = false;
+	let isApproving = $state(false);
 	async function handleApproveResult() {
 		if (isApproving) return;
 		if (!matchResultP1 || !matchResultP2) return;
@@ -75,10 +75,12 @@
 	}
 
 	let adminInputScreenshot = $state<FileList | null>(null);
-	let isAdminSubmitting = false;
+	let adminAction = $state<"result" | "techloss-p1" | "techloss-p2" | null>(
+		null,
+	);
 
 	async function handleAdminSetResult() {
-		if (isAdminSubmitting) return;
+		if (adminAction) return;
 		if (!matchResultP1 || !matchResultP2) return;
 		const adminScreenshot = adminInputScreenshot?.[0] ?? null;
 		if (adminScreenshot && isImageTooLarge(adminScreenshot)) {
@@ -87,7 +89,7 @@
 		}
 		if (!confirm("Записать результат от имени администратора?")) return;
 		try {
-			isAdminSubmitting = true;
+			adminAction = "result";
 			await adminSetMatchResult(
 				tournament.id,
 				match.id,
@@ -98,12 +100,12 @@
 		} catch (error) {
 			alert(error);
 		} finally {
-			isAdminSubmitting = false;
+			adminAction = null;
 		}
 	}
 
 	async function handleAdminTechLoss(uid: string) {
-		if (isAdminSubmitting) return;
+		if (adminAction) return;
 		const loserName = getPlayerName(uid);
 		if (
 			!confirm(
@@ -112,7 +114,7 @@
 		)
 			return;
 		try {
-			isAdminSubmitting = true;
+			adminAction = uid === match.p1 ? "techloss-p1" : "techloss-p2";
 			await adminSetMatchResult(
 				tournament.id,
 				match.id,
@@ -124,7 +126,7 @@
 		} catch (error) {
 			alert(error);
 		} finally {
-			isAdminSubmitting = false;
+			adminAction = null;
 		}
 	}
 </script>
@@ -203,7 +205,10 @@
 				accept="image/*"
 				bind:files={inputScreenshot}
 			/>
-			<button class="btn-common" onclick={handleApproveResult}
+			<button
+				class="btn-common"
+				class:btn-loading={isApproving}
+				onclick={handleApproveResult}
 				>Подтвердить результат {match.p1ApprovedResult ? "✅" : "❌"} {match.p2ApprovedResult ? "✅" : "❌"}</button
 			>
 		{/if}
@@ -237,18 +242,24 @@
 				accept="image/*"
 				bind:files={adminInputScreenshot}
 			/>
-			<button class="btn-common" onclick={handleAdminSetResult}>
+			<button
+				class="btn-common"
+				class:btn-loading={adminAction === "result"}
+				onclick={handleAdminSetResult}
+			>
 				Записать результат
 			</button>
 			<div class="admin-techloss-row">
 				<button
 					class="btn-common danger"
+					class:btn-loading={adminAction === "techloss-p1"}
 					onclick={() => handleAdminTechLoss(match.p1)}
 				>
 					Техлуз {getPlayerName(match.p1)}
 				</button>
 				<button
 					class="btn-common danger"
+					class:btn-loading={adminAction === "techloss-p2"}
 					onclick={() => handleAdminTechLoss(match.p2)}
 				>
 					Техлуз {getPlayerName(match.p2)}

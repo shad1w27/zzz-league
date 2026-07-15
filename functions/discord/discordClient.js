@@ -5,7 +5,24 @@ const BASE_URL = "https://discord.com/api";
 export const PERMISSION_SEND_MESSAGES = 0x800;
 export const PERMISSION_ADD_REACTIONS = 0x40;
 
-async function botFetch(path, options = {}) {
+const MAX_RATE_LIMIT_WAIT_MS = 5000;
+const MAX_RATE_LIMIT_RETRIES = 3;
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+const ROLE_UPDATE_DELAY_MS = 300;
+
+export async function forEachWithRateLimitDelay(items, fn) {
+  for (const item of items) {
+    await fn(item);
+    await sleep(ROLE_UPDATE_DELAY_MS);
+  }
+}
+
+async function botFetch(
+    path, options = {}, retriesLeft = MAX_RATE_LIMIT_RETRIES) {
   const res = await fetch(`${BASE_URL}${path}`, {
     ...options,
     headers: {
@@ -14,6 +31,18 @@ async function botFetch(path, options = {}) {
       ...(options.headers ?? {}),
     },
   });
+
+  if (res.status === 429) {
+    const body = await res.json();
+    const retryAfterMs = Math.ceil((body.retry_after ?? 1) * 1000);
+    if (retriesLeft <= 0 || retryAfterMs > MAX_RATE_LIMIT_WAIT_MS) {
+      throw new Error(
+          `Discord API rate limited, retry_after=${body.retry_after}s: ${path}`,
+      );
+    }
+    await sleep(retryAfterMs);
+    return botFetch(path, options, retriesLeft - 1);
+  }
 
   if (!res.ok) {
     const body = await res.text();

@@ -10,14 +10,19 @@
 	let password = $state("");
 	let status = $state("");
 	let resettingPassword = $state(false);
+	let loggingIn = $state(false);
 
 	async function handleLogin() {
+		if (loggingIn) return;
 		status = "";
 		try {
+			loggingIn = true;
 			await signInWithEmailAndPassword(auth, email, password);
 			close();
 		} catch (error: any) {
 			status = error.message;
+		} finally {
+			loggingIn = false;
 		}
 	}
 
@@ -94,7 +99,10 @@
 			</div>
 			{#if status}<p class="status error">{status}</p>{/if}
 			<div class="btn-row">
-				<button class="btn-common btn-play" onclick={handleLogin}
+				<button
+					class="btn-common btn-play"
+					class:btn-loading={loggingIn}
+					onclick={handleLogin}
 					>Войти</button
 				>
 				<button class="btn-common" onclick={close}>Закрыть</button>

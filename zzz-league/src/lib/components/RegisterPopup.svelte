@@ -8,7 +8,7 @@
 	let confirmPass = $state("");
 	let status = $state("");
 
-	let isLoading = false;
+	let isLoading = $state(false);
 
 	async function handleRegister() {
 		if (isLoading) return;
@@ -87,7 +87,10 @@
 		</div>
 		{#if status}<p class="status error">{status}</p>{/if}
 		<div class="btn-row">
-			<button class="btn-common btn-play" onclick={handleRegister}
+			<button
+				class="btn-common btn-play"
+				class:btn-loading={isLoading}
+				onclick={handleRegister}
 				>Зарегистрироваться</button
 			>
 			<button class="btn-common" onclick={close}>Закрыть</button>
