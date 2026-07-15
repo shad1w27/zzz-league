@@ -9,9 +9,12 @@
 	import {
 		bustCache,
 		dateDisplayOptions,
+		filesFromImageFile,
+		imageFileFromPasteEvent,
 		isImageTooLarge,
 		MAX_IMAGE_SIZE_MB,
 		openImagePopup,
+		pasteImageFromClipboard,
 	} from "$lib/uiCommon";
 	import { onValue, ref } from "firebase/database";
 	import { onMount } from "svelte";
@@ -66,6 +69,40 @@
 			now > tournament.registrationStartDate &&
 			now < tournament.registrationEndDate,
 	);
+
+	$effect(() => {
+		function onPaste(e: ClipboardEvent) {
+			if (!regLoaded) return;
+			const file = imageFileFromPasteEvent(e);
+			if (!file) return;
+
+			const files = filesFromImageFile(file);
+			if (!rosterScreenshot || rosterScreenshot.length === 0) {
+				rosterScreenshot = files;
+			} else {
+				hoyolabScreenshot = files;
+			}
+			e.preventDefault();
+		}
+
+		window.addEventListener("paste", onPaste);
+		return () => window.removeEventListener("paste", onPaste);
+	});
+
+	async function handlePasteScreenshot(target: "roster" | "hoyolab") {
+		try {
+			const files = await pasteImageFromClipboard();
+			if (!files) {
+				alert("В буфере обмена нет изображения");
+				return;
+			}
+			if (target === "roster") {
+				rosterScreenshot = files;
+			} else {
+				hoyolabScreenshot = files;
+			}
+		} catch (error) {}
+	}
 
 	let isRegistering = $state(false);
 	async function handleRegister() {
@@ -233,6 +270,12 @@
 						accept="image/*"
 						bind:files={rosterScreenshot}
 					/>
+					<button
+						type="button"
+						class="btn-common paste-btn"
+						onclick={() => handlePasteScreenshot("roster")}
+						>Вставить из буфера</button
+					>
 				</div>
 				{#if regScreenshot}
 					<button
@@ -256,6 +299,12 @@
 						accept="image/*"
 						bind:files={hoyolabScreenshot}
 					/>
+					<button
+						type="button"
+						class="btn-common paste-btn"
+						onclick={() => handlePasteScreenshot("hoyolab")}
+						>Вставить из буфера</button
+					>
 				</div>
 				{#if regHoyolabScreenshot}
 					<button
@@ -278,8 +327,8 @@
 						onclick={(e) => e.stopPropagation()}
 					/>
 					<span
-						>Конечно, я полностью прочитал регламент, и осознаю, что турнир
-						проходит с <span class="value-highlight"
+						>Конечно, я полностью прочитал регламент, и осознаю, что
+						турнир проходит с <span class="value-highlight"
 							>{new Date(tournament.tournamentStartDate).toLocaleString(
 								"ru",
 								dateDisplayOptions,
@@ -303,8 +352,9 @@
 						onclick={handleRegister}
 						>{#if myRegistration}Обновить регистрацию{:else}Зарегистрироваться{/if}</button
 					>
-					<a class="btn-common" href={resolve(`/tournaments/${tournament.id}`)}
-						>Отмена</a
+					<a
+						class="btn-common"
+						href={resolve(`/tournaments/${tournament.id}`)}>Отмена</a
 					>
 				</div>
 			{/if}

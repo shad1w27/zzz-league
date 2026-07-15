@@ -98,7 +98,7 @@
 				{#if canViewRegistrations}
 					<td>
 						<button
-							class="icon-btn"
+							class="icon-btn hover-emphasis"
 							onclick={() => onViewRegistration?.(reg.player.uid)}
 							>Смотреть</button
 						>

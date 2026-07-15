@@ -165,15 +165,11 @@ td {
 
 .hover-emphasis {
 	display: inline-block;
-	text-decoration: underline transparent;
-	transition:
-		transform 0.15s ease,
-		text-decoration-color 0.15s ease;
+	text-decoration: underline transparent !important;
 }
 
 .hover-emphasis:hover {
-	transform: scale(1.08);
-	text-decoration-color: currentColor;
+	text-decoration-color: currentColor !important;
 }
 
 .top-1 .player-name button {
@@ -466,6 +462,25 @@ h1 {
 
 .btn-col .btn-common {
 	width: 240px;
+}
+
+.paste-btn {
+	width: auto;
+	padding: 10px 14px;
+	white-space: nowrap;
+}
+
+.input-row {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 10px;
+}
+
+.input-row input {
+	width: auto;
+	flex: 1;
+	min-width: 0;
 }
 
 .notice {

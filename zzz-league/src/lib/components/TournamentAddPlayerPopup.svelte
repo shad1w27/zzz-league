@@ -25,7 +25,7 @@
 		),
 	);
 
-	let isAdding = false;
+	let isAdding = $state(false);
 	async function handleAdd() {
 		if (isAdding || !selectedUid) return;
 
@@ -70,6 +70,7 @@
 			<div class="btn-row">
 				<button
 					class="btn-common btn-play"
+					class:btn-loading={isAdding}
 					disabled={!selectedUid}
 					onclick={handleAdd}>Добавить</button
 				>

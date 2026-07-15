@@ -97,7 +97,7 @@
 		}
 	});
 
-	let startingTournament = false;
+	let startingTournament = $state(false);
 	async function handleStartTournament() {
 		if (startingTournament) return;
 		startingTournament = true;
@@ -110,7 +110,7 @@
 		}
 	}
 
-	let updatingGames = false;
+	let updatingGames = $state(false);
 	async function handleUpdateTournamentGames() {
 		if (updatingGames) return;
 		updatingGames = true;
@@ -128,7 +128,7 @@
 		}
 	}
 
-	let finishingTournament = false;
+	let finishingTournament = $state(false);
 	async function handleFinishTournament() {
 		if (finishingTournament) return;
 		if (!confirm("Закончить турнир?")) return;
@@ -147,7 +147,7 @@
 		}
 	}
 
-	let deletingTournament = false;
+	let deletingTournament = $state(false);
 	async function handleDeleteTournament() {
 		if (deletingTournament || !tournament) return;
 		if (
@@ -243,7 +243,9 @@
 				{#if tournament.divisionIndex}
 					<p>Сетка {tournament.divisionIndex}</p>
 				{/if}
-				<div class="description-text">{@html renderMarkdown(tournament.description)}</div>
+				<div class="description-text">
+					{@html renderMarkdown(tournament.description)}
+				</div>
 				<p>
 					Рамки коста
 					<span class="value-highlight"
@@ -252,9 +254,7 @@
 				</p>
 				<p>
 					Мин. персонажей
-					<span class="value-highlight"
-						>{tournament.minCharacters}</span
-					>
+					<span class="value-highlight">{tournament.minCharacters}</span>
 				</p>
 				{#snippet tierBadge(tier: number)}
 					{#if tier === 0}
@@ -335,6 +335,7 @@
 					{#if $isAdmin}
 						<button
 							class="btn-common danger"
+							class:btn-loading={deletingTournament}
 							onclick={handleDeleteTournament}>Удалить турнир</button
 						>
 						{#if !tournament.state && !tournament.challongeTournamentId}
@@ -357,12 +358,14 @@
 							{/if}
 							<button
 								class="btn-common btn-play"
+								class:btn-loading={startingTournament}
 								onclick={handleStartTournament}>Начать турнир</button
 							>
 						{/if}
 						{#if tournament.state === "started"}
 							<button
 								class="btn-common btn-play"
+								class:btn-loading={updatingGames}
 								onclick={handleUpdateTournamentGames}
 								>Принудительно обновить игры</button
 							>
@@ -370,6 +373,7 @@
 						{#if tournament.state === "awaiting_review"}
 							<button
 								class="btn-common btn-play"
+								class:btn-loading={finishingTournament}
 								onclick={handleFinishTournament}
 								>Закончить турнир</button
 							>
@@ -413,7 +417,7 @@
 									<!-- svelte-ignore a11y_click_events_have_key_events -->
 									<!-- svelte-ignore a11y_no_static_element_interactions -->
 									<span
-										class="match-player-name match-player-left {getPlayerClass(
+										class="match-player-name match-player-left hover-emphasis {getPlayerClass(
 											match.p1,
 											match.winnerId,
 											match.techLossUid,
@@ -425,7 +429,7 @@
 									<!-- svelte-ignore a11y_click_events_have_key_events -->
 									<!-- svelte-ignore a11y_no_static_element_interactions -->
 									<span
-										class="match-player-name match-player-right {getPlayerClass(
+										class="match-player-name match-player-right hover-emphasis {getPlayerClass(
 											match.p2,
 											match.winnerId,
 											match.techLossUid,
@@ -445,23 +449,23 @@
 				</div>
 			{/if}
 
-		<div class="search-container">
-			<h2>Участники</h2>
-			<input
-				class="search-input"
-				placeholder="Поиск..."
-				bind:value={searchQuery}
-			/>
-		</div>
-		<div class="table-wrapper">
-			<TournamentPlayerTable
-				{tournament}
-				{searchQuery}
-				registrations={registeredPlayers}
-				hideOptions={false}
-				onViewRegistration={openRegistration}
-			/>
-		</div>
+			<div class="search-container">
+				<h2>Участники</h2>
+				<input
+					class="search-input"
+					placeholder="Поиск..."
+					bind:value={searchQuery}
+				/>
+			</div>
+			<div class="table-wrapper">
+				<TournamentPlayerTable
+					{tournament}
+					{searchQuery}
+					registrations={registeredPlayers}
+					hideOptions={false}
+					onViewRegistration={openRegistration}
+				/>
+			</div>
 		{/if}
 	</div>
 </div>
