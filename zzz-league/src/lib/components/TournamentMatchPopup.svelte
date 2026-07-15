@@ -67,6 +67,23 @@
 		return h * 60 + m > 0;
 	}
 
+	let hasUnsavedInput = $derived(
+		matchResultP1 !== (match.resultP1 ?? "00:00") ||
+			matchResultP2 !== (match.resultP2 ?? "00:00") ||
+			!!inputScreenshot?.length ||
+			!!adminInputScreenshot?.length,
+	);
+
+	function handleClose() {
+		if (
+			hasUnsavedInput &&
+			!confirm("Введённые данные будут потеряны. Закрыть окно?")
+		) {
+			return;
+		}
+		open = false;
+	}
+
 	async function handlePasteScreenshot(target: "own" | "admin") {
 		try {
 			const files = await pasteImageFromClipboard();
@@ -377,7 +394,7 @@
 			</div>
 		{/if}
 
-		<button class="btn-common back-btn" onclick={() => (open = false)}
+		<button class="btn-common back-btn" onclick={handleClose}
 			>← Закрыть</button
 		>
 	</div>
