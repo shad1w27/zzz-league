@@ -163,6 +163,15 @@ td {
 	cursor: pointer;
 }
 
+.hover-emphasis {
+	display: inline-block;
+	text-decoration: underline transparent !important;
+}
+
+.hover-emphasis:hover {
+	text-decoration-color: currentColor !important;
+}
+
 .top-1 .player-name button {
 	color: var(--gold);
 	text-shadow: 0 0 15px rgba(255, 204, 0, 0.6);
@@ -248,6 +257,7 @@ textarea {
 }
 
 .btn-common {
+	--btn-fg: #e0e0e0;
 	background: #333;
 	border: 1px solid #444;
 	padding: 14px 0;
@@ -262,6 +272,7 @@ textarea {
 }
 
 .btn-play {
+	--btn-fg: #000;
 	background: var(--gold);
 	color: #000;
 	border: none;
@@ -269,6 +280,33 @@ textarea {
 
 .btn-play:hover {
 	background: #ffdb4d;
+}
+
+.btn-loading {
+	position: relative;
+	color: transparent !important;
+	pointer-events: none;
+}
+
+.btn-loading::after {
+	content: "";
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 16px;
+	height: 16px;
+	margin: -8px 0 0 -8px;
+	border-radius: 50%;
+	border: 2px solid color-mix(in srgb, var(--btn-fg) 25%, transparent);
+	border-top-color: var(--btn-fg);
+	animation: btn-spin 0.7s linear infinite;
+	will-change: transform;
+}
+
+@keyframes btn-spin {
+	to {
+		transform: rotate(360deg);
+	}
 }
 
 .btn-row {
@@ -424,6 +462,25 @@ h1 {
 
 .btn-col .btn-common {
 	width: 240px;
+}
+
+.paste-btn {
+	width: auto;
+	padding: 10px 14px;
+	white-space: nowrap;
+}
+
+.input-row {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 10px;
+}
+
+.input-row input {
+	width: auto;
+	flex: 1;
+	min-width: 0;
 }
 
 .notice {

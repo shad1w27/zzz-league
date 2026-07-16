@@ -2,12 +2,11 @@ import {onCall, HttpsError} from "firebase-functions/https";
 import {db} from "../../config/firebase.js";
 import {
   CHALLONGE_API_KEY,
-  DISCORD_ARCHIVE_CATEGORY_ID,
   DISCORD_BOT_TOKEN,
   DISCORD_GUILD_ID,
 } from "../../config/secrets.js";
 import {
-  archiveTournamentDiscordChannel,
+  deleteTournamentDiscordChannel,
   deleteTournamentDiscordRole,
 } from "../../discord/tournamentDiscordResources.js";
 import {validateAdminRequest} from "../../utils/validateAdminRequest.js";
@@ -15,12 +14,7 @@ import {defaultOptions} from "../../config/options.js";
 
 export const finishTournament = onCall({
   ...defaultOptions,
-  secrets: [
-    CHALLONGE_API_KEY,
-    DISCORD_BOT_TOKEN,
-    DISCORD_GUILD_ID,
-    DISCORD_ARCHIVE_CATEGORY_ID,
-  ],
+  secrets: [CHALLONGE_API_KEY, DISCORD_BOT_TOKEN, DISCORD_GUILD_ID],
 }, async (request) => {
   await validateAdminRequest(request);
 
@@ -84,7 +78,7 @@ export const finishTournament = onCall({
   });
 
   await deleteTournamentDiscordRole(tournamentId);
-  await archiveTournamentDiscordChannel(tournamentId);
+  await deleteTournamentDiscordChannel(tournamentId);
 
   return {success: true};
 });

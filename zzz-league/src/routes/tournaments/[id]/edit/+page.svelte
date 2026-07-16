@@ -38,7 +38,7 @@
 	let discordChannelName = $state("");
 
 	let status = $state("");
-	let savingTournament = false;
+	let savingTournament = $state(false);
 
 	function toDateTimeLocal(date: Date): string {
 		const pad = (n: number) => String(n).padStart(2, "0");
@@ -318,8 +318,10 @@
 				{#if status}<p class="status error">{status}</p>{/if}
 
 				<div class="btn-col">
-					<button class="btn-common btn-play" onclick={handleSaveTournament}
-						>Сохранить</button
+					<button
+						class="btn-common btn-play"
+						class:btn-loading={savingTournament}
+						onclick={handleSaveTournament}>Сохранить</button
 					>
 				</div>
 			{/if}

@@ -32,7 +32,7 @@
 			totalAssigned === approvedCount,
 	);
 
-	let isSplitting = false;
+	let isSplitting = $state(false);
 	async function handleSplit() {
 		if (isSplitting || !isValid) return;
 		if (!confirm(`Разделить турнир на ${divisionCount} сетки?`))
@@ -83,6 +83,7 @@
 			<div class="btn-row">
 				<button
 					class="btn-common btn-play"
+					class:btn-loading={isSplitting}
 					disabled={!isValid}
 					onclick={handleSplit}>Разделить</button
 				>

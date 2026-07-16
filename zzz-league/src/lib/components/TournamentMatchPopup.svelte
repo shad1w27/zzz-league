@@ -3,9 +3,12 @@
 	import { currentUser, isAdmin } from "$lib/store";
 	import {
 		bustCache,
+		filesFromImageFile,
+		imageFileFromPasteEvent,
 		isImageTooLarge,
 		MAX_IMAGE_SIZE_MB,
 		openImagePopup,
+		pasteImageFromClipboard,
 	} from "$lib/uiCommon";
 
 	let {
@@ -18,8 +21,13 @@
 	let myGame = $derived(
 		$currentUser?.uid == match.p1 || $currentUser?.uid == match.p2,
 	);
+	let canApproveOwnResult = $derived(match.state !== "complete" && myGame);
+	let canAdminSetResult = $derived(
+		$isAdmin && tournament.state !== "complete",
+	);
 
 	let inputScreenshot = $state<FileList | null>(null);
+	let adminInputScreenshot = $state<FileList | null>(null);
 	let matchResultP1 = $state(match.resultP1 ?? "00:00");
 	let matchResultP2 = $state(match.resultP2 ?? "00:00");
 
@@ -28,6 +36,87 @@
 		matchResultP1 = match.resultP1 ?? "00:00";
 		matchResultP2 = match.resultP2 ?? "00:00";
 		inputScreenshot = null;
+	});
+
+	function useObjectUrlPreview(getFile: () => File | undefined) {
+		let url = $state<string | null>(null);
+		$effect(() => {
+			const file = getFile();
+			if (!file) {
+				url = null;
+				return;
+			}
+			const objectUrl = URL.createObjectURL(file);
+			url = objectUrl;
+			return () => URL.revokeObjectURL(objectUrl);
+		});
+		return {
+			get url() {
+				return url;
+			},
+		};
+	}
+
+	let inputScreenshotPreview = useObjectUrlPreview(() => inputScreenshot?.[0]);
+	let adminScreenshotPreview = useObjectUrlPreview(
+		() => adminInputScreenshot?.[0],
+	);
+
+	function isValidTime(time: string) {
+		const [h, m] = time.split(":").map(Number);
+		return h * 60 + m > 0;
+	}
+
+	let hasUnsavedInput = $derived(
+		matchResultP1 !== (match.resultP1 ?? "00:00") ||
+			matchResultP2 !== (match.resultP2 ?? "00:00") ||
+			!!inputScreenshot?.length ||
+			!!adminInputScreenshot?.length,
+	);
+
+	function handleClose() {
+		if (
+			hasUnsavedInput &&
+			!confirm("Введённые данные будут потеряны. Закрыть окно?")
+		) {
+			return;
+		}
+		open = false;
+	}
+
+	async function handlePasteScreenshot(target: "own" | "admin") {
+		try {
+			const files = await pasteImageFromClipboard();
+			if (!files) {
+				alert("В буфере обмена нет изображения");
+				return;
+			}
+			if (target === "own") {
+				inputScreenshot = files;
+			} else {
+				adminInputScreenshot = files;
+			}
+		} catch (error) {}
+	}
+
+	$effect(() => {
+		function onPaste(e: ClipboardEvent) {
+			const file = imageFileFromPasteEvent(e);
+			if (!file) return;
+
+			const files = filesFromImageFile(file);
+			if (canApproveOwnResult) {
+				inputScreenshot = files;
+			} else if (canAdminSetResult) {
+				adminInputScreenshot = files;
+			} else {
+				return;
+			}
+			e.preventDefault();
+		}
+
+		window.addEventListener("paste", onPaste);
+		return () => window.removeEventListener("paste", onPaste);
 	});
 
 	function getPlayerName(uid: string) {
@@ -45,10 +134,13 @@
 		return player === winnerId ? "match-winner" : "match-loser";
 	}
 
-	let isApproving = false;
+	let isApproving = $state(false);
 	async function handleApproveResult() {
 		if (isApproving) return;
-		if (!matchResultP1 || !matchResultP2) return;
+		if (!isValidTime(matchResultP1) || !isValidTime(matchResultP2)) {
+			alert("Введите время больше 00:00");
+			return;
+		}
 		const resultScreenshot = inputScreenshot?.[0];
 		if (!resultScreenshot && !match.resultScreenshot) {
 			alert("Необходимо загрузить скриншот результата");
@@ -74,12 +166,16 @@
 		}
 	}
 
-	let adminInputScreenshot = $state<FileList | null>(null);
-	let isAdminSubmitting = false;
+	let adminAction = $state<"result" | "techloss-p1" | "techloss-p2" | null>(
+		null,
+	);
 
 	async function handleAdminSetResult() {
-		if (isAdminSubmitting) return;
-		if (!matchResultP1 || !matchResultP2) return;
+		if (adminAction) return;
+		if (!isValidTime(matchResultP1) || !isValidTime(matchResultP2)) {
+			alert("Введите время больше 00:00");
+			return;
+		}
 		const adminScreenshot = adminInputScreenshot?.[0] ?? null;
 		if (adminScreenshot && isImageTooLarge(adminScreenshot)) {
 			alert(`Файл слишком большой, максимум ${MAX_IMAGE_SIZE_MB}МБ`);
@@ -87,7 +183,7 @@
 		}
 		if (!confirm("Записать результат от имени администратора?")) return;
 		try {
-			isAdminSubmitting = true;
+			adminAction = "result";
 			await adminSetMatchResult(
 				tournament.id,
 				match.id,
@@ -98,12 +194,12 @@
 		} catch (error) {
 			alert(error);
 		} finally {
-			isAdminSubmitting = false;
+			adminAction = null;
 		}
 	}
 
 	async function handleAdminTechLoss(uid: string) {
-		if (isAdminSubmitting) return;
+		if (adminAction) return;
 		const loserName = getPlayerName(uid);
 		if (
 			!confirm(
@@ -112,7 +208,7 @@
 		)
 			return;
 		try {
-			isAdminSubmitting = true;
+			adminAction = uid === match.p1 ? "techloss-p1" : "techloss-p2";
 			await adminSetMatchResult(
 				tournament.id,
 				match.id,
@@ -124,7 +220,7 @@
 		} catch (error) {
 			alert(error);
 		} finally {
-			isAdminSubmitting = false;
+			adminAction = null;
 		}
 	}
 </script>
@@ -158,7 +254,7 @@
 				>{getPlayerName(match.techLossUid)} тех. луз</span
 			>
 		{/if}
-		{#if match.state !== "complete" && myGame}
+		{#if canApproveOwnResult}
 			<hr style="width: 100%" />
 			<div class="match-players">
 				<span class="match-player-left"
@@ -195,20 +291,40 @@
 				<img src={bustCache(match.resultScreenshot)} alt="" />
 			</button>
 		{/if}
-		{#if match.state !== "complete" && myGame}
+		{#if canApproveOwnResult}
 			<span>Загрузить скриншот результатов</span>
-			<input
-				class="input-screenshot"
-				type="file"
-				accept="image/*"
-				bind:files={inputScreenshot}
-			/>
-			<button class="btn-common" onclick={handleApproveResult}
-				>Подтвердить результат {match.p1ApprovedResult ? "✅" : "❌"} {match.p2ApprovedResult ? "✅" : "❌"}</button
+			<div class="input-row">
+				<input
+					class="input-screenshot"
+					type="file"
+					accept="image/*"
+					bind:files={inputScreenshot}
+				/>
+				<button
+					type="button"
+					class="btn-common paste-btn"
+					onclick={() => handlePasteScreenshot("own")}
+					>Вставить(Ctrl+V)</button
+				>
+			</div>
+			{#if inputScreenshotPreview.url}
+				<button
+					class="img-btn"
+					onclick={() => openImagePopup(inputScreenshotPreview.url!)}
+				>
+					<img src={inputScreenshotPreview.url} alt="" />
+				</button>
+			{/if}
+			<button
+				class="btn-common"
+				class:btn-loading={isApproving}
+				onclick={handleApproveResult}
+				>Подтвердить результат {match.p1ApprovedResult ? "✅" : "❌"}
+				{match.p2ApprovedResult ? "✅" : "❌"}</button
 			>
 		{/if}
 
-		{#if $isAdmin && tournament.state !== "complete"}
+		{#if canAdminSetResult}
 			<hr style="width: 100%" />
 			<span class="admin-label">Админ: изменить результат</span>
 			<div class="match-players">
@@ -231,24 +347,46 @@
 					bind:value={matchResultP2}
 				/>
 			</div>
-			<input
-				class="input-screenshot"
-				type="file"
-				accept="image/*"
-				bind:files={adminInputScreenshot}
-			/>
-			<button class="btn-common" onclick={handleAdminSetResult}>
+			<div class="input-row">
+				<input
+					class="input-screenshot"
+					type="file"
+					accept="image/*"
+					bind:files={adminInputScreenshot}
+				/>
+				<button
+					type="button"
+					class="btn-common paste-btn"
+					onclick={() => handlePasteScreenshot("admin")}
+					>Вставить из буфера</button
+				>
+			</div>
+			{#if adminScreenshotPreview.url}
+				<button
+					class="img-btn"
+					onclick={() => openImagePopup(adminScreenshotPreview.url!)}
+				>
+					<img src={adminScreenshotPreview.url} alt="" />
+				</button>
+			{/if}
+			<button
+				class="btn-common"
+				class:btn-loading={adminAction === "result"}
+				onclick={handleAdminSetResult}
+			>
 				Записать результат
 			</button>
 			<div class="admin-techloss-row">
 				<button
 					class="btn-common danger"
+					class:btn-loading={adminAction === "techloss-p1"}
 					onclick={() => handleAdminTechLoss(match.p1)}
 				>
 					Техлуз {getPlayerName(match.p1)}
 				</button>
 				<button
 					class="btn-common danger"
+					class:btn-loading={adminAction === "techloss-p2"}
 					onclick={() => handleAdminTechLoss(match.p2)}
 				>
 					Техлуз {getPlayerName(match.p2)}
@@ -256,7 +394,7 @@
 			</div>
 		{/if}
 
-		<button class="btn-common back-btn" onclick={() => (open = false)}
+		<button class="btn-common back-btn" onclick={handleClose}
 			>← Закрыть</button
 		>
 	</div>
@@ -296,7 +434,7 @@
 	.admin-techloss-row .btn-common {
 		flex: 1;
 	}
-	
+
 	.card .btn-common {
 		padding: 14px;
 	}
