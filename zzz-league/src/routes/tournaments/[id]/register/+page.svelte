@@ -7,6 +7,10 @@
 	import { currentUser, isAdmin } from "$lib/store";
 	import type { Tournament, TournamentRegistration } from "$lib/types";
 	import {
+		hasTournamentStarted,
+		isRegistrationOpen,
+	} from "$lib/tournamentState";
+	import {
 		bustCache,
 		dateDisplayOptions,
 		filesFromImageFile,
@@ -66,8 +70,8 @@
 	);
 	let registrationWindowOpen = $derived(
 		!!tournament &&
-			now > tournament.registrationStartDate &&
-			now < tournament.registrationEndDate,
+			isRegistrationOpen(tournament.state) &&
+			now > tournament.registrationStartDate,
 	);
 
 	$effect(() => {
@@ -209,7 +213,7 @@
 				<p class="notice">Войдите, чтобы зарегистрироваться на турнир.</p>
 			{:else if !tierEligible}
 				<p class="notice">Ваш тир не подходит для этого турнира.</p>
-			{:else if tournament.state || tournament.challongeTournamentId}
+			{:else if hasTournamentStarted(tournament.state) || tournament.challongeTournamentId}
 				<p class="notice">Турнир уже начался, регистрация закрыта.</p>
 			{:else if !registrationWindowOpen}
 				<p class="notice">Регистрация на турнир закрыта.</p>

@@ -2,6 +2,7 @@
 	import { approveRegistration } from "$lib/firebase";
 	import { isAdmin } from "$lib/store";
 	import type { Player, RegisteredPlayer, Tournament } from "$lib/types";
+	import { hasTournamentStarted } from "$lib/tournamentState";
 	import { openProfilePopup } from "$lib/uiCommon";
 
 	interface Props {
@@ -52,7 +53,9 @@
 		return Math.min(10, Math.floor(((elo || 1000) - 1000) / 40) + 1);
 	}
 
-	let canViewRegistrations = $derived($isAdmin || !!tournament?.state);
+	let canViewRegistrations = $derived(
+		$isAdmin || hasTournamentStarted(tournament?.state),
+	);
 </script>
 
 <table>

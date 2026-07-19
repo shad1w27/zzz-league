@@ -11,6 +11,7 @@ import {
 } from "../../discord/tournamentDiscordResources.js";
 import {validateAdminRequest} from "../../utils/validateAdminRequest.js";
 import {defaultOptions} from "../../config/options.js";
+import {TOURNAMENT_STATE} from "../../utils/tournamentState.js";
 
 export const finishTournament = onCall({
   ...defaultOptions,
@@ -72,7 +73,7 @@ export const finishTournament = onCall({
   const winnerId = tournament.challongeParticipants[challongeWinnerId];
 
   await db.ref("tournaments/" + tournamentId).update({
-    state: "complete",
+    state: TOURNAMENT_STATE.COMPLETE,
     challongeWinnerId,
     winnerId,
   });

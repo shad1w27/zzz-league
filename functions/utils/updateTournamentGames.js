@@ -1,6 +1,7 @@
 import {db} from "../config/firebase.js";
 import {CHALLONGE_API_KEY} from "../config/secrets.js";
 import {HttpsError} from "firebase-functions/v2/https";
+import {TOURNAMENT_STATE} from "./tournamentState.js";
 
 export async function updateTournamentGames(tournamentId,
     challongeTournamentId) {
@@ -68,7 +69,7 @@ export async function updateTournamentGames(tournamentId,
   });
 
   if (allMatchesPlayed) {
-    updates["state"] = "awaiting_review";
+    updates["state"] = TOURNAMENT_STATE.AWAITING_REVIEW;
   }
 
   await db.ref(`tournaments/${tournamentId}`).update(updates);

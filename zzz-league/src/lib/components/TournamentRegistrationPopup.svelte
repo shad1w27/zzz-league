@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { currentUser, isAdmin } from "$lib/store";
+	import { hasTournamentStarted } from "$lib/tournamentState";
 	import { bustCache, openImagePopup } from "$lib/uiCommon";
 
 	let {
@@ -10,7 +11,8 @@
 	} = $props();
 
 	let canViewHoyolab = $derived(
-		($isAdmin || $currentUser?.uid === player?.uid) && !tournament?.state,
+		($isAdmin || $currentUser?.uid === player?.uid) &&
+			!hasTournamentStarted(tournament?.state),
 	);
 </script>
 

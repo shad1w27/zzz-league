@@ -92,6 +92,10 @@ export async function updateTournament(tournamentId: string, data: Tournament): 
 	await fn({ ...data, tournamentId });
 }
 
+export async function closeTournamentRegistration(tournamentId: string): Promise<void> {
+	await httpsCallable(functions, 'closeTournamentRegistration')({ tournamentId });
+}
+
 function fileToBase64(file: File): Promise<string> {
 	return new Promise((resolve, reject) => {
 		const reader = new FileReader();
@@ -130,9 +134,9 @@ export async function startChallongeTournament(tournamentId: string): Promise<vo
 	});
 }
 
-export async function splitTournament(tournamentId: string, divisionSizes: number[]): Promise<string[]> {
+export async function splitTournament(tournamentId: string, divisionGroups: string[][]): Promise<string[]> {
 	const fn = httpsCallable(functions, 'splitTournament');
-	const result = await fn({ tournamentId, divisionSizes }) as any;
+	const result = await fn({ tournamentId, divisionGroups }) as any;
 	return result.data.divisionTournamentIds;
 }
 

@@ -2,6 +2,7 @@ import {onCall, HttpsError} from "firebase-functions/https";
 import {db} from "../config/firebase.js";
 import {defaultOptions} from "../config/options.js";
 import {uploadImage} from "../utils/uploadImage.js";
+import {isRegistrationOpen} from "../utils/tournamentState.js";
 
 export const applyForTournament = onCall(defaultOptions, async (request) => {
   const callerUid = request.auth?.uid;
@@ -50,9 +51,9 @@ export const applyForTournament = onCall(defaultOptions, async (request) => {
 
   const tournament = tournamentSnap.val();
 
-  if (tournament.state) {
+  if (!isRegistrationOpen(tournament.state)) {
     throw new HttpsError("permission-denied",
-        "Tournament has already been started");
+        "Tournament is not accepting registrations");
   }
 
   if (Date.now() > tournament.registrationEndDate) {

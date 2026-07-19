@@ -2,27 +2,22 @@ import {onCall, HttpsError} from "firebase-functions/https";
 import {db} from "../../config/firebase.js";
 import {validateAdminRequest} from "../../utils/validateAdminRequest.js";
 import {defaultOptions} from "../../config/options.js";
-
-function shuffle(array) {
-  const result = [...array];
-  for (let i = result.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [result[i], result[j]] = [result[j], result[i]];
-  }
-  return result;
-}
+import {TOURNAMENT_STATE, hasTournamentStarted}
+  from "../../utils/tournamentState.js";
 
 export const splitTournament = onCall(defaultOptions, async (request) => {
   await validateAdminRequest(request);
 
-  const {tournamentId, divisionSizes} = request.data;
+  const {tournamentId, divisionGroups} = request.data;
 
-  if (!tournamentId || !Array.isArray(divisionSizes) ||
-    divisionSizes.length < 2 ||
-    !divisionSizes.every((n) => Number.isInteger(n) && n >= 2)) {
+  if (!tournamentId || !Array.isArray(divisionGroups) ||
+    divisionGroups.length < 2 ||
+    !divisionGroups.every((g) => Array.isArray(g) && g.length >= 2 &&
+      g.every((uid) => typeof uid === "string"))) {
     throw new HttpsError("invalid-argument",
-        "tournamentId and divisionSizes " +
-        "(array of >=2 integers, each >=2) are required");
+        "tournamentId and divisionGroups " +
+        "(array of >=2 arrays of player uids, each with >=2 players) " +
+        "are required");
   }
 
   const tournamentSnap =
@@ -32,7 +27,8 @@ export const splitTournament = onCall(defaultOptions, async (request) => {
     throw new HttpsError("not-found", "Tournament not found");
   }
 
-  if (tournament.state || tournament.challongeTournamentId) {
+  if (hasTournamentStarted(tournament.state) ||
+    tournament.challongeTournamentId) {
     throw new HttpsError("failed-precondition",
         "Tournament has already started");
   }
@@ -47,22 +43,24 @@ export const splitTournament = onCall(defaultOptions, async (request) => {
   const registrations = regSnap.val() ?? {};
 
   const approved = Object.values(registrations).filter((r) => r.approved);
+  const approvedUids = new Set(approved.map((r) => r.uid));
 
-  const totalRequested = divisionSizes.reduce((a, b) => a + b, 0);
-  if (totalRequested !== approved.length) {
+  const groupedUids = divisionGroups.flat();
+  const groupedUidsSet = new Set(groupedUids);
+  if (groupedUids.length !== groupedUidsSet.size ||
+    groupedUids.length !== approved.length ||
+    !groupedUids.every((uid) => approvedUids.has(uid))) {
     throw new HttpsError("failed-precondition",
-        `divisionSizes sum to ${totalRequested}, ` +
-        `but there are ${approved.length} approved registrations`);
+        "divisionGroups must contain every approved registration " +
+        "exactly once");
   }
 
-  const shuffled = shuffle(approved);
-
-  const groups = [];
-  let offset = 0;
-  for (const size of divisionSizes) {
-    groups.push(shuffled.slice(offset, offset + size));
-    offset += size;
-  }
+  const registrationsByUid = Object.fromEntries(
+      approved.map((r) => [r.uid, r]),
+  );
+  const groups = divisionGroups.map(
+      (g) => g.map((uid) => registrationsByUid[uid]),
+  );
 
   const updates = {};
 
@@ -81,6 +79,8 @@ export const splitTournament = onCall(defaultOptions, async (request) => {
   updates[`tournaments/${tournamentId}/divisionIndex`] = 1;
   updates[`tournaments/${tournamentId}/registrationEndDate`] =
     closedRegistrationEndDate;
+  updates[`tournaments/${tournamentId}/state`] =
+    TOURNAMENT_STATE.REGISTRATION_CLOSED;
   for (const r of approved) {
     if (!division1Uids.has(r.uid)) {
       updates[`tournaments/${tournamentId}/registrations/${r.uid}`] = null;
@@ -134,7 +134,7 @@ export const splitTournament = onCall(defaultOptions, async (request) => {
       discordRoleName: discordRoleName ?? "",
       discordChannelName: discordChannelName ?
         `${discordChannelName}-${divisionLetter}` : "",
-      state: "",
+      state: TOURNAMENT_STATE.REGISTRATION_CLOSED,
       divisionGroupId: tournamentId,
       divisionIndex,
       registrations: Object.fromEntries(

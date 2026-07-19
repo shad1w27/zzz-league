@@ -11,6 +11,8 @@ import {createTournamentDiscordResources}
 import {updateTournamentGames} from "../../utils/updateTournamentGames.js";
 import {validateAdminRequest} from "../../utils/validateAdminRequest.js";
 import {defaultOptions} from "../../config/options.js";
+import {TOURNAMENT_STATE, hasTournamentStarted}
+  from "../../utils/tournamentState.js";
 
 export const startChallongeTournament = onCall({
   ...defaultOptions,
@@ -33,6 +35,11 @@ export const startChallongeTournament = onCall({
   const tournament = tournamentSnap.val();
   if (!tournament) {
     throw new HttpsError("not-found", "Tournament not found");
+  }
+
+  if (hasTournamentStarted(tournament.state)) {
+    throw new HttpsError("failed-precondition",
+        "Tournament has already started");
   }
 
   const regSnap =
@@ -171,7 +178,7 @@ export const startChallongeTournament = onCall({
 
   await db.ref("tournaments/" + tournamentId).update({
     challongeParticipants,
-    state: "started",
+    state: TOURNAMENT_STATE.STARTED,
     challongeTournamentId,
     challongeTournamentUrl,
   });
