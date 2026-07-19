@@ -2,15 +2,14 @@
 	import { onMount } from "svelte";
 	import { db, deleteArchive, deleteHistoryEntry } from "$lib/firebase";
 	import { ref, onValue } from "firebase/database";
-	import type { Archives, Tournament } from "$lib/types";
+	import type { Archives } from "$lib/types";
 	import Leaderboard from "$lib/components/Leaderboard.svelte";
 	import SidePanel from "$lib/components/SidePanel.svelte";
 	import TournamentCard from "$lib/components/TournamentCard.svelte";
-	import { isAdmin, players } from "$lib/store";
+	import { isAdmin, players, tournaments } from "$lib/store";
 
-	let allTournaments = $state<Tournament[]>([]);
 	let filteredTournaments = $derived(
-		allTournaments
+		$tournaments
 			.filter((t) => {
 				if (t.visible === false && !$isAdmin) return false;
 				const expiration = 1 * 24 * 60 * 60 * 1000;
@@ -60,13 +59,6 @@
 			archives = snap.val() ?? {};
 		});
 
-		const threeDaysAgo = Date.now() - 3 * 24 * 60 * 60 * 1000;
-
-		const unsubTournaments = onValue(ref(db, "tournaments"), (snap) => {
-			const val = snap.val();
-			allTournaments = val ? (Object.values(val) as Tournament[]) : [];
-		});
-
 		const interval = setInterval(() => {
 			now = Date.now();
 		}, 1000);
@@ -74,7 +66,6 @@
 		return () => {
 			unsubTimer();
 			unsubArchives();
-			unsubTournaments();
 			if (timerInterval) clearInterval(timerInterval);
 			clearInterval(interval);
 		};
@@ -166,7 +157,7 @@
 								class="btn-common archive-btn"
 								onclick={() => loadArchive(key)}>{key}</button
 							>
-							{#if isAdmin}
+							{#if $isAdmin}
 								<button
 									class="btn-common archive-del"
 									onclick={() => handleDeleteArchive(key)}>✕</button

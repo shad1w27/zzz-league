@@ -1,9 +1,9 @@
 import {db} from "../config/firebase.js";
 import {
-  DISCORD_NEWBIE_ROLE,
-  DISCORD_MID_ROLE,
-  DISCORD_HIGH_ROLE,
-} from "../config/secrets.js";
+  DISCORD_NEWBIE_ROLE_ID,
+  DISCORD_MID_ROLE_ID,
+  DISCORD_HIGH_ROLE_ID,
+} from "../config/discordRoles.js";
 import {addMemberRole, removeMemberRole} from "./discordClient.js";
 
 export async function assignDiscordRole(uid) {
@@ -11,9 +11,9 @@ export async function assignDiscordRole(uid) {
   const player = playerSnap.val();
   if (!player?.discordId) return;
 
-  const newbieRole = DISCORD_NEWBIE_ROLE.value();
-  const midRole = DISCORD_MID_ROLE.value();
-  const highRole = DISCORD_HIGH_ROLE.value();
+  const newbieRole = DISCORD_NEWBIE_ROLE_ID;
+  const midRole = DISCORD_MID_ROLE_ID;
+  const highRole = DISCORD_HIGH_ROLE_ID;
 
   const newRoleId = player.isHighConfirmed ? highRole :
     player.isMidConfirmed ? midRole :

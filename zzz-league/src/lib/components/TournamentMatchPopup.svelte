@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { adminSetMatchResult, approveResult } from "$lib/firebase";
+	import { useObjectUrlPreview } from "$lib/imagePreview.svelte.js";
 	import { currentUser, isAdmin } from "$lib/store";
 	import {
 		bustCache,
@@ -37,25 +38,6 @@
 		matchResultP2 = match.resultP2 ?? "00:00";
 		inputScreenshot = null;
 	});
-
-	function useObjectUrlPreview(getFile: () => File | undefined) {
-		let url = $state<string | null>(null);
-		$effect(() => {
-			const file = getFile();
-			if (!file) {
-				url = null;
-				return;
-			}
-			const objectUrl = URL.createObjectURL(file);
-			url = objectUrl;
-			return () => URL.revokeObjectURL(objectUrl);
-		});
-		return {
-			get url() {
-				return url;
-			},
-		};
-	}
 
 	let inputScreenshotPreview = useObjectUrlPreview(() => inputScreenshot?.[0]);
 	let adminScreenshotPreview = useObjectUrlPreview(

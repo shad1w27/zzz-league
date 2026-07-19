@@ -5,6 +5,10 @@ export {deleteHistoryEntry} from "./admin/history/deleteHistoryEntry.js";
 export {approveRegistration} from "./admin/tournament/approveRegistration.js";
 export {createTournament} from "./admin/tournament/createTournament.js";
 export {updateTournament} from "./admin/tournament/updateTournament.js";
+export {closeTournamentRegistration}
+  from "./admin/tournament/closeTournamentRegistration.js";
+export {createChallongeBracket}
+  from "./admin/tournament/createChallongeBracket.js";
 export {startChallongeTournament}
   from "./admin/tournament/startChallongeTournament.js";
 export {splitTournament}

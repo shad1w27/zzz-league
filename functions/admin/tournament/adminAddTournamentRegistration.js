@@ -2,6 +2,7 @@ import {onCall, HttpsError} from "firebase-functions/https";
 import {db} from "../../config/firebase.js";
 import {validateAdminRequest} from "../../utils/validateAdminRequest.js";
 import {defaultOptions} from "../../config/options.js";
+import {isLocked} from "../../utils/tournamentState.js";
 
 export const adminAddTournamentRegistration = onCall(
     defaultOptions,
@@ -22,7 +23,7 @@ export const adminAddTournamentRegistration = onCall(
         throw new HttpsError("not-found", "Tournament not found");
       }
 
-      if (tournament.state || tournament.challongeTournamentId) {
+      if (isLocked(tournament.state) || tournament.challongeTournamentId) {
         throw new HttpsError("failed-precondition",
             "Tournament has already started");
       }

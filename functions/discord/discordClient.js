@@ -1,103 +1,79 @@
+import {REST} from "@discordjs/rest";
+import {Routes} from "discord-api-types/v10";
 import {DISCORD_BOT_TOKEN, DISCORD_GUILD_ID} from "../config/secrets.js";
 
-const BASE_URL = "https://discord.com/api";
-
+export const PERMISSION_VIEW_CHANNEL = 0x400;
 export const PERMISSION_SEND_MESSAGES = 0x800;
 export const PERMISSION_ADD_REACTIONS = 0x40;
 
-const MAX_RATE_LIMIT_WAIT_MS = 5000;
-const MAX_RATE_LIMIT_RETRIES = 3;
+let restClient;
 
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-const ROLE_UPDATE_DELAY_MS = 300;
-
-export async function forEachWithRateLimitDelay(items, fn) {
-  for (const item of items) {
-    await fn(item);
-    await sleep(ROLE_UPDATE_DELAY_MS);
+function getRest() {
+  if (!restClient) {
+    restClient = new REST({version: "10"});
   }
-}
-
-async function botFetch(
-    path, options = {}, retriesLeft = MAX_RATE_LIMIT_RETRIES) {
-  const res = await fetch(`${BASE_URL}${path}`, {
-    ...options,
-    headers: {
-      "Authorization": `Bot ${DISCORD_BOT_TOKEN.value()}`,
-      "Content-Type": "application/json",
-      ...(options.headers ?? {}),
-    },
-  });
-
-  if (res.status === 429) {
-    const body = await res.json();
-    const retryAfterMs = Math.ceil((body.retry_after ?? 1) * 1000);
-    if (retriesLeft <= 0 || retryAfterMs > MAX_RATE_LIMIT_WAIT_MS) {
-      throw new Error(
-          `Discord API rate limited, retry_after=${body.retry_after}s: ${path}`,
-      );
-    }
-    await sleep(retryAfterMs);
-    return botFetch(path, options, retriesLeft - 1);
-  }
-
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`Discord API error ${res.status}: ${body}`);
-  }
-
-  if (res.status === 204) return null;
-  return res.json();
+  restClient.setToken(DISCORD_BOT_TOKEN.value());
+  return restClient;
 }
 
 export async function addMemberRole(discordUserId, roleId) {
   const guildId = DISCORD_GUILD_ID.value();
-  await botFetch(
-      `/guilds/${guildId}/members/${discordUserId}/roles/${roleId}`,
-      {method: "PUT"},
-  );
+  await getRest().put(Routes.guildMemberRole(guildId, discordUserId, roleId));
 }
 
 export async function removeMemberRole(discordUserId, roleId) {
   const guildId = DISCORD_GUILD_ID.value();
-  await botFetch(
-      `/guilds/${guildId}/members/${discordUserId}/roles/${roleId}`,
-      {method: "DELETE"},
+  await getRest().delete(
+      Routes.guildMemberRole(guildId, discordUserId, roleId),
   );
 }
 
+/**
+ * @param {string} name
+ * @return {Promise<any>}
+ */
 export async function createGuildRole(name) {
   const guildId = DISCORD_GUILD_ID.value();
-  return botFetch(`/guilds/${guildId}/roles`, {
-    method: "POST",
-    body: JSON.stringify({name, mentionable: true}),
+  return getRest().post(Routes.guildRoles(guildId), {
+    body: {name, mentionable: true},
   });
 }
 
 export async function deleteGuildRole(roleId) {
   const guildId = DISCORD_GUILD_ID.value();
-  await botFetch(`/guilds/${guildId}/roles/${roleId}`, {method: "DELETE"});
+  await getRest().delete(Routes.guildRole(guildId, roleId));
 }
 
+/**
+ * @param {string} name
+ * @param {object} [options]
+ * @return {Promise<any>}
+ */
 export async function createGuildChannel(name, options = {}) {
   const {parentId, position, permissionOverwrites} = options;
   const guildId = DISCORD_GUILD_ID.value();
-  return botFetch(`/guilds/${guildId}/channels`, {
-    method: "POST",
-    body: JSON.stringify({
+  return getRest().post(Routes.guildChannels(guildId), {
+    body: {
       name,
       type: 0,
       ...(parentId != null && {parent_id: parentId}),
       ...(position != null && {position}),
       ...(permissionOverwrites != null &&
         {permission_overwrites: permissionOverwrites}),
-    }),
+    },
   });
 }
 
 export async function deleteGuildChannel(channelId) {
-  await botFetch(`/channels/${channelId}`, {method: "DELETE"});
+  await getRest().delete(Routes.channel(channelId));
+}
+
+/**
+ * @param {string} accessToken
+ * @return {Promise<any>}
+ */
+export async function getDiscordUser(accessToken) {
+  const userRest = new REST({version: "10", authPrefix: "Bearer"})
+      .setToken(accessToken);
+  return userRest.get(Routes.user());
 }

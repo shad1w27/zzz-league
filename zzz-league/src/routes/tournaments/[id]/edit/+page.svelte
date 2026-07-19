@@ -6,6 +6,7 @@
 	import SidePanel from "$lib/components/SidePanel.svelte";
 	import { isAdmin } from "$lib/store";
 	import type { Tournament } from "$lib/types";
+	import { isLocked } from "$lib/tournamentState";
 	import { renderMarkdown } from "$lib/uiCommon";
 	import { get, ref } from "firebase/database";
 	import { onMount } from "svelte";
@@ -53,7 +54,7 @@
 				loadError = "Турнир не найден.";
 				return;
 			}
-			if (tournament.state) {
+			if (isLocked(tournament.state)) {
 				editable = false;
 				loadError = "Турнир уже начался, редактирование недоступно.";
 				return;

@@ -91,9 +91,17 @@ export function closeImagePopup() {
 	viewingImage.set("");
 }
 
+export function getTier(p: Player): { cls: string; name: string } {
+	if (p.isHighConfirmed) return { cls: "t-high", name: "HIGH TIER" };
+	if (p.isMidConfirmed) return { cls: "t-mid", name: "MID TIER" };
+	return { cls: "t-newbie", name: "NEWBIE" };
+}
+
+export function getLvl(elo: number): number {
+	return Math.min(10, Math.floor(((elo || 1000) - 1000) / 40) + 1);
+}
+
 export function renderMarkdown(text: string): string {
-	// CommonMark treats __text__ as bold, same as **text**. Convert it to real
-	// underline first so __text__ reads as underline (matches Discord's convention).
 	const withUnderline = (text ?? "").replace(/__(.+?)__/g, "<u>$1</u>");
 	const html = marked.parse(withUnderline, { async: false }) as string;
 	return DOMPurify.sanitize(html);

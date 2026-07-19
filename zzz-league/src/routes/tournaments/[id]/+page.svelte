@@ -6,9 +6,10 @@
 	import TournamentGamePopup from "$lib/components/TournamentMatchPopup.svelte";
 	import TournamentPlayerTable from "$lib/components/TournamentPlayerTable.svelte";
 	import TournamentRegisterPopup from "$lib/components/TournamentRegistrationPopup.svelte";
-	import TournamentSplitPopup from "$lib/components/TournamentSplitPopup.svelte";
 	import TournamentAddPlayerPopup from "$lib/components/TournamentAddPlayerPopup.svelte";
 	import {
+		closeTournamentRegistration,
+		createChallongeBracket,
 		db,
 		deleteTournament,
 		finishTournament,
@@ -23,6 +24,13 @@
 		TournamentMatch,
 		TournamentRegistration,
 	} from "$lib/types";
+	import {
+		TOURNAMENT_STATE,
+		isBracketCreated,
+		isLocked,
+		isRegistrationClosed,
+		isRegistrationOpen,
+	} from "$lib/tournamentState";
 	import { dateDisplayOptions, renderMarkdown } from "$lib/uiCommon";
 	import { onValue, ref } from "firebase/database";
 	import { onMount } from "svelte";
@@ -46,7 +54,6 @@
 	let searchQuery = $state("");
 	let registrationOpen = $state(false);
 	let matchOpen = $state(false);
-	let splitPopupOpen = $state(false);
 	let addPlayerPopupOpen = $state(false);
 	let currentMatchId = $state();
 	let currentMatch = $derived(
@@ -73,10 +80,6 @@
 			currentUserTier >= tournament.minTier &&
 			currentUserTier <= tournament.maxTier,
 	);
-	let approvedCount = $derived(
-		registeredPlayers.filter((p) => p.registration.approved).length,
-	);
-
 	let unsubRegistration: (() => void) | null = null;
 
 	$effect(() => {
@@ -96,6 +99,39 @@
 			myRegistration = null;
 		}
 	});
+
+	let closingRegistration = $state(false);
+	async function handleCloseRegistration() {
+		if (closingRegistration || !tournament) return;
+		if (!confirm("Закрыть регистрацию на турнир?")) return;
+		closingRegistration = true;
+		try {
+			await closeTournamentRegistration(tournament.id);
+		} catch (error) {
+			alert(error);
+		} finally {
+			closingRegistration = false;
+		}
+	}
+
+	let creatingBracket = $state(false);
+	async function handleCreateBracket() {
+		if (creatingBracket || !tournament) return;
+		if (
+			!confirm(
+				"Создать сетку Challonge? После этого список участников менять нельзя.",
+			)
+		)
+			return;
+		creatingBracket = true;
+		try {
+			await createChallongeBracket(tournament.id);
+		} catch (error) {
+			alert(error);
+		} finally {
+			creatingBracket = false;
+		}
+	}
 
 	let startingTournament = $state(false);
 	async function handleStartTournament() {
@@ -318,16 +354,19 @@
 					>
 				</p>
 
-				{#if now > tournament.registrationEndDate && now < tournament.tournamentStartDate}
+				{#if isRegistrationClosed(tournament.state)}
 					<p>Регистрация закрыта</p>
 				{/if}
-				{#if !tournament.state && now > tournament.registrationStartDate && now < tournament.registrationEndDate}
+				{#if isRegistrationOpen(tournament.state) && now > tournament.registrationStartDate}
 					<p>Идёт регистрация</p>
 				{/if}
-				{#if tournament.state === "started"}
+				{#if isBracketCreated(tournament.state)}
+					<p>Сетка создана, ожидает начала</p>
+				{/if}
+				{#if tournament.state === TOURNAMENT_STATE.STARTED}
 					<p>Турнир идёт</p>
 				{/if}
-				{#if tournament.state === "complete"}
+				{#if tournament.state === TOURNAMENT_STATE.COMPLETE}
 					<p>Турнир окончен</p>
 				{/if}
 
@@ -338,7 +377,7 @@
 							class:btn-loading={deletingTournament}
 							onclick={handleDeleteTournament}>Удалить турнир</button
 						>
-						{#if !tournament.state && !tournament.challongeTournamentId}
+						{#if !isLocked(tournament.state)}
 							<a
 								class="btn-common"
 								href={resolve(`/tournaments/${tournament.id}/edit`)}
@@ -349,20 +388,41 @@
 								onclick={() => (addPlayerPopupOpen = true)}
 								>Добавить игрока</button
 							>
-							{#if !tournament.divisionGroupId}
+							{#if isRegistrationOpen(tournament.state)}
 								<button
 									class="btn-common"
-									onclick={() => (splitPopupOpen = true)}
-									>Разделить на сетки</button
+									class:btn-loading={closingRegistration}
+									onclick={handleCloseRegistration}
+									>Закрыть регистрацию</button
 								>
 							{/if}
+							{#if !tournament.divisionGroupId}
+								<a
+									class="btn-common"
+									href={resolve(`/tournaments/${tournament.id}/split`)}
+									>Разделить на сетки</a
+								>
+							{/if}
+							<button
+								class="btn-common btn-play"
+								class:btn-loading={creatingBracket}
+								onclick={handleCreateBracket}>Создать сетку Challonge</button
+							>
+						{/if}
+						{#if isBracketCreated(tournament.state)}
+							<a
+								class="btn-common"
+								href={tournament.challongeTournamentUrl}
+								target="_blank"
+								rel="noopener noreferrer">Открыть в Challonge</a
+							>
 							<button
 								class="btn-common btn-play"
 								class:btn-loading={startingTournament}
 								onclick={handleStartTournament}>Начать турнир</button
 							>
 						{/if}
-						{#if tournament.state === "started"}
+						{#if tournament.state === TOURNAMENT_STATE.STARTED}
 							<button
 								class="btn-common btn-play"
 								class:btn-loading={updatingGames}
@@ -370,7 +430,7 @@
 								>Принудительно обновить игры</button
 							>
 						{/if}
-						{#if tournament.state === "awaiting_review"}
+						{#if tournament.state === TOURNAMENT_STATE.AWAITING_REVIEW}
 							<button
 								class="btn-common btn-play"
 								class:btn-loading={finishingTournament}
@@ -379,7 +439,7 @@
 							>
 						{/if}
 					{/if}
-					{#if $currentUser && tierEligible && !tournament.state && now > tournament.registrationStartDate && now < tournament.registrationEndDate}
+					{#if $currentUser && tierEligible && isRegistrationOpen(tournament.state) && now > tournament.registrationStartDate}
 						<a
 							class="btn-common btn-play"
 							href={resolve(`/tournaments/${tournament.id}/register`)}
@@ -485,10 +545,6 @@
 		match={currentMatch}
 		{registeredPlayers}
 	></TournamentGamePopup>
-{/if}
-{#if splitPopupOpen}
-	<TournamentSplitPopup bind:open={splitPopupOpen} {tournament} {approvedCount}
-	></TournamentSplitPopup>
 {/if}
 {#if addPlayerPopupOpen}
 	<TournamentAddPlayerPopup

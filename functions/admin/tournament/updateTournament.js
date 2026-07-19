@@ -2,6 +2,7 @@ import {onCall, HttpsError} from "firebase-functions/https";
 import {db} from "../../config/firebase.js";
 import {validateAdminRequest} from "../../utils/validateAdminRequest.js";
 import {defaultOptions} from "../../config/options.js";
+import {isLocked} from "../../utils/tournamentState.js";
 
 export const updateTournament = onCall(defaultOptions, async (request) => {
   await validateAdminRequest(request);
@@ -41,7 +42,7 @@ export const updateTournament = onCall(defaultOptions, async (request) => {
   if (!tournament) {
     throw new HttpsError("not-found", "Tournament not found");
   }
-  if (tournament.state) {
+  if (isLocked(tournament.state)) {
     throw new HttpsError("failed-precondition",
         "Tournament has already started");
   }

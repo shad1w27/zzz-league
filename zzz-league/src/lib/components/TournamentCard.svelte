@@ -1,18 +1,23 @@
 <script lang="ts">
 	import { resolve } from "$app/paths";
 	import type { Tournament } from "$lib/types";
+	import {
+		TOURNAMENT_STATE,
+		isRegistrationClosed,
+		isRegistrationOpen,
+	} from "$lib/tournamentState";
 	import { dateDisplayOptions } from "$lib/uiCommon";
 
 	let { tournament, now }: { tournament: Tournament; now: number } = $props();
 
 	let status = $derived(
-		tournament.state === "complete"
+		tournament.state === TOURNAMENT_STATE.COMPLETE
 			? "ended"
-			: tournament.state === "complete" ||
-				  tournament.state == "awaiting_review"
+			: tournament.state === TOURNAMENT_STATE.AWAITING_REVIEW ||
+				  tournament.state === TOURNAMENT_STATE.STARTED
 				? "ongoing"
-				: now > tournament.registrationStartDate &&
-					  now < tournament.registrationEndDate
+				: isRegistrationOpen(tournament.state) &&
+					  now > tournament.registrationStartDate
 					? "registration"
 					: "upcoming",
 	);
@@ -33,14 +38,14 @@
 			dateDisplayOptions,
 		)}
 	</p>
-	{#if !tournament.state && now > tournament.registrationStartDate && now < tournament.registrationEndDate}
+	{#if isRegistrationOpen(tournament.state) && now > tournament.registrationStartDate}
 		<p class="tournament-status">
 			Регистрация до {new Date(
 				tournament.registrationEndDate,
 			).toLocaleString("ru", dateDisplayOptions)}
 		</p>
 	{/if}
-	{#if !tournament.state && now > tournament.registrationEndDate && now < tournament.tournamentStartDate}
+	{#if isRegistrationClosed(tournament.state)}
 		<p class="tournament-status">
 			Начало {new Date(tournament.tournamentStartDate).toLocaleString(
 				"ru",
@@ -48,10 +53,10 @@
 			)}
 		</p>
 	{/if}
-	{#if tournament.state === "started" || tournament.state == "awaiting_review"}
+	{#if tournament.state === TOURNAMENT_STATE.STARTED || tournament.state === TOURNAMENT_STATE.AWAITING_REVIEW}
 		<p class="tournament-status">Турнир идёт</p>
 	{/if}
-	{#if tournament.state === "complete"}
+	{#if tournament.state === TOURNAMENT_STATE.COMPLETE}
 		<p class="tournament-status">Турнир окончен</p>
 	{/if}
 </a>

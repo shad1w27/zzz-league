@@ -2,6 +2,7 @@ import {onCall, HttpsError} from "firebase-functions/https";
 import {db} from "../../config/firebase.js";
 import {validateAdminRequest} from "../../utils/validateAdminRequest.js";
 import {defaultOptions} from "../../config/options.js";
+import {TOURNAMENT_STATE} from "../../utils/tournamentState.js";
 
 export const createTournament = onCall(defaultOptions, async (request) => {
   await validateAdminRequest(request);
@@ -55,6 +56,7 @@ export const createTournament = onCall(defaultOptions, async (request) => {
     visible: visible ?? true,
     discordRoleName: discordRoleName ?? "",
     discordChannelName: discordChannelName ?? "",
+    state: TOURNAMENT_STATE.REGISTRATION,
   });
 
   return {success: true, id};
