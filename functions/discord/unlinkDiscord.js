@@ -1,22 +1,17 @@
 import {onCall, HttpsError} from "firebase-functions/https";
 import {db} from "../config/firebase.js";
+import {DISCORD_BOT_TOKEN, DISCORD_GUILD_ID} from "../config/secrets.js";
 import {
-  DISCORD_BOT_TOKEN,
-  DISCORD_GUILD_ID,
-  DISCORD_NEWBIE_ROLE,
-  DISCORD_MID_ROLE,
-  DISCORD_HIGH_ROLE,
-} from "../config/secrets.js";
+  DISCORD_NEWBIE_ROLE_ID,
+  DISCORD_MID_ROLE_ID,
+  DISCORD_HIGH_ROLE_ID,
+} from "../config/discordRoles.js";
 import {removeMemberRole} from "./discordClient.js";
 import {defaultOptions} from "../config/options.js";
 
 export const unlinkDiscord = onCall({
   ...defaultOptions,
-  secrets: [DISCORD_BOT_TOKEN,
-    DISCORD_GUILD_ID,
-    DISCORD_NEWBIE_ROLE,
-    DISCORD_MID_ROLE,
-    DISCORD_HIGH_ROLE],
+  secrets: [DISCORD_BOT_TOKEN, DISCORD_GUILD_ID],
 }, async (request) => {
   const callerUid = request.auth?.uid;
   if (!callerUid) throw new HttpsError("unauthenticated", "Not logged in");
@@ -27,9 +22,9 @@ export const unlinkDiscord = onCall({
 
   if (player.discordId) {
     const allRoles = [
-      DISCORD_NEWBIE_ROLE.value(),
-      DISCORD_MID_ROLE.value(),
-      DISCORD_HIGH_ROLE.value(),
+      DISCORD_NEWBIE_ROLE_ID,
+      DISCORD_MID_ROLE_ID,
+      DISCORD_HIGH_ROLE_ID,
     ];
 
     await Promise.all(

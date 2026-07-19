@@ -5,9 +5,7 @@ import {
   DISCORD_CLIENT_SECRET,
   DISCORD_BOT_TOKEN,
   DISCORD_GUILD_ID,
-  DISCORD_NEWBIE_ROLE,
-  DISCORD_MID_ROLE,
-  DISCORD_HIGH_ROLE} from "../config/secrets.js";
+} from "../config/secrets.js";
 import {assignDiscordRole} from "./assignDiscordRole.js";
 import {getDiscordUser} from "./discordClient.js";
 import {defaultOptions} from "../config/options.js";
@@ -19,9 +17,6 @@ export const linkDiscord = onCall({
     DISCORD_CLIENT_SECRET,
     DISCORD_BOT_TOKEN,
     DISCORD_GUILD_ID,
-    DISCORD_NEWBIE_ROLE,
-    DISCORD_MID_ROLE,
-    DISCORD_HIGH_ROLE,
   ],
 }, async (request) => {
   const callerUid = request.auth?.uid;

@@ -78,8 +78,8 @@ export const finishTournament = onCall({
     winnerId,
   });
 
-  await deleteTournamentDiscordRole(tournamentId);
   await deleteTournamentDiscordChannel(tournamentId);
+  await deleteTournamentDiscordRole(tournamentId);
 
   return {success: true};
 });

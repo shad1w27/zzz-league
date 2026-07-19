@@ -3,9 +3,6 @@ import {db} from "../config/firebase.js";
 import {
   DISCORD_BOT_TOKEN,
   DISCORD_GUILD_ID,
-  DISCORD_NEWBIE_ROLE,
-  DISCORD_MID_ROLE,
-  DISCORD_HIGH_ROLE,
 } from "../config/secrets.js";
 import {assignDiscordRole} from "../discord/assignDiscordRole.js";
 import {validateAdminRequest} from "../utils/validateAdminRequest.js";
@@ -13,8 +10,7 @@ import {defaultOptions} from "../config/options.js";
 
 export const finalizeTournament = onCall({
   ...defaultOptions,
-  secrets: [DISCORD_BOT_TOKEN, DISCORD_GUILD_ID,
-    DISCORD_NEWBIE_ROLE, DISCORD_MID_ROLE, DISCORD_HIGH_ROLE],
+  secrets: [DISCORD_BOT_TOKEN, DISCORD_GUILD_ID],
 }, async (request) => {
   await validateAdminRequest(request);
 

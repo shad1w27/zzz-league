@@ -57,15 +57,15 @@ export const deleteTournament = onCall({
   }
 
   try {
-    await deleteTournamentDiscordRole(tournamentId);
-  } catch (error) {
-    cleanupErrors.push(`Discord role: ${error.message}`);
-  }
-
-  try {
     await deleteTournamentDiscordChannel(tournamentId);
   } catch (error) {
     cleanupErrors.push(`Discord channel: ${error.message}`);
+  }
+
+  try {
+    await deleteTournamentDiscordRole(tournamentId);
+  } catch (error) {
+    cleanupErrors.push(`Discord role: ${error.message}`);
   }
 
   await db.ref("tournaments/" + tournamentId).remove();

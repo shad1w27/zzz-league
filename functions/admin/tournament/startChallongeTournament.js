@@ -4,7 +4,6 @@ import {
   CHALLONGE_API_KEY,
   DISCORD_BOT_TOKEN,
   DISCORD_GUILD_ID,
-  DISCORD_TOURNAMENT_CATEGORY_ID,
 } from "../../config/secrets.js";
 import {createTournamentDiscordResources}
   from "../../discord/tournamentDiscordResources.js";
@@ -20,7 +19,6 @@ export const startChallongeTournament = onCall({
     CHALLONGE_API_KEY,
     DISCORD_BOT_TOKEN,
     DISCORD_GUILD_ID,
-    DISCORD_TOURNAMENT_CATEGORY_ID,
   ],
 }, async (request) => {
   await validateAdminRequest(request);
@@ -82,8 +80,25 @@ export const startChallongeTournament = onCall({
     state: TOURNAMENT_STATE.STARTED,
   });
 
-  await updateTournamentGames(tournamentId, tournament.challongeTournamentId);
-  await createTournamentDiscordResources(tournamentId);
+  const followUpErrors = [];
+
+  try {
+    await updateTournamentGames(tournamentId, tournament.challongeTournamentId);
+  } catch (error) {
+    followUpErrors.push(`Match sync: ${error.message}`);
+  }
+
+  try {
+    await createTournamentDiscordResources(tournamentId);
+  } catch (error) {
+    followUpErrors.push(`Discord: ${error.message}`);
+  }
+
+  if (followUpErrors.length > 0) {
+    throw new HttpsError("internal",
+        `Tournament started, but follow-up steps failed: ` +
+        followUpErrors.join("; "));
+  }
 
   return {success: true};
 });

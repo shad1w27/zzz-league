@@ -1,8 +1,9 @@
 import {db} from "../config/firebase.js";
+import {DISCORD_GUILD_ID} from "../config/secrets.js";
 import {
-  DISCORD_GUILD_ID,
   DISCORD_TOURNAMENT_CATEGORY_ID,
-} from "../config/secrets.js";
+  DISCORD_TOURNAMENT_STAFF_ROLE_IDS,
+} from "../config/discordRoles.js";
 import {
   addMemberRole,
   createGuildRole,
@@ -42,29 +43,29 @@ export async function createTournamentDiscordResources(tournamentId) {
   if (!tournament) return;
   if (!tournament.discordRoleName && !tournament.discordChannelName) return;
 
-  const updates = {};
   let roleId = tournament.discordRoleId;
 
   if (tournament.discordRoleName && !roleId) {
     const role = await createGuildRole(tournament.discordRoleName);
     roleId = role.id;
-    updates.discordRoleId = roleId;
+    await db.ref(`tournaments/${tournamentId}`).update({discordRoleId: roleId});
   }
 
   if (tournament.discordChannelName && !tournament.discordChannelId) {
     const permissionOverwrites = [
       {id: DISCORD_GUILD_ID.value(), type: 0, deny: CHANNEL_PERMISSIONS},
       ...(roleId ? [{id: roleId, type: 0, allow: CHANNEL_PERMISSIONS}] : []),
+      ...DISCORD_TOURNAMENT_STAFF_ROLE_IDS.map(
+          (staffRoleId) =>
+            ({id: staffRoleId, type: 0, allow: CHANNEL_PERMISSIONS}),
+      ),
     ];
     const channel = await createGuildChannel(tournament.discordChannelName, {
-      parentId: DISCORD_TOURNAMENT_CATEGORY_ID.value(),
+      parentId: DISCORD_TOURNAMENT_CATEGORY_ID,
       permissionOverwrites,
     });
-    updates.discordChannelId = channel.id;
-  }
-
-  if (Object.keys(updates).length > 0) {
-    await db.ref(`tournaments/${tournamentId}`).update(updates);
+    await db.ref(`tournaments/${tournamentId}`)
+        .update({discordChannelId: channel.id});
   }
 
   if (roleId) {
