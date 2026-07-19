@@ -1,0 +1,1 @@
+import{K as e,P as t,q as n,z as r}from"./B1NO0hb7.js";function i(i){let a=n(null);return r(()=>{let t=i();if(!t){e(a,null);return}let n=URL.createObjectURL(t);return e(a,n,!0),()=>URL.revokeObjectURL(n)}),{get url(){return t(a)}}}export{i as t};
