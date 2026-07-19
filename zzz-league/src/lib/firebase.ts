@@ -128,6 +128,12 @@ export async function approveRegistration(tournamentId: string, uid: string, app
 	});
 }
 
+export async function createChallongeBracket(tournamentId: string): Promise<void> {
+	await httpsCallable(functions, 'createChallongeBracket')({
+		tournamentId,
+	});
+}
+
 export async function startChallongeTournament(tournamentId: string): Promise<void> {
 	await httpsCallable(functions, 'startChallongeTournament')({
 		tournamentId,

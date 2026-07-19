@@ -9,6 +9,7 @@
 	import TournamentAddPlayerPopup from "$lib/components/TournamentAddPlayerPopup.svelte";
 	import {
 		closeTournamentRegistration,
+		createChallongeBracket,
 		db,
 		deleteTournament,
 		finishTournament,
@@ -25,7 +26,8 @@
 	} from "$lib/types";
 	import {
 		TOURNAMENT_STATE,
-		hasTournamentStarted,
+		isBracketCreated,
+		isLocked,
 		isRegistrationClosed,
 		isRegistrationOpen,
 	} from "$lib/tournamentState";
@@ -109,6 +111,25 @@
 			alert(error);
 		} finally {
 			closingRegistration = false;
+		}
+	}
+
+	let creatingBracket = $state(false);
+	async function handleCreateBracket() {
+		if (creatingBracket || !tournament) return;
+		if (
+			!confirm(
+				"Создать сетку Challonge? После этого список участников менять нельзя.",
+			)
+		)
+			return;
+		creatingBracket = true;
+		try {
+			await createChallongeBracket(tournament.id);
+		} catch (error) {
+			alert(error);
+		} finally {
+			creatingBracket = false;
 		}
 	}
 
@@ -339,6 +360,9 @@
 				{#if isRegistrationOpen(tournament.state) && now > tournament.registrationStartDate}
 					<p>Идёт регистрация</p>
 				{/if}
+				{#if isBracketCreated(tournament.state)}
+					<p>Сетка создана, ожидает начала</p>
+				{/if}
 				{#if tournament.state === TOURNAMENT_STATE.STARTED}
 					<p>Турнир идёт</p>
 				{/if}
@@ -353,7 +377,7 @@
 							class:btn-loading={deletingTournament}
 							onclick={handleDeleteTournament}>Удалить турнир</button
 						>
-						{#if !hasTournamentStarted(tournament.state) && !tournament.challongeTournamentId}
+						{#if !isLocked(tournament.state)}
 							<a
 								class="btn-common"
 								href={resolve(`/tournaments/${tournament.id}/edit`)}
@@ -379,6 +403,19 @@
 									>Разделить на сетки</a
 								>
 							{/if}
+							<button
+								class="btn-common btn-play"
+								class:btn-loading={creatingBracket}
+								onclick={handleCreateBracket}>Создать сетку Challonge</button
+							>
+						{/if}
+						{#if isBracketCreated(tournament.state)}
+							<a
+								class="btn-common"
+								href={tournament.challongeTournamentUrl}
+								target="_blank"
+								rel="noopener noreferrer">Открыть в Challonge</a
+							>
 							<button
 								class="btn-common btn-play"
 								class:btn-loading={startingTournament}

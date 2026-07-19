@@ -6,7 +6,7 @@
 	import { db, splitTournament } from "$lib/firebase";
 	import { isAdmin, playersByUid } from "$lib/store";
 	import type { Tournament, TournamentRegistration } from "$lib/types";
-	import { hasTournamentStarted } from "$lib/tournamentState";
+	import { isLocked } from "$lib/tournamentState";
 	import { get, ref } from "firebase/database";
 	import { onMount, untrack } from "svelte";
 
@@ -162,7 +162,7 @@
 				loadError = "Турнир не найден.";
 				return;
 			}
-			if (hasTournamentStarted(data.state) || data.challongeTournamentId) {
+			if (isLocked(data.state) || data.challongeTournamentId) {
 				loadError = "Турнир уже начался, разделение недоступно.";
 				return;
 			}

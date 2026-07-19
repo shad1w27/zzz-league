@@ -4,12 +4,10 @@
 	import { page } from "$app/state";
 	import SidePanel from "$lib/components/SidePanel.svelte";
 	import { applyForTournament, db } from "$lib/firebase";
+	import { useObjectUrlPreview } from "$lib/imagePreview.svelte.js";
 	import { currentUser, isAdmin } from "$lib/store";
 	import type { Tournament, TournamentRegistration } from "$lib/types";
-	import {
-		hasTournamentStarted,
-		isRegistrationOpen,
-	} from "$lib/tournamentState";
+	import { isLocked, isRegistrationOpen } from "$lib/tournamentState";
 	import {
 		bustCache,
 		dateDisplayOptions,
@@ -41,6 +39,11 @@
 	let hoyolabScreenshot = $state<FileList | null>(null);
 	let awareness = $state(false);
 	let status = $state("");
+
+	let rosterScreenshotPreview = useObjectUrlPreview(() => rosterScreenshot?.[0]);
+	let hoyolabScreenshotPreview = useObjectUrlPreview(
+		() => hoyolabScreenshot?.[0],
+	);
 
 	let fieldsInitialized = false;
 	function applyRegistrationData(reg: TournamentRegistration | null) {
@@ -213,7 +216,7 @@
 				<p class="notice">Войдите, чтобы зарегистрироваться на турнир.</p>
 			{:else if !tierEligible}
 				<p class="notice">Ваш тир не подходит для этого турнира.</p>
-			{:else if hasTournamentStarted(tournament.state) || tournament.challongeTournamentId}
+			{:else if isLocked(tournament.state) || tournament.challongeTournamentId}
 				<p class="notice">Турнир уже начался, регистрация закрыта.</p>
 			{:else if !registrationWindowOpen}
 				<p class="notice">Регистрация на турнир закрыта.</p>
@@ -290,6 +293,14 @@
 					</button>
 					<p class="notice">Оставьте пустым, чтобы не менять скриншот</p>
 				{/if}
+				{#if rosterScreenshotPreview.url}
+					<button
+						class="img-btn"
+						onclick={() => openImagePopup(rosterScreenshotPreview.url!)}
+					>
+						<img src={rosterScreenshotPreview.url} alt="" />
+					</button>
+				{/if}
 
 				<hr style="width: 100%" />
 
@@ -318,6 +329,14 @@
 						<img src={bustCache(regHoyolabScreenshot)} alt="" />
 					</button>
 					<p class="notice">Оставьте пустым, чтобы не менять скриншот</p>
+				{/if}
+				{#if hoyolabScreenshotPreview.url}
+					<button
+						class="img-btn"
+						onclick={() => openImagePopup(hoyolabScreenshotPreview.url!)}
+					>
+						<img src={hoyolabScreenshotPreview.url} alt="" />
+					</button>
 				{/if}
 
 				<hr style="width: 100%" />
