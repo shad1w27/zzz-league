@@ -66,13 +66,18 @@
 	}
 
 	$effect(() => {
+		const currentViewerId = viewerId;
 		const historyRef = query(ref(db, "historyV3"), orderByChild("timestamp"));
 
 		const unsubscribe = onValue(historyRef, (snapshot) => {
 			const result: HistoryEntry[] = [];
 			snapshot.forEach((child) => {
 				const entry = child.val() as HistoryEntry;
-				if (!viewerId || entry.p1 === viewerId || entry.p2 === viewerId) {
+				if (
+					!currentViewerId ||
+					entry.p1 === currentViewerId ||
+					entry.p2 === currentViewerId
+				) {
 					result.push(entry);
 				}
 			});

@@ -23,6 +23,7 @@
 	import type { Player } from "$lib/types";
 	import ImageViwerPopup from "$lib/components/ImageViwerPopup.svelte";
 	import SiteHeader from "$lib/components/Header.svelte";
+	import favicon from "$lib/assets/favicon.png";
 
 	let { children } = $props();
 
@@ -77,6 +78,10 @@
 		};
 	});
 </script>
+
+<svelte:head>
+	<link rel="icon" href={favicon} />
+</svelte:head>
 
 <SiteHeader />
 

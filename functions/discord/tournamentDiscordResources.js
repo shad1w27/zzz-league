@@ -9,13 +9,15 @@ import {
   deleteGuildRole,
   createGuildChannel,
   deleteGuildChannel,
-  forEachWithRateLimitDelay,
+  PERMISSION_VIEW_CHANNEL,
   PERMISSION_SEND_MESSAGES,
   PERMISSION_ADD_REACTIONS,
 } from "./discordClient.js";
 
-const WRITE_PERMISSIONS =
-  String(PERMISSION_SEND_MESSAGES | PERMISSION_ADD_REACTIONS);
+const CHANNEL_PERMISSIONS = String(
+    PERMISSION_VIEW_CHANNEL | PERMISSION_SEND_MESSAGES |
+    PERMISSION_ADD_REACTIONS,
+);
 
 async function getApprovedDiscordPlayers(tournamentId) {
   const regSnap = await db
@@ -51,8 +53,8 @@ export async function createTournamentDiscordResources(tournamentId) {
 
   if (tournament.discordChannelName && !tournament.discordChannelId) {
     const permissionOverwrites = [
-      {id: DISCORD_GUILD_ID.value(), type: 0, deny: WRITE_PERMISSIONS},
-      ...(roleId ? [{id: roleId, type: 0, allow: WRITE_PERMISSIONS}] : []),
+      {id: DISCORD_GUILD_ID.value(), type: 0, deny: CHANNEL_PERMISSIONS},
+      ...(roleId ? [{id: roleId, type: 0, allow: CHANNEL_PERMISSIONS}] : []),
     ];
     const channel = await createGuildChannel(tournament.discordChannelName, {
       parentId: DISCORD_TOURNAMENT_CATEGORY_ID.value(),
@@ -67,8 +69,9 @@ export async function createTournamentDiscordResources(tournamentId) {
 
   if (roleId) {
     const players = await getApprovedDiscordPlayers(tournamentId);
-    await forEachWithRateLimitDelay(players,
-        (player) => addMemberRole(player.discordId, roleId));
+    await Promise.all(
+        players.map((player) => addMemberRole(player.discordId, roleId)),
+    );
   }
 }
 

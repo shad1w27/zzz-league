@@ -9,25 +9,17 @@
 		updatePassword,
 	} from "firebase/auth";
 
-	const user = $currentUser!;
+	let user = $derived($currentUser!);
 
-	let username = $state("");
-	let email = $state("");
+	// svelte-ignore state_referenced_locally
+	let username = $state(user.name);
+	let email = $state(auth.currentUser?.email ?? "");
 	let currentPassword = $state("");
 	let newPassword = $state("");
 	let confirmPass = $state("");
-	let discord = $state("");
 	let status = $state("");
 	let savingSettings = $state(false);
-
-	$effect(() => {
-		if (!user) return;
-
-		username = user.name;
-		email = auth.currentUser?.email ?? "";
-
-		discord = user.discord ?? "";
-	});
+	let unlinkingDiscord = $state(false);
 
 	function close() {
 		currentPassword = "";
@@ -46,10 +38,14 @@
 	}
 
 	async function handleUnlinkDiscord() {
+		if (unlinkingDiscord) return;
+		unlinkingDiscord = true;
 		try {
 			await unlinkDiscord();
 		} catch (error: any) {
 			status = error.message;
+		} finally {
+			unlinkingDiscord = false;
 		}
 	}
 
@@ -71,7 +67,10 @@
 						currentPassword,
 					);
 
-					await reauthenticateWithCredential(auth.currentUser!, credential);
+					await reauthenticateWithCredential(
+						auth.currentUser!,
+						credential,
+					);
 					await updatePassword(auth.currentUser!, newPassword);
 					successPw = true;
 				} catch (error: any) {
@@ -134,14 +133,17 @@
 				id="settings-discord"
 				type="text"
 				class="input-disabled"
-				bind:value={discord}
+				value={user.discord ?? ""}
 				placeholder="Discord"
 				disabled
 			/>
 		</div>
 		{#if user.discordId}
-			<button class="btn-common" onclick={() => handleUnlinkDiscord()}
-				>Отвязать Discord</button
+			<button
+				class="btn-common"
+				class:btn-loading={unlinkingDiscord}
+				disabled={unlinkingDiscord}
+				onclick={() => handleUnlinkDiscord()}>Отвязать Discord</button
 			>
 		{:else}
 			<button class="btn-common" onclick={() => handleLinkDiscord()}

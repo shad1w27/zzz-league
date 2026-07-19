@@ -9,6 +9,7 @@ import {
   DISCORD_MID_ROLE,
   DISCORD_HIGH_ROLE} from "../config/secrets.js";
 import {assignDiscordRole} from "./assignDiscordRole.js";
+import {getDiscordUser} from "./discordClient.js";
 import {defaultOptions} from "../config/options.js";
 
 export const linkDiscord = onCall({
@@ -41,15 +42,16 @@ export const linkDiscord = onCall({
   });
 
   const tokenData = await tokenRes.json();
-
-  const userRes = await fetch("https://discord.com/api/users/@me", {
-    headers: {Authorization: `Bearer ${tokenData.access_token}`},
-  });
-  const discordUser = await userRes.json();
-
-  if (!discordUser.id) {
+  if (!tokenData.access_token) {
     throw new HttpsError("internal",
-        `Discord error: ${JSON.stringify(discordUser)}`);
+        `Discord error: ${JSON.stringify(tokenData)}`);
+  }
+
+  let discordUser;
+  try {
+    discordUser = await getDiscordUser(tokenData.access_token);
+  } catch (error) {
+    throw new HttpsError("internal", `Discord error: ${error.message}`);
   }
 
   await db.ref("players/" + callerUid).update({
