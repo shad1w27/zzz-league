@@ -26,6 +26,7 @@
 	} from "$lib/types";
 	import {
 		TOURNAMENT_STATE,
+		hasTournamentStarted,
 		isBracketCreated,
 		isLocked,
 		isRegistrationClosed,
@@ -455,7 +456,7 @@
 				</h2>
 			{/if}
 
-			{#if tournament.challongeTournamentUrl}
+			{#if tournament.challongeTournamentUrl && hasTournamentStarted(tournament.state)}
 				<iframe
 					title="challonge iframe"
 					src="{tournament.challongeTournamentUrl}/module"
