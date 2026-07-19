@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { approveRegistration } from "$lib/firebase";
 	import { isAdmin } from "$lib/store";
-	import type { Player, RegisteredPlayer, Tournament } from "$lib/types";
+	import type { RegisteredPlayer, Tournament } from "$lib/types";
 	import { hasTournamentStarted } from "$lib/tournamentState";
-	import { openProfilePopup } from "$lib/uiCommon";
+	import { getLvl, getTier, openProfilePopup } from "$lib/uiCommon";
+	import PointsDelta from "$lib/components/PointsDelta.svelte";
 
 	interface Props {
 		registrations: RegisteredPlayer[];
@@ -43,16 +44,6 @@
 		approveRegistration(tournament!.id, uid, !approved);
 	}
 
-	function getTier(p: Player) {
-		if (p.isHighConfirmed) return { cls: "t-high", name: "HIGH TIER" };
-		if (p.isMidConfirmed) return { cls: "t-mid", name: "MID TIER" };
-		return { cls: "t-newbie", name: "NEWBIE" };
-	}
-
-	function getLvl(elo: number) {
-		return Math.min(10, Math.floor(((elo || 1000) - 1000) / 40) + 1);
-	}
-
 	let canViewRegistrations = $derived(
 		$isAdmin || hasTournamentStarted(tournament?.state),
 	);
@@ -87,14 +78,7 @@
 				</td>
 				<td>
 					<b>{elo}</b>
-					{#if reg.player.tournamentPoints}
-						<small
-							class={reg.player.tournamentPoints > 0 ? "gain" : "loss"}
-						>
-							({reg.player.tournamentPoints > 0 ? "+" : ""}{reg.player
-								.tournamentPoints})
-						</small>
-					{/if}
+					<PointsDelta points={reg.player.tournamentPoints} />
 				</td>
 				<td><span class="lvl-badge">L{getLvl(elo)}</span></td>
 				<td><span>{reg.registration.approved ? "✅" : "❌"}</span></td>

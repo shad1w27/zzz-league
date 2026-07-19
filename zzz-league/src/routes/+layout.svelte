@@ -9,6 +9,7 @@
 		currentUser,
 		isAdmin,
 		players,
+		tournaments,
 		viewingImage,
 	} from "$lib/store";
 
@@ -20,7 +21,7 @@
 	import { onAuthStateChanged } from "firebase/auth";
 	import { onValue, ref } from "firebase/database";
 	import { auth, db } from "$lib/firebase";
-	import type { Player } from "$lib/types";
+	import type { Player, Tournament } from "$lib/types";
 	import ImageViwerPopup from "$lib/components/ImageViwerPopup.svelte";
 	import SiteHeader from "$lib/components/Header.svelte";
 	import favicon from "$lib/assets/favicon.png";
@@ -71,10 +72,16 @@
 				: [];
 		});
 
+		const unsubTournaments = onValue(ref(db, "tournaments"), (snap) => {
+			const val = snap.val();
+			$tournaments = val ? (Object.values(val) as Tournament[]) : [];
+		});
+
 		return () => {
 			unsubAuth();
 			if (unsubUser) unsubUser();
 			unsubPlayers();
+			unsubTournaments();
 		};
 	});
 </script>

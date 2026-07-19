@@ -5,7 +5,7 @@
 
 	let {
 		open = $bindable(false),
-		tournament = $bindable(),
+		tournament = undefined,
 		registeredUids = [],
 	}: {
 		open?: boolean;

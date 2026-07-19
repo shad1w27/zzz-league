@@ -1,33 +1,23 @@
 <script lang="ts">
 	import { onMount } from "svelte";
-	import { db } from "$lib/firebase";
-	import { ref, onValue } from "firebase/database";
-	import type { Tournament } from "$lib/types";
 	import SidePanel from "$lib/components/SidePanel.svelte";
 	import TournamentCard from "$lib/components/TournamentCard.svelte";
-	import { isAdmin } from "$lib/store";
+	import { isAdmin, tournaments } from "$lib/store";
 
-	let allTournaments = $state<Tournament[]>([]);
 	let now = $state(Date.now());
 
 	let sortedTournaments = $derived(
-		[...allTournaments]
+		[...$tournaments]
 			.filter((t) => t.visible !== false || $isAdmin)
 			.sort((a, b) => b.tournamentStartDate - a.tournamentStartDate),
 	);
 
 	onMount(() => {
-		const unsubTournaments = onValue(ref(db, "tournaments"), (snap) => {
-			const val = snap.val();
-			allTournaments = val ? (Object.values(val) as Tournament[]) : [];
-		});
-
 		const interval = setInterval(() => {
 			now = Date.now();
 		}, 1000);
 
 		return () => {
-			unsubTournaments();
 			clearInterval(interval);
 		};
 	});

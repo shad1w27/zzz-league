@@ -2,12 +2,12 @@
 	import { deletePlayer, updatePlayerElo } from "$lib/firebase";
 	import { isAdmin } from "$lib/store";
 	import type { Player } from "$lib/types";
-	import { openProfilePopup } from "$lib/uiCommon";
+	import { getLvl, getTier, openProfilePopup } from "$lib/uiCommon";
+	import PointsDelta from "$lib/components/PointsDelta.svelte";
 
 	interface Props {
 		players?: Player[];
 		hideOptions?: boolean;
-		isAdmin?: boolean;
 		searchQuery?: string;
 	}
 
@@ -52,18 +52,8 @@
 		}
 	}
 
-	function getTier(p: Player) {
-		if (p.isHighConfirmed) return { cls: "t-high", name: "HIGH TIER" };
-		if (p.isMidConfirmed) return { cls: "t-mid", name: "MID TIER" };
-		return { cls: "t-newbie", name: "NEWBIE" };
-	}
-
 	function getLadderPos(p: Player) {
 		return sortedPlayers.indexOf(p);
-	}
-
-	function getLvl(elo: number) {
-		return Math.min(10, Math.floor(((elo || 1000) - 1000) / 40) + 1);
 	}
 </script>
 
@@ -95,13 +85,7 @@
 				</td>
 				<td>
 					<b>{elo}</b>
-					{#if player.tournamentPoints}
-						<small class={player.tournamentPoints > 0 ? "gain" : "loss"}>
-							({player.tournamentPoints > 0
-								? "+"
-								: ""}{player.tournamentPoints})
-						</small>
-					{/if}
+					<PointsDelta points={player.tournamentPoints} />
 				</td>
 				<td><span class="lvl-badge">L{getLvl(elo)}</span></td>
 				{#if $isAdmin && !hideOptions}

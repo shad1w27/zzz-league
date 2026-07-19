@@ -2,9 +2,10 @@
 	import { resolve } from "$app/paths";
 	import { isAdmin } from "$lib/store";
 	import type { Player } from "$lib/types";
-	import { closeProfilePopup } from "$lib/uiCommon";
+	import { closeProfilePopup, getTier } from "$lib/uiCommon";
+	import PointsDelta from "$lib/components/PointsDelta.svelte";
 
-	let { player = $bindable<Player | null>(null) } = $props();
+	let { player = null }: { player?: Player | null } = $props();
 
 	let stats = $derived.by(() => {
 		const wins = player?.wins ?? 0;
@@ -17,12 +18,6 @@
 			winRate: total > 0 ? Math.round((wins / total) * 100) : 0,
 		};
 	});
-
-	function getTier(p: Player) {
-		if (p.isHighConfirmed) return { name: "HIGH TIER", cls: "t-high" };
-		if (p.isMidConfirmed) return { name: "MID TIER", cls: "t-mid" };
-		return { name: "NEWBIE", cls: "t-newbie" };
-	}
 </script>
 
 <div class="popup">
@@ -46,17 +41,11 @@
 					<div class="stat-label">ELO</div>
 					<div id="elo" class="stat-value gold">
 						{player.elo ?? 1000}
-						{#if player.tournamentPoints}
-							<span
-								class="points {player.tournamentPoints > 0
-									? 'gain'
-									: 'loss'}"
-							>
-								({player.tournamentPoints > 0
-									? "+"
-									: ""}{player.tournamentPoints})
-							</span>
-						{/if}
+						<PointsDelta
+							points={player.tournamentPoints}
+							tag="span"
+							class="points"
+						/>
 					</div>
 				</div>
 				<div class="stat-item">

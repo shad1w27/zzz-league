@@ -102,7 +102,7 @@
 		</div>
 	{/if}
 
-	{#if $isAdmin || false}
+	{#if $isAdmin}
 		<AdminPanel />
 	{/if}
 </div>
